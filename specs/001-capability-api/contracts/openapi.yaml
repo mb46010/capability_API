@@ -1,0 +1,84 @@
+openapi: 3.0.0
+info:
+  title: HR AI Platform Capability API
+  version: 1.0.0
+  description: Governed API exposing deterministic actions and long-running HR flows.
+
+paths:
+  /actions/{action_name}:
+    post:
+      summary: Execute a short-lived deterministic action
+      parameters:
+        - name: action_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Action executed successfully
+        '403':
+          description: Forbidden - Insufficient capability scopes
+        '401':
+          description: Unauthorized - Invalid Okta OIDC token
+
+  /flows/{flow_name}/start:
+    post:
+      summary: Trigger a long-running HR flow
+      parameters:
+        - name: flow_name
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '202':
+          description: Flow started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  execution_id:
+                    type: string
+
+  /flows/executions/{execution_id}/status:
+    get:
+      summary: Get status of a running flow
+      parameters:
+        - name: execution_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Flow status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [RUNNING, SUCCEEDED, FAILED, WAITING_FOR_APPROVAL]
+
+components:
+  securitySchemes:
+    OktaOIDC:
+      type: openIdConnect
+      openIdConnectUrl: https://okta.example.com/.well-known/openid-configuration
+security:
+  - OktaOIDC: []
