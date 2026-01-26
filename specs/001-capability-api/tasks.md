@@ -1,99 +1,56 @@
-# Tasks: Capability API
+# Tasks: Mock Scenarios Implementation
 
-**Feature**: `001-capability-api`
+**Feature**: `001-capability-api` (Mock Scenarios Enhancement)
 **Status**: Planned
 **Spec**: [specs/001-capability-api/spec.md](specs/001-capability-api/spec.md)
 
-## Phase 1: Setup
-*Goal: Initialize project structure and dependencies.*
+## Phase 1: Setup & Configuration
+*Goal: Prepare the environment with necessary data and policy rules.*
 
-- [X] T001 Create Python virtual environment and install dependencies (fastapi, uvicorn, pydantic, pyyaml, httpx, tenacity, authlib) in `requirements.txt`
-- [X] T002 Create project directory structure (src/api, src/domain, src/adapters, src/lib, tests) per `plan.md`
-- [X] T003 [P] Configure `pyproject.toml` or `pytest.ini` for testing configuration
-- [X] T004 [P] Create `.env.example` with required environment variables (LOG_LEVEL, POLICY_PATH, OKTA_ISSUER)
-- [X] T005 Create `src/main.py` entry point with basic FastAPI app shell
+- [X] T101 Update `config/policy.yaml` with the complex policy definitions provided in the user request (Test Data Fixtures).
+- [X] T102 [P] Create `tests/integration/conftest.py` (if not exists) or update it to support the new scenarios (e.g., fixtures for tokens).
 
-## Phase 2: Foundational (US1 - Policy Engine)
-*Goal: Implement the core Python-native policy engine to validate permissions.*
-*Prerequisites: Phase 1*
+## Phase 2: Mock Connector Enhancement
+*Goal: Make the mock connector realistic with data fixtures and delays.*
 
-### Independent Test Criteria
-- Unit tests verify `PolicyEngine` correctly evaluates `ALLOW`/`DENY` based on `policy-schema.json` rules.
-- Tests cover wildcard matching, environment filtering, and principal resolution.
+- [X] T103 Enhance `src/adapters/connectors/mock_connector.py` to support in-memory Employee DB (CRUD).
+- [X] T104 Add `time.sleep()` delays to `MockConnectorAdapter` methods to simulate realistic latency.
+- [X] T105 Implement "Failure Injection" capability in `MockConnectorAdapter` (e.g. trigger errors based on input IDs).
 
-### Tasks
-- [X] T006 [US1] Create mandatory tests for Policy Engine logic in `tests/unit/test_policy_engine.py`
-- [X] T007 [P] [US1] Implement Pydantic models for Policy entities in `src/domain/entities/policy.py` matching `data-model.md`
-- [X] T008 [US1] Implement `PolicyLoader` port and file adapter in `src/adapters/filesystem/policy_loader.py` to read YAML
-- [X] T009 [US1] Implement `PolicyEngine` service in `src/domain/services/policy_engine.py` with evaluation logic (precedence, wildcards)
-- [X] T010 [US1] Create sample `config/policy.yaml` for local development/testing
+## Phase 3: Scenario Implementation (Integration Tests)
+*Goal: Implement the scenarios as executable tests.*
 
-## Phase 3: User Story 2 - Action Execution
-*Goal: Execute short-lived actions via API with provenance and MCP integration.*
-*Prerequisites: Phase 2*
+- [X] T106 [US1] Implement Scenario 1 (Employee Lookup) tests in `tests/integration/test_scenarios.py`.
+    - 1.1 Admin Full Access
+    - 1.2 AI Agent Limited Access (Field filtering logic needed in Connector or Service?) -> *Note: Connector should likely return full data, Service/Policy might filter, OR Connector filters based on caller. For MVP, Service/Adapter logic update might be needed.* **Decision**: Implement field filtering in `MockConnectorAdapter` based on principal role/type passed in context (if available) or assume Policy check limits access to specific "views" (e.g. `get_employee_public` vs `get_employee_full`). *Refinement*: The Spec 1.2 says "Response contains LIMITED employee record". The `ActionService` just passes data through. We'll simulate this by having the Connector return different data or the Service filtering. Let's make the Connector smart enough for this mock.
+    - 1.3 AI Agent Denied Compensation
+    - 1.4 Unauthorized Denied
+    - 1.5 Machine Workflow Scoped Access
+- [X] T107 [US3] Implement Scenario 2 (Onboarding Flow) tests in `tests/integration/test_scenarios.py`.
+    - 2.1 Machine triggers flow & status check
+    - 2.2 AI Agent denied
+    - 2.3 Admin triggers flow
+    - 2.4 Flow state transitions (Simulate via FlowRunner internals or helper)
+    - 2.5 Flow failure handling
+- [X] T108 [US4] Implement Scenario 3 (Auth & Token Lifecycle) tests in `tests/integration/test_scenarios.py`.
+    - 3.1 Valid token
+    - 3.2 Expired token
+    - 3.3 Revoked token
+    - 3.4 TTL enforcement
+    - 3.5 MFA missing
+    - 3.6 Tampered token
+- [X] T109 [US2] Implement Scenario 4 (Provenance) tests in `tests/integration/test_scenarios.py`.
+    - 4.1 Provenance structure
+    - 4.2 Audit levels
+- [X] T110 [US2] Implement Scenario 5 (Edge Cases) tests in `tests/integration/test_scenarios.py`.
+    - 5.1 Non-existent employee
+    - 5.2 Connector timeout
+    - 5.3 Malformed request
+    - 5.4 Unknown capability
+    - 5.5 Flow not found
 
-### Independent Test Criteria
-- Integration tests verify `/actions/{domain}/{action}` returns 200 OK with valid policy.
-- Tests verify 403 Forbidden when policy denies access.
-- Tests verify response contains "JSON with Provenance" structure.
+## Phase 4: Refinement
+*Goal: Ensure all tests pass and implementation details match requirements.*
 
-### Tasks
-- [X] T011 [US2] Create mandatory contract tests for Action endpoints in `tests/integration/test_action_routes.py`
-- [X] T012 [P] [US2] Implement `ActionRequest` and `ActionResponse` models in `src/domain/entities/action.py`
-- [X] T013 [P] [US2] Define `ConnectorPort` interface in `src/domain/ports/connector.py`
-- [X] T014 [US2] Implement `MockConnectorAdapter` in `src/adapters/connectors/mock_connector.py` for testing (simulating MCP)
-- [X] T015 [US2] Implement `ActionService` in `src/domain/services/action_service.py` integrating Policy check and Connector call
-- [X] T016 [US2] Implement FastAPI routes for actions in `src/api/routes/actions.py`
-- [X] T017 [US2] Register action routes in `src/api/main.py`
-
-## Phase 4: User Story 3 - Flow Orchestration
-*Goal: Trigger and track long-running flows using a local runner.*
-*Prerequisites: Phase 3*
-
-### Independent Test Criteria
-- Integration tests verify `/flows/...` endpoints for start and status.
-- Tests verify FlowRunner correctly handles state transitions (mocked).
-
-### Tasks
-- [X] T018 [US3] Create mandatory tests for FlowRunner logic in `tests/unit/test_flow_runner.py`
-- [X] T019 [P] [US3] Implement `FlowStartRequest` and `FlowStatusResponse` models in `src/domain/entities/flow.py`
-- [X] T020 [US3] Define `FlowRunnerPort` interface in `src/domain/ports/flow_runner.py`
-- [X] T021 [US3] Implement `LocalFlowRunnerAdapter` in `src/adapters/filesystem/local_flow_runner.py` (in-memory/file state)
-- [X] T022 [US3] Implement FastAPI routes for flows in `src/api/routes/flows.py`
-- [X] T023 [US3] Register flow routes in `src/api/main.py`
-
-## Phase 5: User Story 4 - Security & Observability
-*Goal: Secure the API and ensure PII masking in logs.*
-*Prerequisites: Phase 4*
-
-### Independent Test Criteria
-- Tests verify PII (e.g., email) is masked in logs.
-- Tests verify requests without valid OIDC tokens are rejected (401).
-
-### Tasks
-- [X] T024 [US4] Create mandatory tests for PII masking and Auth middleware in `tests/unit/test_security.py`
-- [X] T025 [P] [US4] Implement PII masking formatter in `src/lib/logging.py`
-- [X] T026 [US4] Implement Mock OIDC/Auth middleware in `src/api/dependencies.py` to simulate Okta
-- [X] T027 [US4] Apply Auth dependency to all API routes
-- [X] T028 [US4] Verify "JSON with Provenance" output across all endpoints
-
-## Phase 6: Polish & Cross-Cutting
-*Goal: Documentation and final cleanup.*
-
-- [X] T029 Create `README.md` with instructions from `quickstart.md`
-- [X] T030 Ensure `openapi.yaml` matches the generated FastAPI OpenAPI schema
-- [X] T031 Run full test suite and ensure 95%+ coverage
-- [X] T032 Clean up temporary files and verified artifacts
-
-## Dependencies
-
-1.  **US1 (Policy)**: Foundation for all access control. Must be first.
-2.  **US2 (Actions)**: depends on US1.
-3.  **US3 (Flows)**: depends on US1. Can be parallel with US2, but simpler to do after Action patterns are established.
-4.  **US4 (Security)**: Wraps US2 and US3. Can be developed in parallel, but integration happens last to avoid blocking dev flow.
-
-## Implementation Strategy
-
-1.  **MVP**: Complete Phase 1 & 2 + T015/T016 (Basic Action execution with Mock Policy).
-2.  **Alpha**: Complete Phase 3 (Connectors) & Phase 4 (Flows).
-3.  **Beta**: Complete Phase 5 (Security/PII) for "Production-Ready" local status.
+- [X] T111 Verify all new tests pass with `pytest tests/integration/test_scenarios.py`.
+- [X] T112 Ensure existing tests still pass.

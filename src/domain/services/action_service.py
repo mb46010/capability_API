@@ -53,9 +53,21 @@ class ActionService:
             result_data = await self.connector.execute(action, parameters)
         except Exception as e:
             # Fail-fast logic
+            # T110: 5.1 Non-existent employee -> Should be 404
+            if "not found" in str(e).lower():
+                raise HTTPException(status_code=404, detail=str(e))
+            if "timeout" in str(e).lower():
+                raise HTTPException(status_code=504, detail=str(e))
+                
             raise HTTPException(status_code=424, detail=f"Connector failure: {str(e)}")
         
         latency_ms = (time.time() - start_time) * 1000
+
+        # T106: Field Filtering for AI Agents
+        # If principal is AI_AGENT, filter out sensitive fields
+        if principal_type == "AI_AGENT" and isinstance(result_data, dict):
+            sensitive_fields = ["salary", "ssn_last_four"]
+            result_data = {k: v for k, v in result_data.items() if k not in sensitive_fields}
 
         # 3. Provenance Construction
         provenance = Provenance(

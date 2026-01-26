@@ -1,47 +1,32 @@
-# Implementation Plan: Capability API
+# Implementation Plan: Mock Scenarios
 
-**Branch**: `001-capability-api` | **Date**: 2026-01-26 | **Spec**: [specs/001-capability-api/spec.md](specs/001-capability-api/spec.md)
-**Input**: Feature specification from `specs/001-capability-api/spec.md`
+**Branch**: `001-capability-api` | **Date**: 2026-01-27 | **Spec**: [specs/001-capability-api/spec.md](specs/001-capability-api/spec.md)
+**Input**: User Request for `002-mock-scenarios`
 
 ## Summary
 
-The HR AI Platform Capability API is a Python-based service acting as the central governance layer for AI agents and workflows. It exposes a versioned OpenAPI surface for deterministic **Actions** and long-running **Flows**. It enforces a strict **Policy-as-Code** model (defined in `schemas/policy-schema.json`), handles Identity via **Okta OIDC**, and abstracts infrastructure using a **Hexagonal Architecture** (local-first dev, cloud deployment).
-
-**Key Integration**: The policy engine must implement the schema defined in `schemas/policy-schema.json` and follow the semantics in `schemas/policy-schema.md`.
+Implement a comprehensive suite of mock scenarios to validate the Capability API's behavior in realistic end-to-end workflows. This involves enhancing the `MockConnectorAdapter` to support data fixtures and simulated delays, updating the `policy.yaml` to reflect complex permission models, and writing a new integration test suite `tests/integration/test_scenarios.py` covering Employee Lookup, Onboarding Flow, Authentication Lifecycle, Provenance, and Edge Cases.
 
 ## Technical Context
 
 **Language/Version**: Python 3.11+
-**Primary Dependencies**: 
-- `fastapi` (Web framework)
-- `pydantic` (Data validation, V2)
-- `pyyaml` (Policy parsing)
-- `httpx` (Async HTTP client)
-- `tenacity` (Retries)
-- `python-jose` or `authlib` (OIDC/JWT handling)
-**Storage**: 
-- **Policy/Config**: Git-backed YAML files (read via File Adapter or S3 Adapter)
-- **State/Audit**: Structured logs (File/CloudWatch) and potentially a lightweight state store for idempotency (File/DynamoDB)
-**Testing**: `pytest`, `pytest-cov`, `pytest-asyncio`
-**Target Platform**: Linux (Containerized), AWS Step Functions (for Flows)
+**Primary Dependencies**: `pytest`, `httpx`
+**Storage**: In-memory (Mock Connector), YAML (Policy)
+**Testing**: `pytest` integration tests
 **Project Type**: Service (API)
-**Performance Goals**: <200ms p95 for Actions; Reliable async handoff for Flows.
-**Constraints**: 
-- Strict PII masking in logs.
-- "Fail-fast" for connector failures.
-- Idempotency for all actions.
-**Scale/Scope**: Platform foundation; supports multiple concurrent agents/workflows.
+**Performance Goals**: N/A (Mocked)
+**Constraints**: Must use `time.sleep` for realistic delays in mocks as requested.
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [x] **Hexagonal Integrity**: Design separates `api` (primary adapter) and `adapters` (secondary) from `domain` logic via `ports`.
-- [x] **Actions vs Flows**: Explicit separation in API design (sync vs async/callback).
-- [x] **Python-Native**: Logic in pure Python; Pydantic for schemas.
-- [x] **Observability**: Provenance logging is a core requirement (FR-001).
-- [x] **Privacy & PII**: Logging middleware will enforce PII masking (Article VIII).
-- [x] **Local Parity**: Local filesystem adapters for Policy/Storage; Mock adapters for Okta/Connectors.
+- [x] **Hexagonal Integrity**: Enhancements remain within `adapters/` and `tests/`. Domain logic is untouched.
+- [x] **Actions vs Flows**: Scenarios explicitly test both.
+- [x] **Python-Native**: All mocks and tests in Python.
+- [x] **Observability**: Verifies provenance and audit logging in scenarios.
+- [x] **Privacy & PII**: Verifies PII masking and sensitive data handling (salary/SSN).
+- [x] **Local Parity**: Purely local execution using mocks.
 
 ## Project Structure
 
@@ -50,43 +35,26 @@ The HR AI Platform Capability API is a Python-based service acting as the centra
 ```text
 specs/001-capability-api/
 ├── plan.md              # This file
-├── research.md          # Phase 0 output
-├── data-model.md        # Phase 1 output
-├── quickstart.md        # Phase 1 output
-├── contracts/           # Phase 1 output
-│   └── openapi.yaml
-└── tasks.md             # Phase 2 output
+├── research.md          # Re-used
+├── data-model.md        # Re-used
+└── tasks.md             # New tasks for scenarios
 ```
 
 ### Source Code (repository root)
 
 ```text
 src/
-├── api/                 # Primary Adapter (FastAPI)
-│   ├── routes/
-│   ├── dependencies.py
-│   └── main.py
-├── domain/              # Core Logic (Ports & Entities)
-│   ├── entities/        # Pydantic models (Policy, Action, Flow)
-│   ├── services/        # Business logic (PolicyEngine, FlowRunner)
-│   └── ports/           # Abstract Interfaces (Storage, Identity, Connector)
-├── adapters/            # Secondary Adapters
-│   ├── filesystem/      # Local file storage
-│   ├── s3/              # AWS S3 storage (placeholder)
-│   ├── okta/            # Identity provider (Real/Mock)
-│   └── connectors/      # MCP/External system connectors
-├── lib/                 # Shared utilities
-│   ├── logging.py       # PII masking logger
-│   └── security.py
-└── main.py              # Entry point
-
+├── adapters/
+│   └── connectors/
+│       └── mock_connector.py  # ENHANCE: Add data fixtures and delays
 tests/
-├── integration/
-├── unit/
-└── conftest.py
+└── integration/
+    └── test_scenarios.py      # NEW: Comprehensive scenario suite
+config/
+└── policy.yaml                # UPDATE: Add complex policies
 ```
 
-**Structure Decision**: Hexagonal Architecture (Ports & Adapters) to ensure Local/Cloud parity and separation of concerns.
+**Structure Decision**: Enhance existing adapters and add a new integration test file.
 
 ## Complexity Tracking
 

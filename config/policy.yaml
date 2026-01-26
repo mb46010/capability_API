@@ -1,20 +1,30 @@
 version: "1.0"
 
 metadata:
-  last_reviewed: "2026-01-26"
-  reviewed_by: "dev-team"
-  ticket: "INIT-001"
+  last_reviewed: "2026-01-27"
+  reviewed_by: "test-setup"
+  ticket: "TEST-001"
 
 principals:
-  local_admin:
+  hr_admins:
     type: HUMAN
-    okta_group: "admins"
-    description: "Local admin user"
-  
-  test_worker:
+    okta_group: "hr-platform-admins"
+    description: "Full admin access"
+    
+  onboarding_workflow:
     type: MACHINE
-    okta_subject: "test-worker-1"
-    description: "Test automation worker"
+    okta_subject: "svc-workflow@local.test"
+    description: "Automated onboarding service"
+    
+  hr_assistant:
+    type: AI_AGENT
+    okta_subject: "agent-assistant@local.test"
+    description: "Employee self-service AI"
+    
+  unauthorized_user:
+    type: HUMAN
+    okta_subject: "unauthorized@local.test"
+    description: "User with no grants"
 
 capability_groups:
   all_actions:
@@ -24,16 +34,31 @@ capability_groups:
 
 policies:
   - name: "admin-full-access"
-    principal: "local_admin"
+    principal: "hr_admins"
     capabilities: "all_actions"
-    environments: ["local"]
+    environments: ["local", "dev", "staging", "prod"]
     effect: ALLOW
+    conditions:
+      require_mfa: true
     audit: VERBOSE
 
-  - name: "worker-read-only"
-    principal: "test_worker"
+  - name: "workflow-onboarding"
+    principal: "onboarding_workflow"
     capabilities:
       - "workday.get_employee"
-    environments: ["local"]
+      - "workday.get_manager"
+      - "hr.onboarding"
+    environments: ["local", "dev", "staging", "prod"]
     effect: ALLOW
     audit: BASIC
+
+  - name: "ai-agent-readonly"
+    principal: "hr_assistant"
+    capabilities:
+      - "workday.get_employee"
+      - "workday.get_org_chart"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE

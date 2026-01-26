@@ -28,7 +28,7 @@ async def test_action_execution_success(mock_policy_engine):
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.post(
             "/actions/workday/get_employee",
-            json={"parameters": {"employee_id": "123"}},
+            json={"parameters": {"employee_id": "EMP001"}},
             headers=headers
         )
     
