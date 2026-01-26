@@ -1,0 +1,38 @@
+version: "1.0"
+
+metadata:
+  last_reviewed: "2026-01-26"
+  reviewed_by: "dev-team"
+  ticket: "INIT-001"
+
+principals:
+  local_admin:
+    type: HUMAN
+    okta_group: "admins"
+    description: "Local admin user"
+  
+  test_worker:
+    type: MACHINE
+    okta_subject: "test-worker-1"
+    description: "Test automation worker"
+
+capability_groups:
+  all_actions:
+    - "workday.*"
+    - "calendar.*"
+
+policies:
+  - name: "admin-full-access"
+    principal: "local_admin"
+    capabilities: "all_actions"
+    environments: ["local"]
+    effect: ALLOW
+    audit: VERBOSE
+
+  - name: "worker-read-only"
+    principal: "test_worker"
+    capabilities:
+      - "workday.get_employee"
+    environments: ["local"]
+    effect: ALLOW
+    audit: BASIC

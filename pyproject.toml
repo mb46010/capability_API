@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --cov=src"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+pythonpath = [
+    "."
+]
+asyncio_mode = "auto"
