@@ -54,3 +54,25 @@ class AccessPolicy(BaseModel):
     capability_groups: Optional[Dict[str, List[str]]] = {}
     policies: List[PolicyRule]
     connector_constraints: Optional[Dict[str, Any]] = None
+
+    def validate_references(self) -> List[str]:
+        errors = []
+        policy_names = set()
+        
+        for rule in self.policies:
+            # Check for duplicate policy names
+            if rule.name in policy_names:
+                errors.append(f"Duplicate policy name found: '{rule.name}'")
+            policy_names.add(rule.name)
+
+            # Check for undefined principals
+            if isinstance(rule.principal, str):
+                if rule.principal not in self.principals:
+                    errors.append(f"Policy '{rule.name}' references undefined principal '{rule.principal}'")
+            
+            # Check for undefined capability groups
+            if isinstance(rule.capabilities, str):
+                if rule.capabilities not in self.capability_groups:
+                    errors.append(f"Policy '{rule.name}' references undefined capability group '{rule.capabilities}'")
+        
+        return errors

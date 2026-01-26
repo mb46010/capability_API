@@ -14,4 +14,10 @@ class FilePolicyLoaderAdapter(PolicyLoaderPort):
         with open(self.policy_path, "r") as f:
             data = yaml.safe_load(f)
             
-        return AccessPolicy(**data)
+        policy = AccessPolicy(**data)
+        
+        validation_errors = policy.validate_references()
+        if validation_errors:
+            raise ValueError(f"Policy validation failed:\n" + "\n".join(validation_errors))
+            
+        return policy

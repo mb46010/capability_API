@@ -1,5 +1,6 @@
 import uuid
 import time
+from typing import Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
 from src.domain.services.policy_engine import PolicyEngine
@@ -19,7 +20,12 @@ class ActionService:
         principal_id: str,
         principal_groups: list,
         principal_type: str,
-        environment: str
+        environment: str,
+        # New context for policy conditions
+        mfa_verified: bool = False,
+        token_issued_at: Optional[int] = None,
+        token_expires_at: Optional[int] = None,
+        request_ip: Optional[str] = None
     ) -> ActionResponse:
         capability = f"{domain}.{action}"
         
@@ -29,7 +35,11 @@ class ActionService:
             principal_groups=principal_groups,
             principal_type=principal_type,
             capability=capability,
-            environment=environment
+            environment=environment,
+            mfa_verified=mfa_verified,
+            token_issued_at=token_issued_at,
+            token_expires_at=token_expires_at,
+            request_ip=request_ip
         )
 
         if not evaluation.allowed:

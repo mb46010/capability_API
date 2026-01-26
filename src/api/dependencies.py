@@ -1,33 +1,34 @@
-from fastapi import Header, HTTPException, Depends
-from typing import Optional
+import os
+from functools import lru_cache
+from fastapi import Depends
+from src.adapters.auth import MockOktaProvider, MockTokenVerifier, create_auth_dependency
+from src.domain.services.policy_engine import PolicyEngine
+from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+from src.domain.ports.connector import ConnectorPort
+from src.adapters.connectors.mock_connector import MockConnectorAdapter
+from src.domain.ports.flow_runner import FlowRunnerPort
+from src.adapters.filesystem.local_flow_runner import LocalFlowRunnerAdapter
 
-async def get_current_principal(
-    x_principal_id: Optional[str] = Header(None, alias="X-Principal-ID"),
-    x_principal_type: Optional[str] = Header(None, alias="X-Principal-Type"),
-    x_principal_groups: Optional[str] = Header(None, alias="X-Principal-Groups"),
-    authorization: Optional[str] = Header(None)
-):
-    """
-    Mock Auth dependency. In a real world, this would validate the JWT in 'Authorization' header
-    against Okta JWKS.
-    For MVP/Dev, we trust the injected Headers (simulating an upstream Gateway or Test Client).
-    """
-    
-    # 1. If we are in local/test environment, allow header injection
-    # In PROD, we must validate the JWT.
-    
-    # Simple check: require at least a Principal ID
-    if not x_principal_id:
-         # Fallback: Check if Authorization header is present (Mock)
-         if not authorization:
-             raise HTTPException(status_code=401, detail="Missing authentication")
-         
-         # Mock extracting from token
-         # For now, just fail if no explicit headers are provided to force client to identify
-         raise HTTPException(status_code=401, detail="Missing Principal Identity Headers")
+# Auth Dependencies
+provider = MockOktaProvider()
+verifier = MockTokenVerifier(provider)
+get_current_principal = create_auth_dependency(verifier)
 
-    return {
-        "id": x_principal_id,
-        "type": x_principal_type or "HUMAN",
-        "groups": x_principal_groups.split(",") if x_principal_groups else []
-    }
+# Policy Engine Dependency
+POLICY_PATH = os.getenv("POLICY_PATH", "config/policy.yaml")
+
+@lru_cache
+def get_policy_engine() -> PolicyEngine:
+    loader = FilePolicyLoaderAdapter(POLICY_PATH)
+    policy = loader.load_policy()
+    return PolicyEngine(policy)
+
+# Connector Dependency
+@lru_cache
+def get_connector() -> ConnectorPort:
+    return MockConnectorAdapter()
+
+# Flow Runner Adapter Dependency
+@lru_cache
+def get_flow_runner_adapter() -> FlowRunnerPort:
+    return LocalFlowRunnerAdapter()
