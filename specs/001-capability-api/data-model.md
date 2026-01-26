@@ -1,37 +1,77 @@
-# Data Model: HR AI Platform Capability API
+# Data Model: Capability API
 
-## Entities
+**Status**: Draft
+**Date**: 2026-01-26
 
-### 1. Principal
-Represents an identity interacting with the API.
-- **ID**: UUID
-- **Type**: enum (HUMAN, MACHINE, AI_AGENT)
-- **OktaID**: string (subject claim from OIDC)
-- **Metadata**: JSON (name, role, etc.)
+## 1. Policy Domain
+*Based on `schemas/policy-schema.json`*
 
-### 2. Capability
-A bounded operation (Action or Flow) exposed by the API.
-- **Name**: string (unique identifier, e.g., `workday.get_employee`)
-- **Type**: enum (ACTION, FLOW)
-- **Schema**: JSON Schema (input/output requirements)
-- **AuditPolicy**: enum (NONE, BASIC, VERBOSE)
+The Policy is the core governance artifact.
 
-### 3. Policy
-The curated YAML rule defining access.
-- **PrincipalType**: enum (HUMAN, MACHINE, AI_AGENT)
-- **AllowedScopes**: list[string] (mappings to Capabilities)
-- **Environment**: string (dev, prod)
+### Entities
 
-### 4. ExecutionLog (Provenance)
-- **LogID**: UUID
-- **CapabilityName**: string
-- **PrincipalID**: UUID
-- **Timestamp**: ISO8601
-- **Status**: enum (SUCCESS, FAILURE, PENDING)
-- **InputData**: JSON (redacted if sensitive)
-- **OutputData**: JSON
-- **Provenance**: string (source of data, e.g., "MCP-Workday-CData")
+#### `AccessPolicy` (Root)
+- `version`: str
+- `metadata`: `PolicyMetadata`
+- `principals`: Dict[str, `PrincipalDefinition`]
+- `capability_groups`: Dict[str, List[str]]
+- `policies`: List[`PolicyRule`]
 
-## Relationships
-- **Principal** <--- (many-to-many via Policy) ---> **Capability**
-- **ExecutionLog** references **Principal** and **Capability**.
+#### `PolicyRule`
+- `name`: str
+- `principal`: str | `PrincipalDefinition`
+- `capabilities`: List[str] | str (Group Ref)
+- `environments`: List[`Environment`]
+- `effect`: "ALLOW"
+- `conditions`: `PolicyConditions` (Optional)
+- `audit`: "BASIC" | "VERBOSE"
+
+#### `PrincipalDefinition`
+- `type`: "HUMAN" | "MACHINE" | "AI_AGENT"
+- `okta_subject`: str (Optional)
+- `okta_group`: str (Optional)
+
+## 2. API Interaction Models
+
+### Action Execution
+
+#### `ActionRequest`
+```python
+class ActionRequest(BaseModel):
+    parameters: Dict[str, Any]  # Arguments for the action
+    dry_run: bool = False       # If supported by connector
+```
+
+#### `ActionResponse` (JSON with Provenance)
+```python
+class Provenance(BaseModel):
+    source: str
+    timestamp: datetime
+    trace_id: str
+    latency_ms: float
+    actor: str  # Principal who executed it
+
+class ActionResponse(BaseModel):
+    data: Dict[str, Any] | List[Any]
+    meta: Dict[str, Provenance]
+```
+
+### Flow Orchestration
+
+#### `FlowStartRequest`
+```python
+class FlowStartRequest(BaseModel):
+    parameters: Dict[str, Any]
+    callback_url: str | None = None  # Optional webhook for completion
+```
+
+#### `FlowStatusResponse`
+```python
+class FlowStatusResponse(BaseModel):
+    flow_id: str
+    status: "RUNNING" | "COMPLETED" | "FAILED" | "WAITING_FOR_INPUT"
+    start_time: datetime
+    current_step: str | None
+    result: Dict[str, Any] | None
+    error: str | None
+```

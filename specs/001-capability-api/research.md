@@ -1,39 +1,45 @@
-# Research: HR AI Platform Capability API
+# Research & Decisions: Capability API
 
-## Technical Decisions
+**Status**: Complete
+**Date**: 2026-01-26
 
-### Decision: Python 3.11+ & FastAPI
-- **Rationale**: Python-Native requirement from Constitution. FastAPI provides excellent OpenAPI support and type safety via Pydantic.
-- **Alternatives considered**: Flask (less idiomatic for modern APIs), Django (too heavy for a "Capability API" focus).
+## 1. Policy Engine Implementation
+**Decision**: Custom Python Implementation
+- **Rationale**: The provided `policy-schema.json` and `policy-schema.md` define a specific, deterministic evaluation logic (e.g., specific precedence rules, dot-notation wildcards). Using a general-purpose engine like OPA/Rego or Casbin would require mapping this custom logic into their DSLs, adding complexity and "non-Python" logic. A pure Python implementation using Pydantic for validation and standard string/regex for matching ensures full "Python-Native" compliance (Constitution Article I) and easier debugging.
+- **Alternatives Considered**: 
+    - **OPA (Open Policy Agent)**: Powerful but introduces a new language (Rego) and runtime dependency. Overkill for the specified schema.
+    - **Casbin**: Good for ACL/RBAC, but the "Capabilities" + "Wildcard" + "Environment" model is specific enough that custom code is cleaner.
 
-### Decision: Pydantic V2 for Data Contracts
-- **Rationale**: Strict validation and self-documenting schemas as per Constitution Article VI.
-- **Alternatives considered**: Marshmallow (older, less integrated with FastAPI).
+## 2. MCP (Model Context Protocol) Integration
+**Decision**: Use `mcp` Python SDK as "Connector Adapters"
+- **Rationale**: The spec treats MCP servers strictly as connectors. The Capability API acts as an MCP *Client*. We will wrap `mcp.ClientSession` in our hexagonal `adapters/connectors/` layer.
+- **Pattern**: 
+    - Each "Capability" (e.g., `workday.get_employee`) maps to an MCP Tool call.
+    - The Adapter handles the connection (Stdio/SSE) and protocol details.
 
-### Decision: Hexagonal Architecture (Storage Port)
-- **Rationale**: Mandatory by Constitution Article II. Logic will be agnostic of storage (Local FS vs S3).
+## 3. Local Workflow Simulation (Flows)
+**Decision**: Simple Async State Machine (In-Memory)
+- **Rationale**: For local development, we don't need a full Step Functions emulator (like LocalStack) if we just need to validate the *hand-off* and *callback* logic. A simple Service that tracks "Flow State" in a local JSON file and runs steps via `asyncio` is sufficient to prove the architecture.
+- **Cloud Path**: This `FlowRunner` port will have an AWS adapter that simply calls `boto3.client('sfn').start_execution()`.
 
-### Decision: AWS Step Functions (Standard) for Flows
-- **Rationale**: Requirement from Product framing. Provides reliable state management for long-running HR processes.
+## 4. JSON with Provenance
+**Decision**: Standard Envelope Format
+- **Structure**:
+    ```json
+    {
+      "data": { ... },
+      "meta": {
+        "provenance": {
+          "source": "workday-connector-v1",
+          "timestamp": "2026-01-26T10:00:00Z",
+          "latency_ms": 120,
+          "trace_id": "abc-123"
+        }
+      }
+    }
+    ```
+- **Rationale**: Meets FR-001 requirements explicitly.
 
-## Items Needing Clarification
-
-### 1. Okta OIDC Integration
-- **Question**: Which Python library is best for validating Okta tokens and handling multiple principal types (Human, Machine, AI)?
-- **Research Task**: Evaluate `authlib` vs `python-jose` vs Okta's own SDK.
-
-### 2. Capability-based Authorization
-- **Question**: How to implement scope-to-action mapping dynamically using the "policy YAML"?
-- **Research Task**: Look into FastAPI dependencies for RBAC/ABAC patterns that can consume YAML policies.
-
-### 3. Local Flow Runner
-- **Question**: Is there a lightweight local alternative to "LocalStack Step Functions" for mock execution?
-- **Research Task**: Investigate if a simple state-machine runner in Python is sufficient for "local-first" development.
-
-### 4. MCP Server Treatment
-- **Question**: How to treat MCP servers (e.g., Workday) as "strictly connectors"?
-- **Research Task**: Research the MCP SDK for Python to see how to wrap servers in a Capability API layer.
-
-### 5. Backstage Local Integration
-- **Question**: How to automate the registration of the "Capability API" in a local Backstage instance?
-- **Research Task**: Research Backstage software templates and Catalog API.
+## 5. PII Masking
+**Decision**: Middleware + Custom Formatter
+- **Rationale**: To meet Constitution Article VIII, we cannot rely on developers remembering to mask. We will implement a `logging.Formatter` that runs regex replacements for common PII patterns (Emails, SSNs, Phones) before outputting.

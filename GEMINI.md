@@ -22,6 +22,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 001-capability-api: Added Python 3.11+
 
 - 001-capability-api: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK
 

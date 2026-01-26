@@ -1,40 +1,59 @@
-# Quickstart: HR AI Platform Capability API
+# Quickstart: Capability API
+
+**Status**: Draft
+**Date**: 2026-01-26
 
 ## Prerequisites
 - Python 3.11+
-- [LocalStack](https://localstack.cloud/) (optional, for S3/StepFunctions simulation)
-- A local Okta issuer (or mock)
+- Docker (optional, for running dependencies like LocalStack if needed later)
 
 ## Setup
-1. Clone the repository.
-2. Create a virtual environment: `python -m venv venv && source venv/bin/activate`.
-3. Install dependencies: `pip install -r requirements.txt`.
-4. Run the local mock server: `python src/api/main.py`.
 
-## Running Locally
-By default, the API starts with `LocalAdapter` for storage and flows.
+1. **Clone & Navigate**
+   ```bash
+   git checkout 001-capability-api
+   cd src
+   ```
 
-### 1. Execute an Action
+2. **Environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+
+3. **Configuration**
+   Create a `.env` file in the root:
+   ```bash
+   LOG_LEVEL=INFO
+   ENVIRONMENT=local
+   POLICY_PATH=./config/policy.yaml
+   OKTA_ISSUER=https://mock-okta.local
+   ```
+
+## Running the API
+
+Start the FastAPI server locally:
+
 ```bash
-curl -X POST http://localhost:8000/actions/workday.get_employee \
-  -H "Authorization: Bearer <MOCK_OKTA_TOKEN>" \
-  -d '{"employee_id": "12345"}'
+uvicorn src.main:app --reload --port 8000
 ```
 
-### 2. Start a Flow
+The API will be available at:
+- Docs: http://localhost:8000/docs
+- OpenAPI: http://localhost:8000/openapi.json
+
+## Testing
+
+Run the test suite (includes unit and contract tests):
+
 ```bash
-curl -X POST http://localhost:8000/flows/hr.onboarding/start \
-  -H "Authorization: Bearer <MOCK_OKTA_TOKEN>" \
-  -d '{"name": "Jane Doe", "start_date": "2026-02-01"}'
+pytest
 ```
 
-### 3. Check Flow Status
-```bash
-curl http://localhost:8000/flows/executions/<EXECUTION_ID>/status \
-  -H "Authorization: Bearer <MOCK_OKTA_TOKEN>"
-```
+## Adding a Capability
 
-## Policy YAML
-Modify `policy/access_control.yaml` to change scope-to-action mappings. Changes are picked up automatically in development mode.
-
-```
+1. Define the capability in `src/domain/capabilities.py`.
+2. Add the implementation in `src/adapters/connectors/`.
+3. Update `config/policy.yaml` to grant access to your principal.
+4. Restart the server (or rely on auto-reload).

@@ -1,0 +1,227 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://hr-ai-platform.example.com/schemas/policy.json",
+    "title": "HR AI Platform Access Policy",
+    "description": "Defines access control rules mapping principals to capabilities",
+    "type": "object",
+    "required": [
+        "version",
+        "policies"
+    ],
+    "additionalProperties": false,
+    "properties": {
+        "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+$",
+            "description": "Schema version (e.g., '1.0')"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "last_reviewed": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Date of last human review"
+                },
+                "reviewed_by": {
+                    "type": "string",
+                    "description": "Identity of reviewer"
+                },
+                "ticket": {
+                    "type": "string",
+                    "description": "Reference to approval ticket (e.g., JIRA-1234)"
+                }
+            }
+        },
+        "principals": {
+            "type": "object",
+            "description": "Named principal definitions for reuse",
+            "additionalProperties": {
+                "$ref": "#/$defs/principal_definition"
+            }
+        },
+        "capability_groups": {
+            "type": "object",
+            "description": "Named groups of capabilities for reuse",
+            "additionalProperties": {
+                "type": "array",
+                "items": {
+                    "type": "string"
+                }
+            }
+        },
+        "policies": {
+            "type": "array",
+            "items": {
+                "$ref": "#/$defs/policy_rule"
+            },
+            "minItems": 1
+        },
+        "connector_constraints": {
+            "type": "object",
+            "description": "Reserved for future connector-level trust controls",
+            "additionalProperties": true
+        }
+    },
+    "$defs": {
+        "principal_definition": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "type": {
+                    "type": "string",
+                    "enum": [
+                        "HUMAN",
+                        "MACHINE",
+                        "AI_AGENT"
+                    ]
+                },
+                "okta_subject": {
+                    "type": "string",
+                    "description": "Okta subject claim (for specific principal binding)"
+                },
+                "okta_group": {
+                    "type": "string",
+                    "description": "Okta group membership requirement"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "provisioning_ticket": {
+                    "type": "string",
+                    "description": "Ticket reference for when this principal was provisioned"
+                }
+            }
+        },
+        "policy_rule": {
+            "type": "object",
+            "required": [
+                "name",
+                "principal",
+                "capabilities",
+                "environments",
+                "effect"
+            ],
+            "additionalProperties": false,
+            "properties": {
+                "name": {
+                    "type": "string",
+                    "description": "Human-readable policy name"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "principal": {
+                    "oneOf": [
+                        {
+                            "type": "string",
+                            "description": "Reference to named principal or principal type"
+                        },
+                        {
+                            "$ref": "#/$defs/principal_definition"
+                        }
+                    ]
+                },
+                "capabilities": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        {
+                            "type": "string",
+                            "description": "Reference to named capability group"
+                        }
+                    ]
+                },
+                "environments": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "enum": [
+                            "local",
+                            "dev",
+                            "staging",
+                            "prod"
+                        ]
+                    },
+                    "minItems": 1
+                },
+                "effect": {
+                    "type": "string",
+                    "enum": [
+                        "ALLOW"
+                    ],
+                    "description": "Currently only ALLOW is supported (deny-by-default)"
+                },
+                "conditions": {
+                    "type": "object",
+                    "properties": {
+                        "time_window": {
+                            "type": "object",
+                            "properties": {
+                                "start": {
+                                    "type": "string",
+                                    "pattern": "^\\d{2}:\\d{2}$"
+                                },
+                                "end": {
+                                    "type": "string",
+                                    "pattern": "^\\d{2}:\\d{2}$"
+                                },
+                                "timezone": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "max_ttl_seconds": {
+                            "type": "integer",
+                            "minimum": 60,
+                            "description": "Maximum token TTL for this grant (primarily for AI_AGENT)"
+                        },
+                        "require_mfa": {
+                            "type": "boolean"
+                        },
+                        "ip_allowlist": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "audit": {
+                    "type": "string",
+                    "enum": [
+                        "BASIC",
+                        "VERBOSE"
+                    ],
+                    "default": "BASIC",
+                    "description": "BASIC logs invocation metadata; VERBOSE includes input/output payloads"
+                },
+                "approval": {
+                    "type": "object",
+                    "description": "Metadata about when/why this policy was approved",
+                    "properties": {
+                        "approved_by": {
+                            "type": "string"
+                        },
+                        "approved_at": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "ticket": {
+                            "type": "string"
+                        },
+                        "rationale": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
