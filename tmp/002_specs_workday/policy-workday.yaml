@@ -1,0 +1,417 @@
+version: "1.0"
+
+metadata:
+  last_reviewed: "2026-01-27"
+  reviewed_by: "platform-team"
+  ticket: "HRAI-200"
+
+# =============================================================================
+# Principal Definitions
+# =============================================================================
+
+principals:
+  # Human Principals
+  hr_platform_admins:
+    type: HUMAN
+    okta_group: "hr-platform-admins"
+    description: "HR Platform administrators with full access"
+    provisioning_ticket: "HRAI-042"
+
+  hr_staff:
+    type: HUMAN
+    okta_group: "hr-staff"
+    description: "HR team members - read access to employee data, manage time off"
+    provisioning_ticket: "HRAI-043"
+
+  managers:
+    type: HUMAN
+    okta_group: "people-managers"
+    description: "People managers - can view team data, approve time off"
+    provisioning_ticket: "HRAI-044"
+
+  employees:
+    type: HUMAN
+    okta_group: "employees"
+    description: "All employees - self-service access only"
+    provisioning_ticket: "HRAI-045"
+
+  # Machine Principals
+  onboarding_workflow:
+    type: MACHINE
+    okta_subject: "svc-workflow@local.test"
+    description: "Automated onboarding workflow service"
+    provisioning_ticket: "HRAI-078"
+
+  payroll_sync:
+    type: MACHINE
+    okta_subject: "svc-payroll-sync@local.test"
+    description: "Payroll synchronization service"
+    provisioning_ticket: "HRAI-079"
+
+  reporting_service:
+    type: MACHINE
+    okta_subject: "svc-reporting@local.test"
+    description: "HR reporting and analytics service"
+    provisioning_ticket: "HRAI-080"
+
+  # AI Agent Principals
+  hr_assistant:
+    type: AI_AGENT
+    okta_subject: "agent-assistant@local.test"
+    description: "Employee self-service AI assistant"
+    provisioning_ticket: "HRAI-112"
+
+  hr_analyst:
+    type: AI_AGENT
+    okta_subject: "agent-analyst@local.test"
+    description: "HR analytics AI agent"
+    provisioning_ticket: "HRAI-113"
+
+  # Test Principals
+  unauthorized_user:
+    type: HUMAN
+    okta_subject: "unauthorized@local.test"
+    description: "Test user with no grants - for negative testing"
+
+# =============================================================================
+# Capability Groups
+# =============================================================================
+
+capability_groups:
+  # HCM Read Operations
+  workday_hcm_read_public:
+    - "workday.hcm.get_employee"
+    - "workday.hcm.list_direct_reports"
+    - "workday.hcm.get_org_chart"
+    - "workday.hcm.get_manager_chain"
+
+  workday_hcm_read_full:
+    - "workday.hcm.get_employee"
+    - "workday.hcm.get_employee_full"
+    - "workday.hcm.list_direct_reports"
+    - "workday.hcm.get_org_chart"
+    - "workday.hcm.get_manager_chain"
+
+  workday_hcm_write:
+    - "workday.hcm.update_employee"
+    - "workday.hcm.terminate_employee"
+
+  workday_hcm_all:
+    - "workday.hcm.*"
+
+  # Time Tracking Operations
+  workday_time_read:
+    - "workday.time.get_balance"
+    - "workday.time.list_requests"
+    - "workday.time.get_request"
+
+  workday_time_self_service:
+    - "workday.time.get_balance"
+    - "workday.time.list_requests"
+    - "workday.time.get_request"
+    - "workday.time.request"
+    - "workday.time.cancel"
+
+  workday_time_manager:
+    - "workday.time.get_balance"
+    - "workday.time.list_requests"
+    - "workday.time.get_request"
+    - "workday.time.approve"
+
+  workday_time_all:
+    - "workday.time.*"
+
+  # Payroll Operations
+  workday_payroll_read:
+    - "workday.payroll.get_compensation"
+    - "workday.payroll.get_pay_statement"
+    - "workday.payroll.list_pay_statements"
+
+  workday_payroll_all:
+    - "workday.payroll.*"
+
+  # Flow Operations
+  hr_flows_all:
+    - "hr.onboarding"
+    - "hr.offboarding"
+    - "hr.role_change"
+    - "hr.compensation_review"
+
+  hr_flows_onboarding:
+    - "hr.onboarding"
+
+# =============================================================================
+# Policy Rules
+# =============================================================================
+
+policies:
+  # ---------------------------------------------------------------------------
+  # HR Platform Admins - Full Access
+  # ---------------------------------------------------------------------------
+  - name: "admin-full-access"
+    description: "Platform admins can invoke any capability for debugging and support"
+    principal: "hr_platform_admins"
+    capabilities:
+      - "workday.*"
+      - "hr.*"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      require_mfa: true
+    audit: VERBOSE
+    approval:
+      approved_by: "ciso@example.com"
+      approved_at: "2026-01-15"
+      ticket: "SEC-2026-001"
+      rationale: "Platform team requires full access for incident response"
+
+  # ---------------------------------------------------------------------------
+  # HR Staff - Employee Data + Time Off Management
+  # ---------------------------------------------------------------------------
+  - name: "hr-staff-employee-read"
+    description: "HR staff can read full employee records"
+    principal: "hr_staff"
+    capabilities: "workday_hcm_read_full"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+    approval:
+      approved_by: "hr-director@example.com"
+      approved_at: "2026-01-15"
+      ticket: "HRAI-043"
+      rationale: "HR operations require access to employee data"
+
+  - name: "hr-staff-time-management"
+    description: "HR staff can manage all time off requests"
+    principal: "hr_staff"
+    capabilities: "workday_time_all"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  - name: "hr-staff-employee-update"
+    description: "HR staff can update employee records"
+    principal: "hr_staff"
+    capabilities: "workday_hcm_write"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      require_mfa: true
+    audit: VERBOSE
+
+  - name: "hr-staff-payroll-read"
+    description: "HR staff can view compensation data"
+    principal: "hr_staff"
+    capabilities: "workday_payroll_read"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      require_mfa: true
+    audit: VERBOSE
+
+  # ---------------------------------------------------------------------------
+  # Managers - Team Visibility + Approvals
+  # ---------------------------------------------------------------------------
+  - name: "manager-team-read"
+    description: "Managers can view public employee data"
+    principal: "managers"
+    capabilities: "workday_hcm_read_public"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  - name: "manager-time-approval"
+    description: "Managers can view and approve time off for their reports"
+    principal: "managers"
+    capabilities: "workday_time_manager"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  # ---------------------------------------------------------------------------
+  # Employees - Self-Service Only
+  # ---------------------------------------------------------------------------
+  - name: "employee-self-service-read"
+    description: "Employees can view directory information"
+    principal: "employees"
+    capabilities: "workday_hcm_read_public"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  - name: "employee-time-self-service"
+    description: "Employees can manage their own time off"
+    principal: "employees"
+    capabilities: "workday_time_self_service"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  # ---------------------------------------------------------------------------
+  # Machine: Onboarding Workflow
+  # ---------------------------------------------------------------------------
+  - name: "onboarding-workflow-read"
+    description: "Onboarding workflow reads employee data"
+    principal: "onboarding_workflow"
+    capabilities:
+      - "workday.hcm.get_employee"
+      - "workday.hcm.get_employee_full"
+      - "workday.hcm.get_manager_chain"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+    approval:
+      approved_by: "hr-engineering@example.com"
+      approved_at: "2026-01-10"
+      ticket: "HRAI-078"
+      rationale: "Onboarding automation needs employee lookup"
+
+  - name: "onboarding-workflow-update"
+    description: "Onboarding workflow can update new employee records"
+    principal: "onboarding_workflow"
+    capabilities:
+      - "workday.hcm.update_employee"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: VERBOSE
+
+  - name: "onboarding-workflow-flow"
+    description: "Onboarding workflow can trigger onboarding flow"
+    principal: "onboarding_workflow"
+    capabilities: "hr_flows_onboarding"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  # ---------------------------------------------------------------------------
+  # Machine: Payroll Sync
+  # ---------------------------------------------------------------------------
+  - name: "payroll-sync-read"
+    description: "Payroll sync service reads compensation data"
+    principal: "payroll_sync"
+    capabilities: "workday_payroll_read"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: VERBOSE
+    approval:
+      approved_by: "finance-director@example.com"
+      approved_at: "2026-01-12"
+      ticket: "HRAI-079"
+      rationale: "Payroll integration requires compensation access"
+
+  - name: "payroll-sync-employee-read"
+    description: "Payroll sync reads basic employee info"
+    principal: "payroll_sync"
+    capabilities:
+      - "workday.hcm.get_employee"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  # ---------------------------------------------------------------------------
+  # Machine: Reporting Service
+  # ---------------------------------------------------------------------------
+  - name: "reporting-service-read"
+    description: "Reporting service reads org structure"
+    principal: "reporting_service"
+    capabilities: "workday_hcm_read_public"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  - name: "reporting-service-time-read"
+    description: "Reporting service reads time off data for analytics"
+    principal: "reporting_service"
+    capabilities: "workday_time_read"
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    audit: BASIC
+
+  # ---------------------------------------------------------------------------
+  # AI Agent: HR Assistant (Employee Self-Service)
+  # ---------------------------------------------------------------------------
+  - name: "ai-assistant-directory"
+    description: "AI assistant can lookup employee directory info"
+    principal: "hr_assistant"
+    capabilities: "workday_hcm_read_public"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE
+    approval:
+      approved_by: "security-review@example.com"
+      approved_at: "2026-01-20"
+      ticket: "SEC-2026-015"
+      rationale: "Minimal read-only access for employee self-service"
+
+  - name: "ai-assistant-time-read"
+    description: "AI assistant can view time off balances and requests"
+    principal: "hr_assistant"
+    capabilities: "workday_time_read"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE
+
+  - name: "ai-assistant-time-request"
+    description: "AI assistant can submit time off requests on behalf of user"
+    principal: "hr_assistant"
+    capabilities:
+      - "workday.time.request"
+      - "workday.time.cancel"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE
+
+  # ---------------------------------------------------------------------------
+  # AI Agent: HR Analyst (Analytics)
+  # ---------------------------------------------------------------------------
+  - name: "ai-analyst-org-read"
+    description: "HR analyst can read org structure for analytics"
+    principal: "hr_analyst"
+    capabilities: "workday_hcm_read_public"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE
+
+  - name: "ai-analyst-time-read"
+    description: "HR analyst can read time off data for analytics"
+    principal: "hr_analyst"
+    capabilities: "workday_time_read"
+    environments: ["local", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      max_ttl_seconds: 300
+    audit: VERBOSE
+
+  # ---------------------------------------------------------------------------
+  # Local Development Overrides
+  # ---------------------------------------------------------------------------
+  - name: "local-dev-extended-access"
+    description: "Extended access for local development and testing"
+    principal: "onboarding_workflow"
+    capabilities:
+      - "workday.*"
+    environments: ["local"]
+    effect: ALLOW
+    audit: VERBOSE
+
+# =============================================================================
+# Connector Constraints (Reserved for future use)
+# =============================================================================
+
+connector_constraints:
+  workday:
+    rate_limit:
+      requests_per_minute: 100
+      burst: 20
+    timeout_seconds: 30
+    circuit_breaker:
+      failure_threshold: 5
+      reset_timeout_seconds: 60
