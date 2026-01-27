@@ -7,23 +7,42 @@
 
 ---
 
+## Clarifications
+
+### Session 2026-01-27
+- Q: How should the simulator handle data persistence for write operations (updates, terminations)? → A: **In-memory only** (Reset on restart): Changes live only in RAM; fresh start reloads fixtures.
+- Q: What authentication mechanism should the simulator require? → A: **Passthrough (Trust policy engine)**: Assume caller is already authenticated/authorized; simulator checks `principal` context only for auditing.
+- Q: Which programming interface should the simulator implement? → A: **Generic `execute`**: Implement `ConnectorPort.execute(action, params)` where `action` is the capability string, ensuring compatibility with the existing domain logic.
+- Q: How should the principal context be passed to the connector's execute method? → A: **Inject via `parameters`**: Include `__principal__` (and optionally `__groups__`, `__type__`) in the parameters dictionary passed to the port.
+- Q: How should the simulator's in-memory state handle concurrent write operations? → A: **Single-threaded asyncio (No locks)**: Rely on asyncio's single-threaded nature; no explicit locks for memory state updates.
+
 ## Overview
 
 This connector simulates Workday's HCM, Time Tracking, and Payroll APIs with realistic data models, response shapes, and latency profiles. It serves as a drop-in replacement for the real Workday integration during development.
 
 ### Design Goals
 
-1. **Auth stress testing**: Every operation requires specific capabilities; policy enforcement is the primary test target
-2. **Realistic schemas**: Response shapes match what real Workday APIs return (simplified)
-3. **MCP-ready**: Operations map cleanly to MCP tool definitions
-4. **Swappable**: Interface allows real Workday adapter without changing callers
+1. **Auth stress testing**: Every operation requires specific capabilities; policy enforcement is the primary test target.
+2. **Realistic schemas**: Response shapes match what real Workday APIs return (simplified).
+3. **MCP-ready**: Operations map cleanly to MCP tool definitions.
+4. **Swappable**: Interface allows real Workday adapter without changing callers.
+5. **Simulated Persistence**: State changes (updates/terminations) are stored in-memory and reset upon application restart.
 
-### Non-Goals (for simulation)
+---
 
-- Pagination (single employee operations only)
-- Bulk operations
-- Webhook/event subscriptions
-- Full Workday field coverage
+## Technical Interface & Security
+
+### Port Implementation
+The simulator implements the `ConnectorPort` interface:
+- **Method**: `async def execute(self, action: str, parameters: Dict[str, Any]) -> Dict[str, Any]`
+- **Action Mapping**: The `action` parameter corresponds to the capability string (e.g., `workday.hcm.get_employee`).
+
+### Authentication & Context
+- **Passthrough Trust**: The simulator assumes the caller is authenticated by the upstream `ActionService`/`PolicyEngine`.
+- **Context Injection**: Security context is passed within the `parameters` dictionary under internal keys:
+  - `__principal__`: The ID of the authenticated principal.
+  - `__groups__`: List of groups assigned to the principal.
+  - `__type__`: The type of principal (HUMAN, MACHINE, AI_AGENT).
 
 ---
 
@@ -788,6 +807,10 @@ class WorkdaySimulationConfig:
     # Feature flags
     enforce_manager_chain: bool = True  # For approve operations
     enforce_balance_check: bool = True  # For time off requests
+
+    # Concurrency
+    # Mode: single-threaded asyncio (atomic dictionary updates, no locks required)
+    concurrency_mode: str = "asyncio"
 ```
 
 ---
