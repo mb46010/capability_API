@@ -1,0 +1,1298 @@
+openapi: 3.0.3
+info:
+  title: Workday Connector API
+  description: |
+    Simulated Workday API connector for the HR AI Platform.
+    
+    This connector exposes HCM, Time Tracking, and Payroll operations
+    with realistic data models and response shapes.
+    
+    ## Authentication
+    
+    All endpoints require a valid Bearer token from the platform's 
+    Okta OIDC provider. The token must contain appropriate capability 
+    scopes for the requested operation.
+    
+    ## Capability Mapping
+    
+    Each endpoint maps to a capability string used for policy evaluation:
+    - `/hcm/employees/{id}` → `workday.hcm.get_employee`
+    - `/hcm/employees/{id}/full` → `workday.hcm.get_employee_full`
+    - etc.
+    
+  version: 1.0.0
+  contact:
+    name: HR Platform Team
+    email: hr-platform@example.com
+
+servers:
+  - url: http://localhost:8000/connectors/workday
+    description: Local development
+  - url: https://api.example.com/connectors/workday
+    description: Production
+
+tags:
+  - name: HCM
+    description: Human Capital Management operations
+  - name: Time Tracking
+    description: Time off and attendance operations
+  - name: Payroll
+    description: Compensation and pay statement operations
+
+paths:
+  # ============================================================
+  # HCM Endpoints
+  # ============================================================
+  
+  /hcm/employees/{employee_id}:
+    get:
+      tags: [HCM]
+      operationId: getEmployee
+      summary: Get employee (public fields)
+      description: |
+        Returns public employee information suitable for directory lookups.
+        
+        **Capability**: `workday.hcm.get_employee`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Employee'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /hcm/employees/{employee_id}/full:
+    get:
+      tags: [HCM]
+      operationId: getEmployeeFull
+      summary: Get employee (all fields including PII)
+      description: |
+        Returns complete employee record including sensitive PII.
+        Requires elevated access.
+        
+        **Capability**: `workday.hcm.get_employee_full`
+        **Allowed Principals**: HUMAN, MACHINE
+        **Audit**: Always VERBOSE
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Employee found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployeeFull'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+    patch:
+      tags: [HCM]
+      operationId: updateEmployee
+      summary: Update employee record
+      description: |
+        Updates employee record fields. Creates a pending change request
+        that may require approval.
+        
+        **Capability**: `workday.hcm.update_employee`
+        **Allowed Principals**: HUMAN only
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEmployeeRequest'
+      responses:
+        '200':
+          description: Update initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateEmployeeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /hcm/employees/{employee_id}/terminate:
+    post:
+      tags: [HCM]
+      operationId: terminateEmployee
+      summary: Initiate employee termination
+      description: |
+        Initiates employee termination workflow. Creates offboarding flow.
+        
+        **Capability**: `workday.hcm.terminate_employee`
+        **Allowed Principals**: HUMAN only
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TerminateEmployeeRequest'
+      responses:
+        '202':
+          description: Termination initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TerminateEmployeeResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /hcm/employees/{employee_id}/direct-reports:
+    get:
+      tags: [HCM]
+      operationId: listDirectReports
+      summary: List direct reports
+      description: |
+        Returns employees who report directly to the specified manager.
+        
+        **Capability**: `workday.hcm.list_direct_reports`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Direct reports found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DirectReportsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /hcm/employees/{employee_id}/manager-chain:
+    get:
+      tags: [HCM]
+      operationId: getManagerChain
+      summary: Get management chain
+      description: |
+        Returns the management chain from employee up to CEO.
+        
+        **Capability**: `workday.hcm.get_manager_chain`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Manager chain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagerChainResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /hcm/org-chart:
+    get:
+      tags: [HCM]
+      operationId: getOrgChart
+      summary: Get organizational chart
+      description: |
+        Returns organizational hierarchy starting from a given employee.
+        
+        **Capability**: `workday.hcm.get_org_chart`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - name: root_id
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Employee ID to start from
+        - name: depth
+          in: query
+          schema:
+            type: integer
+            default: 2
+            minimum: 1
+            maximum: 5
+          description: How many levels deep to traverse
+      responses:
+        '200':
+          description: Org chart
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgChartResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  # ============================================================
+  # Time Tracking Endpoints
+  # ============================================================
+
+  /time/employees/{employee_id}/balance:
+    get:
+      tags: [Time Tracking]
+      operationId: getTimeOffBalance
+      summary: Get time off balances
+      description: |
+        Returns time off balances for an employee.
+        
+        **Capability**: `workday.time.get_balance`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: as_of_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Calculate balance as of this date (default today)
+      responses:
+        '200':
+          description: Time off balances
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffBalanceResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /time/employees/{employee_id}/requests:
+    get:
+      tags: [Time Tracking]
+      operationId: listTimeOffRequests
+      summary: List time off requests
+      description: |
+        Lists time off requests for an employee.
+        
+        **Capability**: `workday.time.list_requests`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: status
+          in: query
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/TimeOffRequestStatus'
+          description: Filter by status
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter requests starting on or after this date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter requests ending on or before this date
+      responses:
+        '200':
+          description: Time off requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+    post:
+      tags: [Time Tracking]
+      operationId: requestTimeOff
+      summary: Submit time off request
+      description: |
+        Submits a new time off request.
+        
+        **Capability**: `workday.time.request`
+        **Allowed Principals**: HUMAN, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimeOffRequestCreate'
+      responses:
+        '201':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequestCreateResponse'
+        '400':
+          description: Invalid request (e.g., insufficient balance)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /time/requests/{request_id}:
+    get:
+      tags: [Time Tracking]
+      operationId: getTimeOffRequest
+      summary: Get time off request details
+      description: |
+        Gets details of a specific time off request.
+        
+        **Capability**: `workday.time.get_request`
+        **Allowed Principals**: HUMAN, MACHINE, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimeOffRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RequestNotFound'
+
+  /time/requests/{request_id}/approve:
+    post:
+      tags: [Time Tracking]
+      operationId: approveTimeOff
+      summary: Approve time off request
+      description: |
+        Approves a pending time off request. Caller must be in 
+        employee's management chain.
+        
+        **Capability**: `workday.time.approve`
+        **Allowed Principals**: HUMAN only
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveTimeOffRequest'
+      responses:
+        '200':
+          description: Request approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApproveTimeOffResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Forbidden - caller not in manager chain
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          $ref: '#/components/responses/RequestNotFound'
+        '409':
+          description: Request already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /time/requests/{request_id}/cancel:
+    post:
+      tags: [Time Tracking]
+      operationId: cancelTimeOff
+      summary: Cancel time off request
+      description: |
+        Cancels a time off request. Only the requester or admin can cancel.
+        
+        **Capability**: `workday.time.cancel`
+        **Allowed Principals**: HUMAN, AI_AGENT
+      parameters:
+        - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelTimeOffRequest'
+      responses:
+        '200':
+          description: Request cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CancelTimeOffResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/RequestNotFound'
+        '409':
+          description: Request already processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # ============================================================
+  # Payroll Endpoints
+  # ============================================================
+
+  /payroll/employees/{employee_id}/compensation:
+    get:
+      tags: [Payroll]
+      operationId: getCompensation
+      summary: Get compensation details
+      description: |
+        Returns current compensation details. Highly sensitive.
+        
+        **Capability**: `workday.payroll.get_compensation`
+        **Allowed Principals**: HUMAN only
+        **Audit**: Always VERBOSE
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+      responses:
+        '200':
+          description: Compensation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompensationResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /payroll/employees/{employee_id}/statements:
+    get:
+      tags: [Payroll]
+      operationId: listPayStatements
+      summary: List pay statements
+      description: |
+        Lists pay statements for an employee.
+        
+        **Capability**: `workday.payroll.list_pay_statements`
+        **Allowed Principals**: HUMAN only
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: year
+          in: query
+          schema:
+            type: integer
+          description: Filter by year
+      responses:
+        '200':
+          description: Pay statements
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayStatementListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/EmployeeNotFound'
+
+  /payroll/employees/{employee_id}/statements/{statement_id}:
+    get:
+      tags: [Payroll]
+      operationId: getPayStatement
+      summary: Get pay statement
+      description: |
+        Returns a specific pay statement.
+        
+        **Capability**: `workday.payroll.get_pay_statement`
+        **Allowed Principals**: HUMAN only
+      parameters:
+        - $ref: '#/components/parameters/EmployeeId'
+        - name: statement_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Pay statement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PayStatement'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/StatementNotFound'
+
+components:
+  # ============================================================
+  # Parameters
+  # ============================================================
+  parameters:
+    EmployeeId:
+      name: employee_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^EMP\d{3,4}$'
+      description: Employee identifier
+
+    RequestId:
+      name: request_id
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^TOR-\d{8}-\d{3}$'
+      description: Time off request identifier
+
+  # ============================================================
+  # Schemas
+  # ============================================================
+  schemas:
+    # --- Common ---
+    Error:
+      type: object
+      required: [error_code, message]
+      properties:
+        error_code:
+          type: string
+          example: "EMPLOYEE_NOT_FOUND"
+        message:
+          type: string
+          example: "Employee with ID 'EMP999' not found"
+        details:
+          type: object
+          additionalProperties: true
+        retry_allowed:
+          type: boolean
+          default: false
+
+    # --- HCM Schemas ---
+    EmployeeName:
+      type: object
+      required: [first, last, display]
+      properties:
+        first:
+          type: string
+        last:
+          type: string
+        display:
+          type: string
+        legal_first:
+          type: string
+          description: Sensitive - only in full record
+        legal_last:
+          type: string
+          description: Sensitive - only in full record
+
+    EmployeeJob:
+      type: object
+      required: [title, department, department_id, location]
+      properties:
+        title:
+          type: string
+        department:
+          type: string
+        department_id:
+          type: string
+        location:
+          type: string
+        cost_center:
+          type: string
+        employee_type:
+          type: string
+          enum: [FULL_TIME, PART_TIME, CONTRACTOR]
+
+    ManagerRef:
+      type: object
+      required: [employee_id, display_name]
+      properties:
+        employee_id:
+          type: string
+        display_name:
+          type: string
+
+    EmployeeStatus:
+      type: string
+      enum: [ACTIVE, ON_LEAVE, TERMINATED]
+
+    Employee:
+      type: object
+      required: [employee_id, name, email, job, status, start_date]
+      properties:
+        employee_id:
+          type: string
+        name:
+          $ref: '#/components/schemas/EmployeeName'
+        email:
+          type: string
+          format: email
+        job:
+          $ref: '#/components/schemas/EmployeeJob'
+        manager:
+          $ref: '#/components/schemas/ManagerRef'
+        status:
+          $ref: '#/components/schemas/EmployeeStatus'
+        start_date:
+          type: string
+          format: date
+
+    EmployeePhone:
+      type: object
+      properties:
+        work:
+          type: string
+        mobile:
+          type: string
+          description: Sensitive
+
+    EmployeeAddress:
+      type: object
+      properties:
+        street:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postal_code:
+          type: string
+        country:
+          type: string
+
+    EmergencyContact:
+      type: object
+      properties:
+        name:
+          type: string
+        relationship:
+          type: string
+        phone:
+          type: string
+
+    EmployeeFull:
+      allOf:
+        - $ref: '#/components/schemas/Employee'
+        - type: object
+          properties:
+            personal_email:
+              type: string
+              format: email
+            phone:
+              $ref: '#/components/schemas/EmployeePhone'
+            birth_date:
+              type: string
+              format: date
+            national_id_last_four:
+              type: string
+              pattern: '^\d{4}$'
+            address:
+              $ref: '#/components/schemas/EmployeeAddress'
+            emergency_contact:
+              $ref: '#/components/schemas/EmergencyContact'
+
+    UpdateEmployeeRequest:
+      type: object
+      required: [updates]
+      properties:
+        updates:
+          type: object
+          description: Fields to update (partial update)
+        effective_date:
+          type: string
+          format: date
+        reason:
+          type: string
+
+    UpdateEmployeeResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        transaction_id:
+          type: string
+        status:
+          type: string
+          enum: [PENDING_APPROVAL, APPROVED, APPLIED]
+        effective_date:
+          type: string
+          format: date
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+              old_value:
+                type: string
+              new_value:
+                type: string
+
+    TerminateEmployeeRequest:
+      type: object
+      required: [termination_date, reason_code]
+      properties:
+        termination_date:
+          type: string
+          format: date
+        reason_code:
+          type: string
+          enum: [VOLUNTARY_RESIGNATION, INVOLUNTARY, RETIREMENT, OTHER]
+        notes:
+          type: string
+
+    TerminateEmployeeResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        transaction_id:
+          type: string
+        status:
+          type: string
+        termination_date:
+          type: string
+          format: date
+        offboarding_flow_id:
+          type: string
+
+    DirectReportSummary:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        display_name:
+          type: string
+        title:
+          type: string
+        start_date:
+          type: string
+          format: date
+
+    DirectReportsResponse:
+      type: object
+      properties:
+        manager_id:
+          type: string
+        direct_reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/DirectReportSummary'
+        count:
+          type: integer
+
+    ManagerChainEntry:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        display_name:
+          type: string
+        title:
+          type: string
+        level:
+          type: integer
+
+    ManagerChainResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        chain:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManagerChainEntry'
+
+    OrgChartNode:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        display_name:
+          type: string
+        title:
+          type: string
+        reports:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrgChartNode'
+
+    OrgChartResponse:
+      type: object
+      properties:
+        root:
+          $ref: '#/components/schemas/OrgChartNode'
+        total_count:
+          type: integer
+
+    # --- Time Tracking Schemas ---
+    TimeOffBalance:
+      type: object
+      properties:
+        type:
+          type: string
+        type_name:
+          type: string
+        available_hours:
+          type: number
+        used_hours:
+          type: number
+        pending_hours:
+          type: number
+        accrual_rate_per_period:
+          type: number
+        max_carryover:
+          type: integer
+
+    TimeOffBalanceResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        as_of_date:
+          type: string
+          format: date
+        balances:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeOffBalance'
+
+    TimeOffRequestStatus:
+      type: string
+      enum: [PENDING, APPROVED, DENIED, CANCELLED]
+
+    TimeOffRequestSummary:
+      type: object
+      properties:
+        request_id:
+          type: string
+        type:
+          type: string
+        status:
+          $ref: '#/components/schemas/TimeOffRequestStatus'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        hours:
+          type: number
+        submitted_at:
+          type: string
+          format: date-time
+        approved_by:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+
+    TimeOffRequestHistory:
+      type: object
+      properties:
+        action:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        actor:
+          type: string
+
+    TimeOffRequest:
+      type: object
+      properties:
+        request_id:
+          type: string
+        employee_id:
+          type: string
+        employee_name:
+          type: string
+        type:
+          type: string
+        type_name:
+          type: string
+        status:
+          $ref: '#/components/schemas/TimeOffRequestStatus'
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        hours:
+          type: number
+        notes:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+        approved_by:
+          $ref: '#/components/schemas/ManagerRef'
+        approved_at:
+          type: string
+          format: date-time
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeOffRequestHistory'
+
+    TimeOffRequestListResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        requests:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimeOffRequestSummary'
+        count:
+          type: integer
+
+    TimeOffRequestCreate:
+      type: object
+      required: [type, start_date, end_date, hours]
+      properties:
+        type:
+          type: string
+          enum: [PTO, SICK, BEREAVEMENT, JURY, PARENTAL]
+        start_date:
+          type: string
+          format: date
+        end_date:
+          type: string
+          format: date
+        hours:
+          type: number
+        notes:
+          type: string
+
+    TimeOffRequestCreateResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        status:
+          type: string
+        submitted_at:
+          type: string
+          format: date-time
+        approver:
+          $ref: '#/components/schemas/ManagerRef'
+        estimated_balance_after:
+          type: number
+
+    ApproveTimeOffRequest:
+      type: object
+      properties:
+        comments:
+          type: string
+
+    ApproveTimeOffResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        status:
+          type: string
+        approved_at:
+          type: string
+          format: date-time
+        approved_by:
+          type: string
+
+    CancelTimeOffRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    CancelTimeOffResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+        status:
+          type: string
+        cancelled_at:
+          type: string
+          format: date-time
+        cancelled_by:
+          type: string
+        hours_restored:
+          type: number
+
+    # --- Payroll Schemas ---
+    BaseSalary:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+          default: USD
+        frequency:
+          type: string
+          enum: [ANNUAL, MONTHLY, HOURLY]
+
+    BonusTarget:
+      type: object
+      properties:
+        percentage:
+          type: number
+        amount:
+          type: number
+
+    EquityGrant:
+      type: object
+      properties:
+        grant_value:
+          type: number
+        vesting_schedule:
+          type: string
+
+    CompensationDetails:
+      type: object
+      properties:
+        base_salary:
+          $ref: '#/components/schemas/BaseSalary'
+        bonus_target:
+          $ref: '#/components/schemas/BonusTarget'
+        equity:
+          $ref: '#/components/schemas/EquityGrant'
+        total_compensation:
+          type: number
+
+    CompensationResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        compensation:
+          $ref: '#/components/schemas/CompensationDetails'
+        pay_grade:
+          type: string
+        effective_date:
+          type: string
+          format: date
+        next_review_date:
+          type: string
+          format: date
+
+    PayPeriod:
+      type: object
+      properties:
+        start:
+          type: string
+          format: date
+        end:
+          type: string
+          format: date
+
+    Earnings:
+      type: object
+      properties:
+        regular:
+          type: number
+        overtime:
+          type: number
+        bonus:
+          type: number
+        gross:
+          type: number
+
+    Deductions:
+      type: object
+      properties:
+        federal_tax:
+          type: number
+        state_tax:
+          type: number
+        social_security:
+          type: number
+        medicare:
+          type: number
+        health_insurance:
+          type: number
+        retirement_401k:
+          type: number
+        total:
+          type: number
+
+    YearToDate:
+      type: object
+      properties:
+        gross:
+          type: number
+        taxes:
+          type: number
+        net:
+          type: number
+
+    PayStatement:
+      type: object
+      properties:
+        statement_id:
+          type: string
+        employee_id:
+          type: string
+        pay_period:
+          $ref: '#/components/schemas/PayPeriod'
+        pay_date:
+          type: string
+          format: date
+        earnings:
+          $ref: '#/components/schemas/Earnings'
+        deductions:
+          $ref: '#/components/schemas/Deductions'
+        net_pay:
+          type: number
+        ytd:
+          $ref: '#/components/schemas/YearToDate'
+
+    PayStatementSummary:
+      type: object
+      properties:
+        statement_id:
+          type: string
+        pay_date:
+          type: string
+          format: date
+        gross:
+          type: number
+        net:
+          type: number
+
+    PayStatementListResponse:
+      type: object
+      properties:
+        employee_id:
+          type: string
+        year:
+          type: integer
+        statements:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayStatementSummary'
+        count:
+          type: integer
+
+  # ============================================================
+  # Responses
+  # ============================================================
+  responses:
+    Unauthorized:
+      description: Authentication required or token invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: "UNAUTHORIZED"
+            message: "Invalid or expired token"
+            retry_allowed: false
+
+    Forbidden:
+      description: Insufficient permissions for this operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: "FORBIDDEN"
+            message: "Access denied to capability: workday.payroll.get_compensation"
+            retry_allowed: false
+
+    EmployeeNotFound:
+      description: Employee not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: "EMPLOYEE_NOT_FOUND"
+            message: "Employee with ID 'EMP999' not found"
+            retry_allowed: false
+
+    RequestNotFound:
+      description: Time off request not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: "REQUEST_NOT_FOUND"
+            message: "Time off request 'TOR-20260127-999' not found"
+            retry_allowed: false
+
+    StatementNotFound:
+      description: Pay statement not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error_code: "STATEMENT_NOT_FOUND"
+            message: "Pay statement not found"
+            retry_allowed: false
+
+  # ============================================================
+  # Security
+  # ============================================================
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from platform Okta OIDC
+
+security:
+  - BearerAuth: []

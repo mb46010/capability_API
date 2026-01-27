@@ -3,6 +3,8 @@
 Auto-generated from all feature plans. Last updated: 2026-01-25
 
 ## Active Technologies
+- Python 3.11+ + Pydantic V2 (models), PyYAML (fixtures) (002-workday-simulator)
+- In-memory with YAML file persistence (read-only fixtures) (002-workday-simulator)
 
 - Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK (001-capability-api)
 
@@ -22,6 +24,7 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 002-workday-simulator: Added Python 3.11+ + Pydantic V2 (models), PyYAML (fixtures)
 - 001-capability-api: Added Python 3.11+
 
 - 001-capability-api: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK
