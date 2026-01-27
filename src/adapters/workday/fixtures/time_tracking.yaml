@@ -1,0 +1,47 @@
+balances:
+  EMP001:
+    - type: "PTO"
+      type_name: "Paid Time Off"
+      available_hours: 120
+      used_hours: 40
+      pending_hours: 8
+      accrual_rate_per_period: 6.67
+      max_carryover: 40
+    - type: "SICK"
+      type_name: "Sick Leave"
+      available_hours: 48
+      used_hours: 16
+      pending_hours: 0
+      accrual_rate_per_period: 4
+      max_carryover: 80
+  EMP042:
+    - type: "PTO"
+      type_name: "Paid Time Off"
+      available_hours: 160
+      used_hours: 24
+      pending_hours: 0
+      accrual_rate_per_period: 8.33
+      max_carryover: 80
+
+requests:
+  TOR-001:
+    request_id: "TOR-001"
+    employee_id: "EMP001"
+    type: "PTO"
+    status: "APPROVED"
+    start_date: "2026-02-10"
+    end_date: "2026-02-14"
+    hours: 40
+    notes: "Family vacation"
+    submitted_at: "2026-01-15T10:30:00Z"
+    approved_by: "EMP042"
+    approved_at: "2026-01-16T09:00:00Z"
+  TOR-002:
+    request_id: "TOR-002"
+    employee_id: "EMP001"
+    type: "PTO"
+    status: "PENDING"
+    start_date: "2026-04-20"
+    end_date: "2026-04-22"
+    hours: 24
+    submitted_at: "2026-01-25T14:00:00Z"

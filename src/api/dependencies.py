@@ -5,9 +5,8 @@ from src.adapters.auth import MockOktaProvider, MockTokenVerifier, create_auth_d
 from src.domain.services.policy_engine import PolicyEngine
 from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
 from src.domain.ports.connector import ConnectorPort
-from src.adapters.connectors.mock_connector import MockConnectorAdapter
-from src.domain.ports.flow_runner import FlowRunnerPort
-from src.adapters.filesystem.local_flow_runner import LocalFlowRunnerAdapter
+from src.adapters.workday.client import WorkdaySimulator
+from src.adapters.workday.config import WorkdaySimulationConfig
 
 # Auth Dependencies
 provider = MockOktaProvider()
@@ -15,7 +14,8 @@ verifier = MockTokenVerifier(provider)
 get_current_principal = create_auth_dependency(verifier)
 
 # Policy Engine Dependency
-POLICY_PATH = os.getenv("POLICY_PATH", "config/policy.yaml")
+# Updated to point to workday-specific policy for US2 verification
+POLICY_PATH = os.getenv("POLICY_PATH", "config/policy-workday.yaml")
 
 @lru_cache
 def get_policy_engine() -> PolicyEngine:
@@ -26,7 +26,8 @@ def get_policy_engine() -> PolicyEngine:
 # Connector Dependency
 @lru_cache
 def get_connector() -> ConnectorPort:
-    return MockConnectorAdapter()
+    # Use WorkdaySimulator with default config
+    return WorkdaySimulator()
 
 # Flow Runner Adapter Dependency
 @lru_cache

@@ -1,0 +1,101 @@
+employees:
+  EMP001:
+    employee_id: "EMP001"
+    name:
+      first: "Alice"
+      last: "Johnson"
+      display: "Alice Johnson"
+      legal_first: "Alice Marie"
+      legal_last: "Johnson"
+    email: "alice.johnson@example.com"
+    personal_email: "alice.j@gmail.com"
+    phone:
+      work: "+1-555-0101"
+      mobile: "+1-555-0102"
+    job:
+      title: "Senior Engineer"
+      department: "Engineering"
+      department_id: "DEPT-ENG"
+      location: "San Francisco"
+      cost_center: "CC-1001"
+      employee_type: "FULL_TIME"
+    manager_id: "EMP042"
+    status: "ACTIVE"
+    start_date: "2022-03-15"
+    birth_date: "1990-05-22"
+    national_id_last_four: "1234"
+    address:
+      street: "123 Main St"
+      city: "San Francisco"
+      state: "CA"
+      postal_code: "94102"
+      country: "USA"
+    emergency_contact:
+      name: "John Johnson"
+      relationship: "Spouse"
+      phone: "+1-555-0199"
+
+  EMP042:
+    employee_id: "EMP042"
+    name:
+      first: "Bob"
+      last: "Martinez"
+      display: "Bob Martinez"
+    email: "bob.martinez@example.com"
+    job:
+      title: "Engineering Manager"
+      department: "Engineering"
+      department_id: "DEPT-ENG"
+      location: "San Francisco"
+      employee_type: "FULL_TIME"
+    manager_id: "EMP100"
+    status: "ACTIVE"
+    start_date: "2019-08-01"
+
+  EMP100:
+    employee_id: "EMP100"
+    name:
+      first: "Carol"
+      last: "Chen"
+      display: "Carol Chen"
+    email: "carol.chen@example.com"
+    job:
+      title: "VP of Engineering"
+      department: "Engineering"
+      department_id: "DEPT-ENG"
+      location: "San Francisco"
+      employee_type: "FULL_TIME"
+    manager_id: "EMP200"
+    status: "ACTIVE"
+    start_date: "2018-01-15"
+
+  EMP200:
+    employee_id: "EMP200"
+    name:
+      first: "Diana"
+      last: "Ross"
+      display: "Diana Ross"
+    email: "diana.ross@example.com"
+    job:
+      title: "CEO"
+      department: "Executive"
+      department_id: "DEPT-EXEC"
+      location: "San Francisco"
+      employee_type: "FULL_TIME"
+    manager_id: null
+    status: "ACTIVE"
+    start_date: "2015-01-01"
+
+departments:
+  DEPT-EXEC:
+    department_id: "DEPT-EXEC"
+    name: "Executive"
+    cost_center: "CC-0001"
+    parent_id: null
+    head_id: "EMP200"
+  DEPT-ENG:
+    department_id: "DEPT-ENG"
+    name: "Engineering"
+    cost_center: "CC-1000"
+    parent_id: "DEPT-EXEC"
+    head_id: "EMP100"

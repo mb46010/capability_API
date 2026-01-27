@@ -1,0 +1,61 @@
+compensation:
+  EMP001:
+    employee_id: "EMP001"
+    compensation:
+      base_salary:
+        amount: 185000
+        currency: "USD"
+        frequency: "ANNUAL"
+      bonus_target:
+        percentage: 15
+        amount: 27750
+      equity:
+        grant_value: 50000
+        vesting_schedule: "4 years with 1 year cliff"
+      total_compensation: 262750
+    pay_grade: "L5"
+    effective_date: "2025-01-01"
+    next_review_date: "2026-01-01"
+  EMP042:
+    employee_id: "EMP042"
+    compensation:
+      base_salary:
+        amount: 220000
+        currency: "USD"
+        frequency: "ANNUAL"
+      bonus_target:
+        percentage: 20
+        amount: 44000
+      equity:
+        grant_value: 100000
+        vesting_schedule: "4 years with 1 year cliff"
+      total_compensation: 364000
+    pay_grade: "M2"
+    effective_date: "2025-01-01"
+
+statements:
+  PAY-2026-01:
+    statement_id: "PAY-2026-01"
+    employee_id: "EMP001"
+    pay_period:
+      start: "2026-01-01"
+      end: "2026-01-15"
+    pay_date: "2026-01-20"
+    earnings:
+      regular: 7115.38
+      overtime: 0
+      bonus: 0
+      gross: 7115.38
+    deductions:
+      federal_tax: 1423.08
+      state_tax: 640.38
+      social_security: 441.15
+      medicare: 103.17
+      health_insurance: 250.00
+      retirement_401k: 711.54
+      total: 3569.32
+    net_pay: 3546.06
+    ytd:
+      gross: 7115.38
+      taxes: 2607.78
+      net: 3546.06
