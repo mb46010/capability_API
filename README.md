@@ -49,6 +49,26 @@ Run the full test suite:
 pytest
 ```
 
+## Documentation Index
+
+Explore the project's documentation for deeper insights into architecture, onboarding, and troubleshooting.
+
+### For Humans
+- **[Architectural Guide](docs/architecture.md)**: High-level system design and hexagonal boundaries.
+- **[Onboarding Guide](docs/onboarding.md)**: Environment setup and developer workflow.
+- **[Troubleshooting](docs/troubleshooting.md)**: Common issues and their resolutions.
+- **[Project Constitution](.specify/memory/constitution.md)**: The core principles governing this project.
+
+### For AI Agents
+Distributed `README.ai.md` files provide high-density functional context for coding agents:
+- [Domain Core](src/domain/services/README.ai.md)
+- [Hexagonal Ports](src/domain/ports/README.ai.md)
+- [Workday Adapter](src/adapters/workday/README.ai.md)
+- [Auth Provider](src/adapters/auth/README.ai.md)
+- [Filesystem Implementation](src/adapters/filesystem/README.ai.md)
+- [API Layer](src/api/routes/README.ai.md)
+- [Common Library](src/lib/README.ai.md)
+
 ## Adding a Capability
 
 1. Define the capability logic in `src/domain/services/action_service.py` (or a dedicated domain service).

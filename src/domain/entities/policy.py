@@ -19,41 +19,41 @@ class AuditLevel(str, Enum):
     VERBOSE = "VERBOSE"
 
 class PolicyMetadata(BaseModel):
-    last_reviewed: Optional[str] = None
-    reviewed_by: Optional[str] = None
-    ticket: Optional[str] = None
+    last_reviewed: Optional[str] = Field(None, description="Date of the last security review for this policy")
+    reviewed_by: Optional[str] = Field(None, description="Identity of the reviewer")
+    ticket: Optional[str] = Field(None, description="Reference to the Jira or ServiceNow ticket for the review")
 
 class PrincipalDefinition(BaseModel):
-    type: PrincipalType
-    okta_subject: Optional[str] = None
-    okta_group: Optional[str] = None
-    description: Optional[str] = None
-    provisioning_ticket: Optional[str] = None
+    type: PrincipalType = Field(description="The type of principal (HUMAN, MACHINE, AI_AGENT)")
+    okta_subject: Optional[str] = Field(None, description="The unique subject ID from Okta (e.g., email or service name)")
+    okta_group: Optional[str] = Field(None, description="Okta group name for group-based access")
+    description: Optional[str] = Field(None, description="Human-readable description of what this principal represents")
+    provisioning_ticket: Optional[str] = Field(None, description="Audit reference for principal creation")
 
 class PolicyConditions(BaseModel):
-    max_ttl_seconds: Optional[int] = Field(None, ge=60)
-    require_mfa: Optional[bool] = None
-    ip_allowlist: Optional[List[str]] = None
-    time_window: Optional[Dict[str, str]] = None
+    max_ttl_seconds: Optional[int] = Field(None, ge=60, description="Maximum allowed token lifetime in seconds")
+    require_mfa: Optional[bool] = Field(None, description="If true, requires Multi-Factor Authentication presence in token")
+    ip_allowlist: Optional[List[str]] = Field(None, description="Allowed source IP addresses or ranges")
+    time_window: Optional[Dict[str, str]] = Field(None, description="Operational window (e.g., start: '09:00', end: '17:00')")
 
 class PolicyRule(BaseModel):
-    name: str
-    description: Optional[str] = None
-    principal: Union[str, PrincipalDefinition]
-    capabilities: Union[List[str], str]
-    environments: List[Environment]
-    effect: str = "ALLOW"  # Currently only ALLOW supported
-    conditions: Optional[PolicyConditions] = None
-    audit: AuditLevel = AuditLevel.BASIC
-    approval: Optional[Dict[str, Any]] = None
+    name: str = Field(description="Unique, descriptive name for the rule")
+    description: Optional[str] = Field(None, description="Context on why this access is granted")
+    principal: Union[str, PrincipalDefinition] = Field(description="A reference to a principal ID or an inline definition")
+    capabilities: Union[List[str], str] = Field(description="List of capability strings or a capability group reference")
+    environments: List[Environment] = Field(description="Deployment environments where this rule applies")
+    effect: str = Field(default="ALLOW", description="The effect of matching this rule (currently only ALLOW)")
+    conditions: Optional[PolicyConditions] = Field(None, description="Dynamic constraints that must be satisfied for the rule to apply")
+    audit: AuditLevel = Field(default=AuditLevel.BASIC, description="The level of audit detail to capture (BASIC or VERBOSE)")
+    approval: Optional[Dict[str, Any]] = Field(None, description="Audit record of who approved this specific grant")
 
 class AccessPolicy(BaseModel):
-    version: str
-    metadata: Optional[PolicyMetadata] = None
-    principals: Optional[Dict[str, PrincipalDefinition]] = {}
-    capability_groups: Optional[Dict[str, List[str]]] = {}
-    policies: List[PolicyRule]
-    connector_constraints: Optional[Dict[str, Any]] = None
+    version: str = Field(description="The schema version of the policy document")
+    metadata: Optional[PolicyMetadata] = Field(None, description="High-level audit and review metadata")
+    principals: Optional[Dict[str, PrincipalDefinition]] = Field(default={}, description="Registry of known principals and their bindings")
+    capability_groups: Optional[Dict[str, List[str]]] = Field(default={}, description="Named sets of related capabilities for easier reuse")
+    policies: List[PolicyRule] = Field(description="The ordered list of rules to evaluate")
+    connector_constraints: Optional[Dict[str, Any]] = Field(None, description="Default limits and timeouts for external connectors")
 
     def validate_references(self) -> List[str]:
         errors = []
