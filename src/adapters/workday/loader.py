@@ -1,14 +1,14 @@
 import yaml
 from pathlib import Path
 from typing import Dict, List, Optional, Any
-from src.adapters.workday.domain.hcm_models import Employee, Department, ManagerRef
+from src.adapters.workday.domain.hcm_models import Employee, EmployeeFull, Department, ManagerRef
 from src.adapters.workday.domain.time_models import TimeOffBalance, TimeOffRequest
 from src.adapters.workday.domain.payroll_models import Compensation, PayStatement
 
 class FixtureLoader:
     def __init__(self, fixture_path: str):
         self.path = Path(fixture_path)
-        self.employees: Dict[str, Employee] = {}
+        self.employees: Dict[str, EmployeeFull] = {}
         self.departments: Dict[str, Department] = {}
         self.balances: Dict[str, List[TimeOffBalance]] = {}
         self.requests: Dict[str, TimeOffRequest] = {}
@@ -30,11 +30,11 @@ class FixtureLoader:
         
         raw_employees = data.get("employees", {})
         
-        # Pass 1: Create Employee objects without manager
+        # Pass 1: Create EmployeeFull objects without manager
         for eid, edata in raw_employees.items():
             edata_copy = edata.copy()
             edata_copy.pop("manager_id", None)
-            self.employees[eid] = Employee(**edata_copy)
+            self.employees[eid] = EmployeeFull(**edata_copy)
             
         # Pass 2: Resolve manager_id to manager object
         for eid, edata in raw_employees.items():
@@ -61,6 +61,8 @@ class FixtureLoader:
         for rid, rdata in data.get("requests", {}).items():
             rdata_copy = rdata.copy()
             mid = rdata_copy.pop("approved_by", None)
+            
+            # Pydantic will handle string to date/datetime conversion automatically
             req = TimeOffRequest(**rdata_copy)
             
             if mid and mid in self.employees:

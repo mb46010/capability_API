@@ -7,8 +7,17 @@ from src.domain.ports.connector import ConnectorPort
 from src.api.dependencies import get_current_principal, get_policy_engine, get_connector
 from src.adapters.auth import VerifiedPrincipal
 from src.domain.entities.error import ErrorResponse
+from src.adapters.workday.client import WorkdaySimulator
 
 router = APIRouter(prefix="/actions", tags=["actions"])
+
+@router.post("/test/reload-fixtures")
+async def reload_fixtures(connector: ConnectorPort = Depends(get_connector)):
+    """Reload fixture data without restarting server."""
+    if isinstance(connector, WorkdaySimulator):
+        connector.reload()
+        return {"status": "reloaded", "type": "workday"}
+    return {"status": "ignored", "reason": "not using workday simulator"}
 
 def get_action_service(
     policy_engine: PolicyEngine = Depends(get_policy_engine),

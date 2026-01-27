@@ -16,14 +16,14 @@ class WorkdayPayrollService:
             # Maybe not all employees have compensation data in fixtures
             return {}
             
-        return comp.model_dump()
+        return comp.model_dump(mode='json')
 
     async def get_pay_statement(self, params: Dict[str, Any]) -> Dict[str, Any]:
         statement_id = params.get("statement_id")
         if not statement_id or statement_id not in self.state.statements:
             raise StatementNotFoundError(statement_id)
             
-        return self.state.statements[statement_id].model_dump()
+        return self.state.statements[statement_id].model_dump(mode='json')
 
     async def list_pay_statements(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")

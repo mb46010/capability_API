@@ -15,7 +15,9 @@ class WorkdayHCMService:
             raise EmployeeNotFoundError(employee_id)
         
         emp = self.state.employees[employee_id]
-        return emp.model_dump()
+        # Filter to public fields only by validating against the base Employee model
+        public_emp = Employee.model_validate(emp.model_dump())
+        return public_emp.model_dump(mode='json')
 
     async def get_employee_full(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
@@ -28,7 +30,7 @@ class WorkdayHCMService:
         
         # We need to return EmployeeFull fields if they exist in fixture
         # Our fixtures currently have them in the same file
-        return emp.model_dump()
+        return emp.model_dump(mode='json')
 
     async def list_direct_reports(self, params: Dict[str, Any]) -> Dict[str, Any]:
         manager_id = params.get("manager_id")

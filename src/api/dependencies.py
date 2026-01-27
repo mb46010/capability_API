@@ -5,6 +5,8 @@ from src.adapters.auth import MockOktaProvider, MockTokenVerifier, create_auth_d
 from src.domain.services.policy_engine import PolicyEngine
 from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
 from src.domain.ports.connector import ConnectorPort
+from src.domain.ports.flow_runner import FlowRunnerPort
+from src.adapters.filesystem.local_flow_runner import LocalFlowRunnerAdapter
 from src.adapters.workday.client import WorkdaySimulator
 from src.adapters.workday.config import WorkdaySimulationConfig
 

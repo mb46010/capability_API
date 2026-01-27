@@ -106,12 +106,23 @@ class PolicyEngine:
         return p_def.okta_group in groups
 
     def _matches_principal_type(self, rule: PolicyRule, p_type: str) -> bool:
+        """
+        Match on type ONLY if this is a generic type-based policy.
+        A policy is type-based if it has no specific subject or group.
+        """
         p_def = self._resolve_principal_def(rule)
-        if not p_def: return False
-        # Only match on type if subject and group are NOT defined (generic type policy)
-        # Or should it match if type matches?
-        # The spec says: "policies matching the principal's type".
-        # A principal def usually has a type.
+        if not p_def: 
+            return False
+        
+        # Only match on type if there's no more specific binding
+        has_specific_subject = p_def.okta_subject is not None
+        has_specific_group = p_def.okta_group is not None
+        
+        # If this policy has specific subject/group, don't match on type alone
+        if has_specific_subject or has_specific_group:
+            return False
+        
+        # This is a generic type-based policy
         return p_def.type == p_type
 
     def _matches_capability(self, rule: PolicyRule, capability: str) -> bool:

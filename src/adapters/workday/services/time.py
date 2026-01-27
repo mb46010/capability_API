@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, date
 from typing import Dict, Any, List, Optional
 from src.adapters.workday.domain.time_models import TimeOffBalance, TimeOffRequest, TimeOffRequestHistory
+from src.adapters.workday.domain.hcm_models import ManagerRef
 from src.adapters.workday.domain.types import TimeOffRequestStatus
 from src.adapters.workday.exceptions import (
     EmployeeNotFoundError, RequestNotFoundError, InsufficientBalanceError, 
@@ -21,7 +22,7 @@ class WorkdayTimeService:
         return {
             "employee_id": employee_id,
             "as_of_date": str(params.get("as_of_date", date.today())),
-            "balances": [b.model_dump() for b in balances]
+            "balances": [b.model_dump(mode='json') for b in balances]
         }
 
     async def list_requests(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -30,7 +31,7 @@ class WorkdayTimeService:
         requests = []
         for req in self.state.requests.values():
             if not employee_id or req.employee_id == employee_id:
-                requests.append(req.model_dump())
+                requests.append(req.model_dump(mode='json'))
         
         return {
             "employee_id": employee_id,
@@ -43,7 +44,7 @@ class WorkdayTimeService:
         if not request_id or request_id not in self.state.requests:
             raise RequestNotFoundError(request_id)
             
-        return self.state.requests[request_id].model_dump()
+        return self.state.requests[request_id].model_dump(mode='json')
 
     async def request(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
@@ -53,6 +54,13 @@ class WorkdayTimeService:
         # Basic validation
         start_date = params.get("start_date")
         end_date = params.get("end_date")
+        
+        # Ensure they are date objects for comparison if passed as strings
+        if isinstance(start_date, str):
+            start_date = date.fromisoformat(start_date)
+        if isinstance(end_date, str):
+            end_date = date.fromisoformat(end_date)
+
         if start_date > end_date:
             raise InvalidDateRangeError()
             
@@ -98,10 +106,13 @@ class WorkdayTimeService:
         if target_balance:
             target_balance.pending_hours += requested_hours
             
+        approver_ref = emp.manager
+
         return {
             "request_id": request_id,
             "status": "PENDING",
             "submitted_at": str(new_request.submitted_at),
+            "approver": approver_ref.model_dump(mode='json') if approver_ref else None,
             "estimated_balance_after": target_balance.available_hours - requested_hours if target_balance else 0
         }
 
@@ -123,7 +134,17 @@ class WorkdayTimeService:
 
         req.status = TimeOffRequestStatus.APPROVED
         req.approved_at = datetime.now()
-        req.approved_by = params.get("approver_id") # Should be ManagerRef but we'll adapt
+        
+        # Resolve approver_id to ManagerRef
+        approver_ref = None
+        if approver_id in self.state.employees:
+            mgr = self.state.employees[approver_id]
+            approver_ref = ManagerRef(
+                employee_id=mgr.employee_id,
+                display_name=mgr.name.display
+            )
+        
+        req.approved_by = approver_ref
         
         req.history.append(TimeOffRequestHistory(
             action="APPROVED",
@@ -143,7 +164,7 @@ class WorkdayTimeService:
             "request_id": request_id,
             "status": "APPROVED",
             "approved_at": str(req.approved_at),
-            "approved_by": approver_id
+            "approved_by": approver_ref.model_dump(mode='json') if approver_ref else approver_id
         }
 
     async def cancel(self, params: Dict[str, Any]) -> Dict[str, Any]:

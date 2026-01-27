@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.ports.connector import ConnectorPort
 from src.domain.entities.action import ActionResponse, Provenance, ProvenanceWrapper
+from src.adapters.workday.exceptions import WorkdayError
 
 class ActionService:
     def __init__(self, policy_engine: PolicyEngine, connector: ConnectorPort):
@@ -51,6 +52,9 @@ class ActionService:
             # For MVP, we route everything to the single injected connector
             # In real world, we'd route based on 'domain' to specific connectors
             result_data = await self.connector.execute(action, parameters)
+        except WorkdayError:
+            # Let Workday-specific errors bubble up to main.py handler
+            raise
         except Exception as e:
             # Fail-fast logic
             # T110: 5.1 Non-existent employee -> Should be 404
@@ -66,7 +70,7 @@ class ActionService:
         # T106: Field Filtering for AI Agents
         # If principal is AI_AGENT, filter out sensitive fields
         if principal_type == "AI_AGENT" and isinstance(result_data, dict):
-            sensitive_fields = ["salary", "ssn_last_four"]
+            sensitive_fields = ["salary", "ssn_last_four", "national_id_last_four", "personal_email", "birth_date", "address"]
             result_data = {k: v for k, v in result_data.items() if k not in sensitive_fields}
 
         # 3. Provenance Construction

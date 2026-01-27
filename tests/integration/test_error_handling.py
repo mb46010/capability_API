@@ -20,7 +20,7 @@ async def test_error_response_structure():
     # Verify ErrorResponse structure
     assert "error_code" in data
     assert "message" in data
-    assert data["error_code"] == "401"
+    assert data["error_code"] == "UNAUTHORIZED"
     assert data["message"] == "Missing authorization header"
 
 @pytest.mark.asyncio
@@ -44,5 +44,5 @@ async def test_error_response_forbidden_structure():
     
     assert "error_code" in data
     assert "message" in data
-    assert data["error_code"] == "403"
+    assert data["error_code"] == "FORBIDDEN"
     assert "Access denied" in data["message"]
