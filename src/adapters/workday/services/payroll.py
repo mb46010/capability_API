@@ -1,48 +1,48 @@
-from typing import Dict, Any, List, Optional
-from src.adapters.workday.domain.payroll_models import Compensation, PayStatement
-from src.adapters.workday.exceptions import EmployeeNotFoundError, StatementNotFoundError
+from typing import Dict, Any, List
+from src.adapters.workday.exceptions import WorkdayError
 
 class WorkdayPayrollService:
-    def __init__(self, simulator_state: Any):
-        self.state = simulator_state
+    def __init__(self, simulator):
+        self.simulator = simulator
 
     async def get_compensation(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
-        if not employee_id or employee_id not in self.state.employees:
-            raise EmployeeNotFoundError(employee_id)
-            
-        comp = self.state.compensation.get(employee_id)
+        
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        mfa_verified = params.get("mfa_verified", False)
+
+        if not employee_id:
+             raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+
+        # 1. Auth Check
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+             raise WorkdayError(f"Principal {principal_id} cannot access compensation for {employee_id}", "UNAUTHORIZED")
+
+        # 2. MFA Check (High Sensitivity)
+        if not mfa_verified:
+             raise WorkdayError("MFA required for compensation access", "MFA_REQUIRED")
+
+        # 3. Retrieve Data
+        comp = self.simulator.compensation.get(employee_id)
         if not comp:
-            # Maybe not all employees have compensation data in fixtures
-            return {}
-            
-        return comp.model_dump(mode='json')
+             raise WorkdayError(f"Compensation data not found for {employee_id}", "EMPLOYEE_NOT_FOUND")
 
-    async def get_pay_statement(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        statement_id = params.get("statement_id")
-        if not statement_id or statement_id not in self.state.statements:
-            raise StatementNotFoundError(statement_id)
-            
-        return self.state.statements[statement_id].model_dump(mode='json')
-
-    async def list_pay_statements(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        employee_id = params.get("employee_id")
-        year = params.get("year")
-        
-        statements = []
-        for stmt in self.state.statements.values():
-            if stmt.employee_id == employee_id:
-                if not year or stmt.pay_date.year == year:
-                    statements.append({
-                        "statement_id": stmt.statement_id,
-                        "pay_date": str(stmt.pay_date),
-                        "gross": stmt.earnings.gross,
-                        "net": stmt.net_pay
-                    })
-        
+        # Return Data
         return {
             "employee_id": employee_id,
-            "year": year,
-            "statements": statements,
-            "count": len(statements)
+            "compensation": {
+                "base_salary": {
+                    "amount": comp.base_salary.amount,
+                    "currency": comp.base_salary.currency,
+                    "frequency": comp.base_salary.frequency
+                },
+                "bonus_target": {
+                    "percentage": comp.bonus_target.percentage,
+                    "amount": comp.bonus_target.amount
+                },
+                "total_compensation": comp.total_compensation
+            },
+            "pay_grade": comp.pay_grade,
+            "effective_date": comp.effective_date
         }

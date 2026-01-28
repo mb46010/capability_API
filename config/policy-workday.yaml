@@ -247,6 +247,26 @@ policies:
     effect: ALLOW
     audit: BASIC
 
+  - name: "employee-contact-update"
+    description: "Employees can update their own contact info with MFA"
+    principal: "employees"
+    capabilities: ["workday.hcm.update_contact_info"]
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      require_mfa: true
+    audit: VERBOSE
+
+  - name: "employee-payroll-read"
+    description: "Employees can view own compensation with MFA"
+    principal: "employees"
+    capabilities: ["workday.payroll.get_compensation"]
+    environments: ["local", "dev", "staging", "prod"]
+    effect: ALLOW
+    conditions:
+      require_mfa: true
+    audit: VERBOSE
+
   # ---------------------------------------------------------------------------
   # Machine: Onboarding Workflow
   # ---------------------------------------------------------------------------

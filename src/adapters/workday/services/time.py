@@ -1,198 +1,186 @@
+from typing import Dict, Any, List
+from datetime import datetime, timezone
 import uuid
-from datetime import datetime, date
-from typing import Dict, Any, List, Optional
-from src.adapters.workday.domain.time_models import TimeOffBalance, TimeOffRequest, TimeOffRequestHistory
-from src.adapters.workday.domain.hcm_models import ManagerRef
-from src.adapters.workday.domain.types import TimeOffRequestStatus
-from src.adapters.workday.exceptions import (
-    EmployeeNotFoundError, RequestNotFoundError, InsufficientBalanceError, 
-    InvalidDateRangeError, InvalidApproverError, AlreadyProcessedError
-)
+from src.adapters.workday.exceptions import WorkdayError
 
 class WorkdayTimeService:
-    def __init__(self, simulator_state: Any):
-        self.state = simulator_state
+    def __init__(self, simulator):
+        self.simulator = simulator
 
     async def get_balance(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
-        if not employee_id or employee_id not in self.state.employees:
-            raise EmployeeNotFoundError(employee_id)
-            
-        balances = self.state.balances.get(employee_id, [])
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
+        if not employee_id:
+             raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+
+        # Own Data Enforcement
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+             raise WorkdayError(f"Principal {principal_id} cannot access data for {employee_id}", "UNAUTHORIZED")
+
+        balances = self.simulator.balances.get(employee_id)
+        if balances is None:
+            if employee_id not in self.simulator.employees:
+                 raise WorkdayError(f"Employee {employee_id} not found", "EMPLOYEE_NOT_FOUND")
+            balances = []
+
         return {
             "employee_id": employee_id,
-            "as_of_date": str(params.get("as_of_date", date.today())),
-            "balances": [b.model_dump(mode='json') for b in balances]
+            "balances": [b.model_dump() for b in balances]
         }
-
-    async def list_requests(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        employee_id = params.get("employee_id")
-        # filter by employee_id if provided
-        requests = []
-        for req in self.state.requests.values():
-            if not employee_id or req.employee_id == employee_id:
-                requests.append(req.model_dump(mode='json'))
-        
-        return {
-            "employee_id": employee_id,
-            "requests": requests,
-            "count": len(requests)
-        }
-
-    async def get_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        request_id = params.get("request_id")
-        if not request_id or request_id not in self.state.requests:
-            raise RequestNotFoundError(request_id)
-            
-        return self.state.requests[request_id].model_dump(mode='json')
 
     async def request(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
-        if not employee_id or employee_id not in self.state.employees:
-            raise EmployeeNotFoundError(employee_id)
-            
-        # Basic validation
+        req_type = params.get("type")
         start_date = params.get("start_date")
         end_date = params.get("end_date")
+        hours = params.get("hours", 0)
         
-        # Ensure they are date objects for comparison if passed as strings
-        if isinstance(start_date, str):
-            start_date = date.fromisoformat(start_date)
-        if isinstance(end_date, str):
-            end_date = date.fromisoformat(end_date)
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
 
-        if start_date > end_date:
-            raise InvalidDateRangeError()
+        # 1. Validation
+        if not all([employee_id, req_type, start_date, end_date]):
+            raise WorkdayError("Missing required fields", "INVALID_PARAMS")
             
-        # Check balance
-        requested_hours = params.get("hours", 0)
-        leave_type = params.get("type")
-        
-        balances = self.state.balances.get(employee_id, [])
-        target_balance = next((b for b in balances if b.type == leave_type), None)
-        
-        if self.state.config.enforce_balance_check:
-            if not target_balance or target_balance.available_hours < requested_hours:
-                raise InsufficientBalanceError(
-                    available=target_balance.available_hours if target_balance else 0,
-                    requested=requested_hours
-                )
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+             raise WorkdayError("Cannot request time off for another employee", "UNAUTHORIZED")
 
-        # Create request
-        request_id = f"TOR-{uuid.uuid4().hex[:8].upper()}"
-        emp = self.state.employees[employee_id]
+        # 2. Check Balance
+        balances = self.simulator.balances.get(employee_id, [])
+        balance_entry = next((b for b in balances if b.type == req_type), None)
         
-        new_request = TimeOffRequest(
+        if not balance_entry:
+            raise WorkdayError(f"No balance found for type {req_type}", "INVALID_TYPE")
+            
+        if (balance_entry.available_hours - balance_entry.pending_hours) < hours:
+            raise WorkdayError(f"Insufficient {req_type} balance. Requested: {hours}", "INSUFFICIENT_BALANCE")
+
+        # 3. Create Request
+        request_id = f"TOR-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Determine approver (Manager)
+        employee = self.simulator.employees.get(employee_id)
+        approver = None
+        if employee and employee.manager:
+             approver = {
+                 "employee_id": employee.manager.employee_id,
+                 "display_name": employee.manager.display_name
+             }
+
+        # Update Balance (Pending)
+        balance_entry.pending_hours += hours
+        
+        # Create Record
+        class SimpleRequest:
+            def __init__(self, **kwargs):
+                self.__dict__.update(kwargs)
+        
+        record = SimpleRequest(
             request_id=request_id,
             employee_id=employee_id,
-            employee_name=emp.name.display,
-            type=leave_type,
-            status=TimeOffRequestStatus.PENDING,
+            status="PENDING",
+            type=req_type,
             start_date=start_date,
             end_date=end_date,
-            hours=requested_hours,
-            notes=params.get("notes"),
-            submitted_at=datetime.now(),
-            history=[TimeOffRequestHistory(
-                action="SUBMITTED",
-                timestamp=datetime.now(),
-                actor=employee_id
-            )]
+            hours=hours,
+            submitted_at=datetime.now(timezone.utc)
         )
-        
-        self.state.requests[request_id] = new_request
-        
-        # Update pending hours
-        if target_balance:
-            target_balance.pending_hours += requested_hours
-            
-        approver_ref = emp.manager
+        self.simulator.requests[request_id] = record
 
         return {
             "request_id": request_id,
             "status": "PENDING",
-            "submitted_at": str(new_request.submitted_at),
-            "approver": approver_ref.model_dump(mode='json') if approver_ref else None,
-            "estimated_balance_after": target_balance.available_hours - requested_hours if target_balance else 0
-        }
-
-    async def approve(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        request_id = params.get("request_id")
-        approver_id = params.get("approver_id")
-        
-        if not request_id or request_id not in self.state.requests:
-            raise RequestNotFoundError(request_id)
-            
-        req = self.state.requests[request_id]
-        if req.status != TimeOffRequestStatus.PENDING:
-            raise AlreadyProcessedError()
-            
-        # Manager check
-        if self.state.config.enforce_manager_chain:
-            # We'd need to verify approver is in employee's manager chain
-            pass # Simplified for now
-
-        req.status = TimeOffRequestStatus.APPROVED
-        req.approved_at = datetime.now()
-        
-        # Resolve approver_id to ManagerRef
-        approver_ref = None
-        if approver_id in self.state.employees:
-            mgr = self.state.employees[approver_id]
-            approver_ref = ManagerRef(
-                employee_id=mgr.employee_id,
-                display_name=mgr.name.display
-            )
-        
-        req.approved_by = approver_ref
-        
-        req.history.append(TimeOffRequestHistory(
-            action="APPROVED",
-            timestamp=datetime.now(),
-            actor=approver_id
-        ))
-        
-        # Update balances
-        balances = self.state.balances.get(req.employee_id, [])
-        target_balance = next((b for b in balances if b.type == req.type), None)
-        if target_balance:
-            target_balance.available_hours -= req.hours
-            target_balance.pending_hours -= req.hours
-            target_balance.used_hours += req.hours
-            
-        return {
-            "request_id": request_id,
-            "status": "APPROVED",
-            "approved_at": str(req.approved_at),
-            "approved_by": approver_ref.model_dump(mode='json') if approver_ref else approver_id
+            "submitted_at": datetime.now(timezone.utc).isoformat(),
+            "approver": approver,
+            "estimated_balance_after": balance_entry.available_hours - hours 
         }
 
     async def cancel(self, params: Dict[str, Any]) -> Dict[str, Any]:
         request_id = params.get("request_id")
-        if not request_id or request_id not in self.state.requests:
-            raise RequestNotFoundError(request_id)
-            
-        req = self.state.requests[request_id]
-        if req.status == TimeOffRequestStatus.CANCELLED:
-            raise AlreadyProcessedError()
-            
-        old_status = req.status
-        req.status = TimeOffRequestStatus.CANCELLED
+        reason = params.get("reason")
         
-        # Restore balances if it was approved or pending
-        balances = self.state.balances.get(req.employee_id, [])
-        target_balance = next((b for b in balances if b.type == req.type), None)
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
+        if not request_id:
+             raise WorkdayError("Missing request_id", "INVALID_PARAMS")
+
+        request = self.simulator.requests.get(request_id)
+        if not request:
+            raise WorkdayError(f"Request {request_id} not found", "REQUEST_NOT_FOUND")
+
+        # Auth Check
+        if principal_type == "HUMAN" and principal_id and principal_id != request.employee_id:
+             raise WorkdayError("Cannot cancel another employee's request", "UNAUTHORIZED")
+
+        if request.status == "CANCELLED":
+            return {
+                "request_id": request_id,
+                "status": "CANCELLED",
+                "message": "Already cancelled"
+            }
+            
+        balances = self.simulator.balances.get(request.employee_id, [])
+        balance_entry = next((b for b in balances if b.type == request.type), None)
         
-        if target_balance:
-            if old_status == TimeOffRequestStatus.APPROVED:
-                target_balance.available_hours += req.hours
-                target_balance.used_hours -= req.hours
-            elif old_status == TimeOffRequestStatus.PENDING:
-                target_balance.pending_hours -= req.hours
-                
+        hours_restored = 0
+        if balance_entry:
+            if request.status == "PENDING":
+                balance_entry.pending_hours = max(0, balance_entry.pending_hours - request.hours)
+                hours_restored = request.hours
+            elif request.status == "APPROVED":
+                balance_entry.used_hours = max(0, balance_entry.used_hours - request.hours)
+                balance_entry.available_hours += request.hours
+                hours_restored = request.hours
+
+        request.status = "CANCELLED"
+        
         return {
             "request_id": request_id,
             "status": "CANCELLED",
-            "cancelled_at": str(datetime.now()),
-            "hours_restored": req.hours
+            "cancelled_at": datetime.now(timezone.utc).isoformat(),
+            "cancelled_by": principal_id or "system",
+            "hours_restored": hours_restored
+        }
+
+    async def approve(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        request_id = params.get("request_id")
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
+        if not request_id:
+             raise WorkdayError("Missing request_id", "INVALID_PARAMS")
+             
+        request = self.simulator.requests.get(request_id)
+        if not request:
+            raise WorkdayError(f"Request {request_id} not found", "REQUEST_NOT_FOUND")
+
+        employee = self.simulator.employees.get(request.employee_id)
+        if not employee:
+             raise WorkdayError("Employee for request not found", "DATA_INTEGRITY_ERROR")
+             
+        if principal_type == "HUMAN":
+            if not employee.manager or employee.manager.employee_id != principal_id:
+                raise WorkdayError(f"Principal {principal_id} is not the manager of {request.employee_id}", "UNAUTHORIZED")
+        
+        if request.status != "PENDING":
+             raise WorkdayError(f"Request {request_id} is not PENDING (Status: {request.status})", "INVALID_STATE")
+
+        balances = self.simulator.balances.get(request.employee_id, [])
+        balance_entry = next((b for b in balances if b.type == request.type), None)
+        
+        if balance_entry:
+            balance_entry.pending_hours = max(0, balance_entry.pending_hours - request.hours)
+            balance_entry.available_hours = max(0, balance_entry.available_hours - request.hours)
+            balance_entry.used_hours += request.hours
+
+        request.status = "APPROVED"
+        
+        return {
+            "request_id": request_id,
+            "status": "APPROVED",
+            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "approved_by": principal_id
         }

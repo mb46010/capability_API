@@ -1,6 +1,15 @@
-from typing import Dict, Any, List, Union
 from datetime import datetime
+from typing import Dict, Any, List, Union, Optional
 from pydantic import BaseModel, Field
+
+class EmployeeReference(BaseModel):
+    employee_id: str = Field(description="Unique identifier of the employee")
+    display_name: str = Field(description="Full display name of the employee")
+
+class Money(BaseModel):
+    amount: float = Field(description="Monetary amount")
+    currency: str = Field(description="ISO currency code (e.g. USD)")
+    frequency: Optional[str] = Field(default=None, description="Payment frequency (e.g. ANNUAL, HOURLY)")
 
 class ActionRequest(BaseModel):
     parameters: Dict[str, Any] = Field(description="Key-value pairs of parameters for the action")

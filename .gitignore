@@ -1,57 +1,13 @@
-# Python
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Virtual Environments
-venv/
+*.pyc
 .venv/
-env/
-.env/
-ENV/
-env.bak/
-venv.bak/
-
-# Environment Variables
+venv/
+dist/
+*.egg-info/
 .env
-.env.test
-.env.production
-.env.local
-
-# IDEs
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Logs
+.env.*
+logs/
 *.log
-
-# Testing
 .pytest_cache/
 .coverage
 htmlcov/
-junit/
-coverage.xml
-
-# Project specific
-.gemini/tmp/

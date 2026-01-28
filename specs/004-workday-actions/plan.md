@@ -1,109 +1,115 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Workday Actions
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+**Branch**: `004-workday-actions` | **Date**: 2026-01-28 | **Spec**: [specs/004-workday-actions/spec.md](specs/004-workday-actions/spec.md)
+**Input**: Feature specification from `/specs/004-workday-actions/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+Implement a set of atomic, policy-governed HR actions (e.g., `get_employee`, `request_time_off`, `approve`) backed by the Workday Simulator. These actions must be OIDC-secured, audited, and strictly synchronous (< 1s), serving as the foundation for the "Action" layer of the Capability API.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
-
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
-**Project Type**: [single/web/mobile - determines source structure]  
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Language/Version**: Python 3.11+
+**Primary Dependencies**: FastAPI, Pydantic V2, Authlib (for OIDC)
+**Storage**: In-memory (Workday Simulator) with YAML fixtures for persistence
+**Testing**: pytest (Unit + Integration)
+**Target Platform**: Linux (Containerized)
+**Project Type**: Web API (FastAPI)
+**Performance Goals**: Actions must complete in < 1s (p99)
+**Constraints**: Must work locally with Simulator; Strict OIDC enforcement; PII redaction in logs.
+**Scale/Scope**: ~9 initial actions across HCM, Time, and Payroll domains.
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [ ] **Hexagonal Integrity**: Does the design strictly separate business logic from storage (Storage Port)?
-- [ ] **Actions vs Flows**: Is this classified correctly? (Action = short/deterministic, Flow = long-running/orchestrated)
-- [ ] **Python-Native**: Is all logic idiomatic Python?
-- [ ] **Observability**: Are provenance logging and audit trails planned?
-- [ ] **Privacy & PII**: Are logs sanitized and PII masked (Article VIII)?
-- [ ] **Local Parity**: Can this be fully tested against a local filesystem adapter?
+- [x] **Hexagonal Integrity**: Uses `ConnectorPort` and `WorkdaySimulator` adapter.
+- [x] **Actions vs Flows**: All proposed actions are synchronous and short-lived.
+- [x] **Python-Native**: Logic implemented in Python services (`hcm`, `time`, `payroll`).
+- [x] **Observability**: `Provenance` model defined; requires implementation of audit logging.
+- [x] **Privacy & PII**: `update_contact_info` requires PII redaction in audit logs.
+- [x] **Local Parity**: Simulator provides full functional parity locally.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
-└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
+specs/004-workday-actions/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+├── contracts/           # Phase 1 output (OpenAPI)
+└── tasks.md             # Phase 2 output
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── models/
-├── services/
-├── cli/
-└── lib/
-
-tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+├── api/
+│   └── routes/
+│       └── actions.py         # Main entry point for action execution
+├── adapters/
+│   ├── auth/                  # OIDC/Mock Auth
+│   └── workday/
+│       ├── client.py          # Simulator Dispatcher
+│       ├── services/          # Domain Logic
+│       │   ├── hcm.py         # get_employee, list_direct_reports, update_contact_info
+│       │   ├── time.py        # get_balance, request, cancel, approve
+│       │   └── payroll.py     # get_compensation
+│       └── fixtures/          # YAML data
+└── domain/
+    ├── entities/
+    │   └── action.py          # Action/Provenance models
+    └── services/
+        └── policy_engine.py   # Policy enforcement logic
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Option 1: Single project (Default)
+
+## Authorization Implementation Strategy
+
+The "Who can invoke" rules from the spec will be enforced via two layers:
+
+1.  **Policy Engine (`policy-workday.yaml`)**:
+    - **Agents**: Explicitly DENY `update_contact_info`, `get_compensation`, `approve` (by omission).
+    - **Agents**: ALLOW `get_employee` (but Subject to field filtering), `get_balance`.
+    - **Managers**: ALLOW `approve`, `list_direct_reports` (base permission).
+    - **MFA Requirement**: `get_compensation` and `update_contact_info` must require `mfa_verified: true`.
+
+2.  **Code-Level Enforcement (Service Layer)**:
+    - **Field Filtering**: `get_employee` returns restricted fields for `AI_AGENT` principals (existing pattern).
+    - **Own Data**: Check `principal.id == target.employee_id` for self-service actions.
+    - **Manager Relationship**: Check `hcm.is_manager(principal.id, target.employee_id)` for `approve`/`list_direct_reports`.
+
+## Development & Testing Strategy (Constitution Enforced)
+
+1.  **Test-First (Article IV)**:
+    - Create test files *before* implementation:
+        - `tests/unit/adapters/workday/services/test_hcm_actions.py`
+        - `tests/unit/adapters/workday/services/test_time_actions.py`
+        - `tests/unit/adapters/workday/services/test_payroll_actions.py`
+    - Define failing test cases for:
+        - Happy path (e.g., `request_time_off` creates record).
+        - Edge cases (e.g., negative balance, invalid dates).
+        - Security (e.g., employee updating another's contact info -> 403).
+    - Implement logic only after tests are defined.
+
+2.  **Documentation as Code (Article VI)**:
+    - Update `src/adapters/workday/README.ai.md`: Add new action capabilities and Pydantic schemas.
+    - Update `src/domain/entities/README.ai.md`: Document the `ActionRequest`/`ActionResponse` structures.
+    - Ensure all Pydantic models in `data-model.md` have `Field(description=...)`.
+
+3.  **Logging & Privacy (Article VIII)**:
+    - Replace any `print()` statements in `WorkdaySimulator` with standard `logging`.
+    - Implement a `JSONLLogger` adapter that performs PII redaction (masking phone/salary/email values) before writing to `logs/audit.jsonl`.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| None | N/A | N/A |

@@ -1,6 +1,7 @@
 import asyncio
 import random
 import time
+import logging
 from typing import Dict, Any, Optional
 from src.domain.ports.connector import ConnectorPort
 from src.adapters.workday.config import WorkdaySimulationConfig
@@ -8,15 +9,20 @@ from src.adapters.workday.loader import FixtureLoader
 from src.adapters.workday.exceptions import (
     WorkdayError, ConnectorTimeoutError, ConnectorUnavailableError, RateLimitedError
 )
+from src.adapters.filesystem.logger import JSONLLogger
 
 from src.adapters.workday.services.hcm import WorkdayHCMService
 from src.adapters.workday.services.time import WorkdayTimeService
 from src.adapters.workday.services.payroll import WorkdayPayrollService
 
+logger = logging.getLogger(__name__)
+
 class WorkdaySimulator(ConnectorPort):
     def __init__(self, config: Optional[WorkdaySimulationConfig] = None):
         self.config = config or WorkdaySimulationConfig()
         self.loader = FixtureLoader(self.config.fixture_path)
+        self.audit_logger = JSONLLogger()
+        
         # We store mutable state in memory as requested
         self.employees = self.loader.employees
         self.departments = self.loader.departments
@@ -53,12 +59,13 @@ class WorkdaySimulator(ConnectorPort):
         self.compensation = self.loader.compensation
         self.statements = self.loader.statements
         self._validate_fixtures()
+        logger.info("Fixtures reloaded successfully")
 
     async def execute(self, action: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generic entry point for all Workday operations.
         """
-        print(f"DEBUG: [WorkdaySimulator] Executing {action} with params: {parameters}")
+        logger.debug(f"Executing {action} with params: {parameters}")
         # 1. Failure Injection
         self._inject_failure()
         
@@ -77,6 +84,7 @@ class WorkdaySimulator(ConnectorPort):
         )
             
         if not handler:
+            logger.error(f"Action '{action}' not implemented")
             raise WorkdayError(
                 message=f"Action '{action}' not implemented in simulator. Check capability mapping.",
                 error_code="NOT_IMPLEMENTED",
@@ -85,16 +93,26 @@ class WorkdaySimulator(ConnectorPort):
             
         try:
             result = await handler(parameters)
-            print(f"DEBUG: [WorkdaySimulator] {action} returned success")
+            logger.info(f"{action} execution successful")
+            
+            # Audit Log
+            self.audit_logger.log_event(
+                event_type=action,
+                payload=parameters, # We log the inputs
+                actor=parameters.get("principal_id", "unknown") # Assuming passed in params or context
+            )
+            
             return result
         except Exception as e:
-            print(f"DEBUG: [WorkdaySimulator] {action} failed: {str(e)}")
+            logger.error(f"{action} failed: {str(e)}")
             raise
 
     def _inject_failure(self):
         if self.config.failure_rate > 0 and random.random() < self.config.failure_rate:
+            logger.warning("Injecting failure: ConnectorUnavailableError")
             raise ConnectorUnavailableError()
         if self.config.timeout_rate > 0 and random.random() < self.config.timeout_rate:
+            logger.warning("Injecting failure: ConnectorTimeoutError")
             raise ConnectorTimeoutError()
 
     async def _simulate_latency(self, action: str):
@@ -109,7 +127,9 @@ class WorkdaySimulator(ConnectorPort):
         if delay_ms > 0:
             await asyncio.sleep(delay_ms / 1000.0)
 
-    # Placeholder handlers for dispatch
-    async def _get_employee(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        # Implementation in US1
-        return {}
+    # Note: No placeholder handlers needed as dispatch logic dynamically calls services.
+    # The dispatch logic in `execute` handles this:
+    # handler = (getattr(self.hcm_service, method_name, None) ...)
+    
+    # We remove the old placeholder to clean up.
+
