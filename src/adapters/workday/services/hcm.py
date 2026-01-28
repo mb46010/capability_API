@@ -101,11 +101,16 @@ class WorkdayHCMService:
                 display_name = emp.name["display"] if isinstance(emp.name, dict) else emp.name.display
                 title = emp.job["title"] if isinstance(emp.job, dict) else emp.job.title
                 
+                # Extract start_date from object if available
+                start_date = getattr(emp, "start_date", "2023-01-01")
+                if hasattr(start_date, "isoformat"):
+                    start_date = start_date.isoformat()
+                
                 reports.append({
                     "employee_id": emp.employee_id,
                     "display_name": display_name,
                     "title": title,
-                    "start_date": "2023-01-01" 
+                    "start_date": start_date
                 })
 
         return {

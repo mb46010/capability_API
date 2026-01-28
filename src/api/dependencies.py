@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from functools import lru_cache
 from fastapi import Depends
 from src.adapters.auth import MockOktaProvider, MockTokenVerifier, create_auth_dependency
@@ -18,6 +19,8 @@ get_current_principal = create_auth_dependency(verifier)
 # Policy Engine Dependency
 # Updated to point to workday-specific policy for US2 verification
 POLICY_PATH = os.getenv("POLICY_PATH", "config/policy-workday.yaml")
+if not Path(POLICY_PATH).exists():
+    raise FileNotFoundError(f"Policy file not found: {POLICY_PATH}")
 
 @lru_cache
 def get_policy_engine() -> PolicyEngine:

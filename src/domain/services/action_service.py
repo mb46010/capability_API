@@ -9,9 +9,33 @@ from src.domain.entities.action import ActionResponse, Provenance, ProvenanceWra
 from src.adapters.workday.exceptions import WorkdayError
 
 class ActionService:
+    KNOWN_CAPABILITIES = {
+        "workday.hcm": [
+            "get_employee", "get_employee_full", "get_manager_chain", 
+            "list_direct_reports", "update_contact_info", "update_employee", 
+            "terminate_employee", "get_org_chart"
+        ],
+        "workday.time": [
+            "get_balance", "request", "cancel", "approve", 
+            "list_requests", "get_request"
+        ],
+        "workday.payroll": [
+            "get_compensation", "get_pay_statement", "list_pay_statements"
+        ],
+        "hr": [
+            "onboarding", "offboarding", "role_change", "compensation_review"
+        ]
+    }
+
     def __init__(self, policy_engine: PolicyEngine, connector: ConnectorPort):
         self.policy_engine = policy_engine
         self.connector = connector
+
+    def _validate_capability(self, domain: str, action: str):
+        if domain not in self.KNOWN_CAPABILITIES:
+            raise HTTPException(status_code=400, detail=f"Unknown domain: {domain}")
+        if action not in self.KNOWN_CAPABILITIES[domain]:
+            raise HTTPException(status_code=400, detail=f"Unknown action: {domain}.{action}")
 
     async def execute_action(
         self,
@@ -28,6 +52,7 @@ class ActionService:
         token_expires_at: Optional[int] = None,
         request_ip: Optional[str] = None
     ) -> ActionResponse:
+        self._validate_capability(domain, action)
         capability = f"{domain}.{action}"
         
         # 1. Policy Check
@@ -74,12 +99,6 @@ class ActionService:
             raise HTTPException(status_code=424, detail=f"Connector failure: {str(e)}")
         
         latency_ms = (time.time() - start_time) * 1000
-
-        # T106: Field Filtering for AI Agents
-        # If principal is AI_AGENT, filter out sensitive fields
-        if principal_type == "AI_AGENT" and isinstance(result_data, dict):
-            sensitive_fields = ["salary", "ssn_last_four", "national_id_last_four", "personal_email", "birth_date", "address"]
-            result_data = {k: v for k, v in result_data.items() if k not in sensitive_fields}
 
         # 3. Provenance Construction
         provenance = Provenance(

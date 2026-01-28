@@ -2,6 +2,7 @@ from typing import Dict, Any, List
 from datetime import datetime, timezone
 import uuid
 from src.adapters.workday.exceptions import WorkdayError
+from src.adapters.workday.domain.time_models import TimeOffRequest, ManagerRef
 
 class WorkdayTimeService:
     def __init__(self, simulator):
@@ -72,16 +73,14 @@ class WorkdayTimeService:
         # Update Balance (Pending)
         balance_entry.pending_hours += hours
         
-        # Create Record
-        class SimpleRequest:
-            def __init__(self, **kwargs):
-                self.__dict__.update(kwargs)
-        
-        record = SimpleRequest(
+        # Create Record using proper Pydantic model
+        record = TimeOffRequest(
             request_id=request_id,
             employee_id=employee_id,
+            employee_name=employee.name.display if employee else None,
             status="PENDING",
             type=req_type,
+            type_name=balance_entry.type_name,
             start_date=start_date,
             end_date=end_date,
             hours=hours,
@@ -92,7 +91,7 @@ class WorkdayTimeService:
         return {
             "request_id": request_id,
             "status": "PENDING",
-            "submitted_at": datetime.now(timezone.utc).isoformat(),
+            "submitted_at": record.submitted_at.isoformat(),
             "approver": approver,
             "estimated_balance_after": balance_entry.available_hours - hours 
         }
@@ -135,7 +134,9 @@ class WorkdayTimeService:
                 balance_entry.available_hours += request.hours
                 hours_restored = request.hours
 
+        # Update and persist
         request.status = "CANCELLED"
+        self.simulator.requests[request_id] = request
         
         return {
             "request_id": request_id,
@@ -176,11 +177,18 @@ class WorkdayTimeService:
             balance_entry.available_hours = max(0, balance_entry.available_hours - request.hours)
             balance_entry.used_hours += request.hours
 
+        # Update and persist
         request.status = "APPROVED"
+        request.approved_at = datetime.now(timezone.utc)
+        request.approved_by = ManagerRef(
+            employee_id=principal_id,
+            display_name=employee.manager.display_name if employee.manager else "Manager"
+        )
+        self.simulator.requests[request_id] = request
         
         return {
             "request_id": request_id,
             "status": "APPROVED",
-            "approved_at": datetime.now(timezone.utc).isoformat(),
+            "approved_at": request.approved_at.isoformat(),
             "approved_by": principal_id
         }

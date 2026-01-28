@@ -118,11 +118,9 @@ class PolicyEngine:
         has_specific_subject = p_def.okta_subject is not None
         has_specific_group = p_def.okta_group is not None
         
-        # If this policy has specific subject/group, don't match on type alone
         if has_specific_subject or has_specific_group:
             return False
         
-        # This is a generic type-based policy
         return p_def.type == p_type
 
     def _matches_capability(self, rule: PolicyRule, capability: str) -> bool:

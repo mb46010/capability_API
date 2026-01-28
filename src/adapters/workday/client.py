@@ -84,11 +84,16 @@ class WorkdaySimulator(ConnectorPort):
         )
             
         if not handler:
-            logger.error(f"Action '{action}' not implemented")
+            # Provide a helpful error message with available methods
+            available = {
+                "hcm": [m for m in dir(self.hcm_service) if not m.startswith("_")],
+                "time": [m for m in dir(self.time_service) if not m.startswith("_")],
+                "payroll": [m for m in dir(self.payroll_service) if not m.startswith("_")]
+            }
+            logger.error(f"Action '{action}' not found. Available methods: {available}")
             raise WorkdayError(
-                message=f"Action '{action}' not implemented in simulator. Check capability mapping.",
-                error_code="NOT_IMPLEMENTED",
-                details={"hint": f"Try implementing _{method_name} in a service class."}
+                message=f"Action '{action}' not implemented in simulator. Available methods: {available}",
+                error_code="NOT_IMPLEMENTED"
             )
             
         try:

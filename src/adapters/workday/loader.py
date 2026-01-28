@@ -36,15 +36,17 @@ class FixtureLoader:
             edata_copy.pop("manager_id", None)
             self.employees[eid] = EmployeeFull(**edata_copy)
             
-        # Pass 2: Resolve manager_id to manager object
+        # Pass 2: Rebuild with managers
         for eid, edata in raw_employees.items():
             mid = edata.get("manager_id")
             if mid and mid in self.employees:
                 m = self.employees[mid]
-                self.employees[eid].manager = ManagerRef(
+                edata_copy = edata.copy()
+                edata_copy["manager"] = ManagerRef(
                     employee_id=m.employee_id,
                     display_name=m.name.display
                 )
+                self.employees[eid] = EmployeeFull(**edata_copy)
             
         for did, ddata in data.get("departments", {}).items():
             self.departments[did] = Department(**ddata)
