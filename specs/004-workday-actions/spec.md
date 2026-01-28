@@ -10,6 +10,7 @@
 - Q: How should specific PII values be handled in the persistent audit log? → A: Redact values (replace sensitive literals with `[REDACTED]` or `***`).
 - Q: How should "Own Data Only" constraints be enforced? → A: Code-level enforcement (API endpoint checks `token.sub == payload.employee_id` for Human principals).
 - Q: For manager-scoped actions, how strict is the relationship validation? → A: Direct Manager Only (Principal must be the immediate manager of the target employee).
+- Q: How should MFA be verified in the local environment? → A: Token Claim Mock (Verify `amr: ["mfa"]` claim in OIDC token).
 
 ## Scope Boundaries
 
@@ -72,3 +73,4 @@
 - **Audit Redaction**: Sensitive PII values in `update_contact_info` and `get_compensation` must be redacted (e.g., `***`) in logs; field names remain visible.
 - **Authorization Enforcement**: For Human principals, API endpoints must validate that the target `employee_id` matches the authenticated principal's ID ("Own Data Only"), unless the principal has a specific override role (e.g., HR Admin).
 - **Manager Relationship Enforcement**: Manager-scoped actions (`approve`, `list_direct_reports`) must verify that the principal is the **immediate manager** of the target employee(s) via the HCM data.
+- **MFA Verification**: Sensitive actions requiring MFA (Compensation, PII updates) must verify the `amr: ["mfa"]` claim in the OIDC token. In local/simulation, the `MockTokenVerifier` must be configurable to issue/accept this claim.
