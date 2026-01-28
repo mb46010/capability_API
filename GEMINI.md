@@ -28,9 +28,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 005-hr-mcp-server: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 004-workday-actions: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC)
 - 003-documentation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 003-documentation: Added Markdown (GFM), Mermaid.js + None (Project uses Python 3.11+, Pydantic V2)
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -11,3 +11,4 @@ logs/
 .pytest_cache/
 .coverage
 htmlcov/
+.gemini/settings.json
