@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 import os
-from src.api.routes import actions, flows
+from src.api.routes import actions, flows, audit
 from src.domain.entities.error import ErrorResponse
 
 from src.adapters.workday.exceptions import WorkdayError
@@ -67,6 +67,7 @@ async def workday_error_handler(request: Request, exc: WorkdayError):
 
 app.include_router(actions.router)
 app.include_router(flows.router)
+app.include_router(audit.router)
 
 # Mount mock Okta provider routes in local environment for testing
 if os.getenv("ENVIRONMENT", "local") == "local":
