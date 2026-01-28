@@ -45,6 +45,8 @@ async def workday_error_handler(request: Request, exc: WorkdayError):
         "INSUFFICIENT_BALANCE": 400,
         "INVALID_DATE_RANGE": 400,
         "INVALID_APPROVER": 403,
+        "UNAUTHORIZED": 403,
+        "MFA_REQUIRED": 401,
         "ALREADY_PROCESSED": 409,
         "CONNECTOR_TIMEOUT": 504,
         "CONNECTOR_UNAVAILABLE": 503,

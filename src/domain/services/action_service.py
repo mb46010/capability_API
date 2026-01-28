@@ -49,9 +49,17 @@ class ActionService:
         # 2. Connector Execution
         start_time = time.time()
         try:
+            # Inject principal context into parameters for adapter-level enforcement
+            enriched_params = {
+                **parameters,
+                "principal_id": principal_id,
+                "principal_type": principal_type,
+                "mfa_verified": mfa_verified
+            }
+            
             # For MVP, we route everything to the single injected connector
             # In real world, we'd route based on 'domain' to specific connectors
-            result_data = await self.connector.execute(action, parameters)
+            result_data = await self.connector.execute(action, enriched_params)
         except WorkdayError:
             # Let Workday-specific errors bubble up to main.py handler
             raise

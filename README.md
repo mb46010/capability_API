@@ -37,6 +37,11 @@ Start the FastAPI server locally:
 uvicorn src.main:app --reload --port 8000
 ```
 
+Once running, you can test the API using our helper scripts:
+```bash
+./scripts/api/smoke-test.sh
+```
+
 The API will be available at:
 - Docs: http://localhost:8000/docs
 - OpenAPI: http://localhost:8000/openapi.json
@@ -56,6 +61,8 @@ Explore the project's documentation for deeper insights into architecture, onboa
 ### For Humans
 - **[Architectural Guide](docs/architecture.md)**: High-level system design and hexagonal boundaries.
 - **[Onboarding Guide](docs/onboarding.md)**: Environment setup and developer workflow.
+- **[API Layer Overview](src/api/docs/overview.md)**: Design philosophy and core components of the public surface.
+- **[API Getting Started](src/api/docs/getting_started.md)**: Quick guide to running, authenticating, and testing the API.
 - **[Workday Technical Docs](src/adapters/workday/docs/technical.md)**: Deep-dive into the Workday simulator implementation.
 - **[Workday Functional Docs](src/adapters/workday/docs/functional.md)**: Business overview of simulation data and personas.
 - **[Troubleshooting](docs/troubleshooting.md)**: Common issues and their resolutions.
@@ -68,7 +75,7 @@ Distributed `README.ai.md` files provide high-density functional context for cod
 - [Workday Adapter](src/adapters/workday/README.ai.md)
 - [Auth Provider](src/adapters/auth/README.ai.md)
 - [Filesystem Implementation](src/adapters/filesystem/README.ai.md)
-- [API Layer](src/api/routes/README.ai.md)
+- [API Layer](src/api/README.ai.md)
 - [Common Library](src/lib/README.ai.md)
 
 ## Adding a Capability
