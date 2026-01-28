@@ -7,6 +7,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-25
 - In-memory with YAML file persistence (read-only fixtures) (002-workday-simulator)
 - Markdown (GFM), Mermaid.js + None (Project uses Python 3.11+, Pydantic V2) (003-documentation)
 - Local Filesystem (003-documentation)
+- Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC) (004-workday-actions)
+- In-memory (Workday Simulator) with YAML fixtures for persistence (004-workday-actions)
 
 - Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK (001-capability-api)
 
@@ -26,9 +28,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 004-workday-actions: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC)
+- 003-documentation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 003-documentation: Added Markdown (GFM), Mermaid.js + None (Project uses Python 3.11+, Pydantic V2)
-- 002-workday-simulator: Added Python 3.11+ + Pydantic V2 (models), PyYAML (fixtures)
-- 001-capability-api: Added Python 3.11+
 
 
 <!-- MANUAL ADDITIONS START -->

@@ -1,0 +1,38 @@
+openapi: 3.0.0
+info:
+  title: Workday Actions API
+  version: 1.0.0
+paths:
+  /actions/workday.hcm/get_employee:
+    post:
+      summary: Get Employee Details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetEmployeeRequest'
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionResponse'
+
+components:
+  schemas:
+    GetEmployeeRequest:
+      type: object
+      properties:
+        parameters:
+          type: object
+          properties:
+            employee_id:
+              type: string
+    ActionResponse:
+      type: object
+      properties:
+        data:
+          type: object
+        meta:
+          type: object

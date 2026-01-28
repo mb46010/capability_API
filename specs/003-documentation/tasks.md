@@ -77,5 +77,32 @@ Goal: Finalize onboarding, troubleshooting, and global navigation.
 
 Goal: Verify all constitutional documentation requirements are met.
 
-- [ ] T026 Run `/speckit.analyze` to verify project-wide documentation consistency
-- [ ] T027 Manually verify generated FastAPI OpenAPI docs for field description inclusion
+- [X] T026 Run `/speckit.analyze` to verify project-wide documentation consistency
+- [X] T027 Manually verify generated FastAPI OpenAPI docs for field description inclusion
+
+## Phase 8: Workday Adapter Tests
+
+Goal: Add missing unit tests for the Workday Adapter.
+
+**Tasks**:
+- [X] T028 Create unit tests for Workday Simulator in `tests/unit/adapters/workday/test_client.py`
+
+## Phase 9: Workday Service Tests
+
+
+
+Goal: Add missing unit tests for the Workday Services (HCM, Time, Payroll).
+
+
+
+**Tasks**:
+
+- [X] T029 Create unit tests for HCM Service in `tests/unit/adapters/workday/services/test_hcm.py`
+
+- [X] T030 Create unit tests for Time Service in `tests/unit/adapters/workday/services/test_time.py`
+
+- [X] T031 Create unit tests for Payroll Service in `tests/unit/adapters/workday/services/test_payroll.py`
+
+
+
+

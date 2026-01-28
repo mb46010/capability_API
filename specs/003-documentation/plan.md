@@ -1,67 +1,103 @@
-# Implementation Plan: Constitutional Documentation (Article VI)
+# Implementation Plan: [FEATURE]
 
-**Branch**: `003-documentation` | **Date**: 2026-01-27 | **Spec**: /specs/003-documentation/spec.md
-**Input**: Feature specification from `/specs/003-documentation/spec.md`
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Bring the project into compliance with Article VI of the Capability API Constitution. This involves implementing distributed AI-optimized `README.ai.md` files across all logic-centric modules, creating a central human-oriented architectural guide (using C4 models), and enhancing all Pydantic models with descriptive metadata for high-quality self-documenting contracts.
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: Markdown (GFM), Mermaid.js
-**Primary Dependencies**: None (Project uses Python 3.11+, Pydantic V2)
-**Storage**: Local Filesystem
-**Testing**: Manual verification of generated OpenAPI docs and documentation readability
-**Target Platform**: GitHub / IDE / Local development environment
-**Project Type**: Documentation and Metadata Enhancement
-**Performance Goals**: N/A
-**Constraints**: Must strictly adhere to Article VI of the project constitution
-**Scale/Scope**: ~10 logic modules in `src/`, ~20 Pydantic models in `domain/` and `adapters/`
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [single/web/mobile - determines source structure]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- [x] **Hexagonal Integrity**: Does the design strictly separate business logic from storage (Storage Port)? (N/A for docs, but will document the ports)
-- [x] **Actions vs Flows**: Is this classified correctly? (N/A)
-- [x] **Python-Native**: Is all logic idiomatic Python? (Yes, Pydantic Field descriptions)
-- [x] **Observability**: Are provenance logging and audit trails planned? (N/A)
-- [x] **Privacy & PII**: Are logs sanitized and PII masked (Article VIII)? (N/A)
-- [x] **Local Parity**: Can this be fully tested against a local filesystem adapter? (Yes)
+- [ ] **Hexagonal Integrity**: Does the design strictly separate business logic from storage (Storage Port)?
+- [ ] **Actions vs Flows**: Is this classified correctly? (Action = short/deterministic, Flow = long-running/orchestrated)
+- [ ] **Python-Native**: Is all logic idiomatic Python?
+- [ ] **Observability**: Are provenance logging and audit trails planned?
+- [ ] **Privacy & PII**: Are logs sanitized and PII masked (Article VIII)?
+- [ ] **Local Parity**: Can this be fully tested against a local filesystem adapter?
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/003-documentation/
-├── plan.md              # This file
-├── research.md          # Research into AI-optimized docs and Pydantic Field
-├── data-model.md        # Documentation metadata standards
-├── quickstart.md        # Guide to using and updating the new documentation
-└── tasks.md             # Implementation tasks
+specs/[###-feature]/
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
 ### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
 ```text
-docs/
-├── architecture.md      # High-level system design (C4 models)
-├── onboarding.md        # Developer setup guide
-└── troubleshooting.md   # Common issues and fixes
-
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
 src/
-├── domain/
-│   └── entities/        # Enhanced with Pydantic Field descriptions
-├── adapters/
-│   ├── README.ai.md     # AI-optimized context for adapters
-│   └── workday/
-│       └── README.ai.md # Specific context for Workday simulator
-└── ...                  # README.ai.md in all logic-centric subdirs
+├── models/
+├── services/
+├── cli/
+└── lib/
+
+tests/
+├── contract/
+├── integration/
+└── unit/
+
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
+
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
+
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
+
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
 ```
 
-**Structure Decision**: Standard documentation directory for humans, distributed distributed `README.ai.md` for AI agents.
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
@@ -69,4 +105,5 @@ src/
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| None | | |
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

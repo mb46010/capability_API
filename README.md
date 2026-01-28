@@ -56,6 +56,8 @@ Explore the project's documentation for deeper insights into architecture, onboa
 ### For Humans
 - **[Architectural Guide](docs/architecture.md)**: High-level system design and hexagonal boundaries.
 - **[Onboarding Guide](docs/onboarding.md)**: Environment setup and developer workflow.
+- **[Workday Technical Docs](src/adapters/workday/docs/technical.md)**: Deep-dive into the Workday simulator implementation.
+- **[Workday Functional Docs](src/adapters/workday/docs/functional.md)**: Business overview of simulation data and personas.
 - **[Troubleshooting](docs/troubleshooting.md)**: Common issues and their resolutions.
 - **[Project Constitution](.specify/memory/constitution.md)**: The core principles governing this project.
 
