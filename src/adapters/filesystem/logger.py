@@ -5,6 +5,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+class JSONDateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if hasattr(obj, "isoformat"):
+            return obj.isoformat()
+        return super().default(obj)
+
 class JSONLLogger:
     def __init__(self, log_path: str = "logs/audit.jsonl"):
         self.log_path = Path(log_path)
@@ -73,4 +79,4 @@ class JSONLLogger:
         
         # 2. Append to file
         with open(self.log_path, "a", encoding="utf-8") as f:
-            f.write(json.dumps(entry) + "\n")
+            f.write(json.dumps(entry, cls=JSONDateTimeEncoder) + "\n")

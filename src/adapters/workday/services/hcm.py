@@ -1,7 +1,7 @@
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
-from src.adapters.workday.exceptions import WorkdayError
+from src.adapters.workday.exceptions import WorkdayError, EmployeeNotFoundError
 
 class WorkdayHCMService:
     def __init__(self, simulator):
@@ -9,6 +9,7 @@ class WorkdayHCMService:
 
     async def get_employee(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
+        principal_id = params.get("principal_id")
         principal_type = params.get("principal_type", "HUMAN") # Default to HUMAN if missing
 
         if not employee_id:
@@ -16,15 +17,19 @@ class WorkdayHCMService:
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise WorkdayError(f"Employee {employee_id} not found", "EMPLOYEE_NOT_FOUND")
+            raise EmployeeNotFoundError(employee_id)
 
         # Convert to dict
         data = employee.model_dump()
         
-        # Field Filtering for AI Agents (Plan requirement)
+        # Field Filtering (Plan requirement)
         if principal_type == "AI_AGENT":
             allowed_fields = {"employee_id", "name", "job", "status", "manager"}
             data = {k: v for k, v in data.items() if k in allowed_fields}
+        elif principal_type == "HUMAN" and principal_id != employee_id:
+            # Mask PII for other employees unless they are admin (skipped for MVP simplicity)
+            sensitive_fields = {"personal_email", "phone", "birth_date", "ssn", "emergency_contact"}
+            data = {k: v for k, v in data.items() if k not in sensitive_fields}
 
         return data
 
@@ -32,13 +37,67 @@ class WorkdayHCMService:
         """Alias for get_employee, as it returns full details by default for non-agents."""
         return await self.get_employee(params)
 
+    async def get_org_chart(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        root_id = params.get("root_id")
+        depth = params.get("depth", 2)
+        
+        if not root_id:
+             raise WorkdayError("Missing root_id", "INVALID_PARAMS")
+             
+        if root_id not in self.simulator.employees:
+            raise EmployeeNotFoundError(root_id)
+            
+        async def build_node(emp_id, current_depth):
+            if current_depth > depth:
+                return None
+            
+            emp = self.simulator.employees.get(emp_id)
+            if not emp: return None
+            
+            # Helper for name
+            def get_display_name(obj):
+                if hasattr(obj, "name"):
+                    return obj.name.display if hasattr(obj.name, "display") else obj.name.get("display")
+                return obj.get("name", {}).get("display", "Unknown")
+
+            node = {
+                "employee_id": emp.employee_id,
+                "name": get_display_name(emp),
+                "title": emp.job["title"] if isinstance(emp.job, dict) else (emp.job.title if hasattr(emp.job, "title") else "Unknown"),
+                "reports": []
+            }
+            
+            if current_depth < depth:
+                # Find reports
+                for report in self.simulator.employees.values():
+                    if report.manager and report.manager.employee_id == emp_id:
+                        child = await build_node(report.employee_id, current_depth + 1)
+                        if child:
+                            node["reports"].append(child)
+            
+            return node
+
+        node = await build_node(root_id, 1)
+        
+        def count_nodes(n):
+            if not n: return 0
+            count = 1
+            for child in n.get("reports", []):
+                count += count_nodes(child)
+            return count
+
+        return {
+            "root": node,
+            "total_count": count_nodes(node)
+        }
+
     async def get_manager_chain(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
 
         if employee_id not in self.simulator.employees:
-            raise WorkdayError(f"Employee {employee_id} not found", "EMPLOYEE_NOT_FOUND")
+            raise EmployeeNotFoundError(employee_id)
 
         chain = []
         current_emp = self.simulator.employees[employee_id]
@@ -53,8 +112,8 @@ class WorkdayHCMService:
             manager = self.simulator.employees[mgr_id]
             
             # Extract name/title handling both dict and object
-            display_name = manager.name["display"] if isinstance(manager.name, dict) else manager.name.display
-            title = manager.job["title"] if isinstance(manager.job, dict) else manager.job.title
+            display_name = manager.name.display if hasattr(manager.name, "display") else manager.name.get("display")
+            title = manager.job.title if hasattr(manager.job, "title") else manager.job.get("title")
             
             chain.append({
                 "employee_id": manager.employee_id,
@@ -93,13 +152,13 @@ class WorkdayHCMService:
              raise WorkdayError(f"Principal {principal_id} cannot view reports for {manager_id}", "UNAUTHORIZED")
         
         if manager_id not in self.simulator.employees:
-             raise WorkdayError(f"Manager {manager_id} not found", "EMPLOYEE_NOT_FOUND")
+             raise EmployeeNotFoundError(manager_id)
 
         reports = []
         for emp in self.simulator.employees.values():
             if emp.manager and emp.manager.employee_id == manager_id:
-                display_name = emp.name["display"] if isinstance(emp.name, dict) else emp.name.display
-                title = emp.job["title"] if isinstance(emp.job, dict) else emp.job.title
+                display_name = emp.name.display if hasattr(emp.name, "display") else emp.name.get("display")
+                title = emp.job.title if hasattr(emp.job, "title") else emp.job.get("title")
                 
                 # Extract start_date from object if available
                 start_date = getattr(emp, "start_date", "2023-01-01")
@@ -119,6 +178,38 @@ class WorkdayHCMService:
             "count": len(reports)
         }
 
+    async def update_employee(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Update core employee fields."""
+        employee_id = params.get("employee_id")
+        updates = params.get("updates", {})
+        
+        if not employee_id:
+             raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+             
+        employee = self.simulator.employees.get(employee_id)
+        if not employee:
+            raise EmployeeNotFoundError(employee_id)
+            
+        changes = []
+        # Apply updates to the model
+        for key, value in updates.items():
+            if hasattr(employee, key):
+                old_val = getattr(employee, key)
+                changes.append({
+                    "field": key,
+                    "old_value": str(old_val),
+                    "new_value": str(value)
+                })
+                # For HCM core updates, they usually go to PENDING_APPROVAL status
+                # but we still track what changed.
+                     
+        return {
+            "employee_id": employee_id,
+            "status": "PENDING_APPROVAL",
+            "changes": changes,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+
     async def update_contact_info(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
         updates = params.get("updates", {})
@@ -135,7 +226,7 @@ class WorkdayHCMService:
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise WorkdayError(f"Employee {employee_id} not found", "EMPLOYEE_NOT_FOUND")
+            raise EmployeeNotFoundError(employee_id)
 
         # Apply Updates
         changes = []

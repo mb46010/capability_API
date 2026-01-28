@@ -8,23 +8,54 @@ from src.domain.ports.connector import ConnectorPort
 from src.domain.entities.action import ActionResponse, Provenance, ProvenanceWrapper
 from src.adapters.workday.exceptions import WorkdayError
 
+
 class ActionService:
+    # We support both 'workday' (global) and specific subdomains (legacy/contract tests)
     KNOWN_CAPABILITIES = {
+        "workday": [
+            "get_employee",
+            "get_employee_full",
+            "get_manager_chain",
+            "list_direct_reports",
+            "update_contact_info",
+            "update_employee",
+            "terminate_employee",
+            "delete_employee",
+            "get_org_chart",
+            "get_balance",
+            "request",
+            "cancel",
+            "approve",
+            "list_requests",
+            "get_request",
+            "get_compensation",
+            "get_pay_statement",
+            "list_pay_statements",
+        ],
         "workday.hcm": [
-            "get_employee", "get_employee_full", "get_manager_chain", 
-            "list_direct_reports", "update_contact_info", "update_employee", 
-            "terminate_employee", "get_org_chart"
+            "get_employee",
+            "get_employee_full",
+            "get_manager_chain",
+            "list_direct_reports",
+            "update_contact_info",
+            "update_employee",
+            "terminate_employee",
+            "get_org_chart",
         ],
         "workday.time": [
-            "get_balance", "request", "cancel", "approve", 
-            "list_requests", "get_request"
+            "get_balance",
+            "request",
+            "cancel",
+            "approve",
+            "list_requests",
+            "get_request",
         ],
         "workday.payroll": [
-            "get_compensation", "get_pay_statement", "list_pay_statements"
+            "get_compensation",
+            "get_pay_statement",
+            "list_pay_statements",
         ],
-        "hr": [
-            "onboarding", "offboarding", "role_change", "compensation_review"
-        ]
+        "hr": ["onboarding", "offboarding", "role_change", "compensation_review"],
     }
 
     def __init__(self, policy_engine: PolicyEngine, connector: ConnectorPort):
@@ -35,7 +66,9 @@ class ActionService:
         if domain not in self.KNOWN_CAPABILITIES:
             raise HTTPException(status_code=400, detail=f"Unknown domain: {domain}")
         if action not in self.KNOWN_CAPABILITIES[domain]:
-            raise HTTPException(status_code=400, detail=f"Unknown action: {domain}.{action}")
+            raise HTTPException(
+                status_code=400, detail=f"Unknown action: {domain}.{action}"
+            )
 
     async def execute_action(
         self,
@@ -50,26 +83,40 @@ class ActionService:
         mfa_verified: bool = False,
         token_issued_at: Optional[int] = None,
         token_expires_at: Optional[int] = None,
-        request_ip: Optional[str] = None
+        request_ip: Optional[str] = None,
     ) -> ActionResponse:
         self._validate_capability(domain, action)
-        capability = f"{domain}.{action}"
-        
+
+        # Determine the capability string for policy check.
+        # If the domain is just 'workday', try to find its subdomain.
+        policy_capability = f"{domain}.{action}"
+        if domain == "workday":
+            for full_domain in self.KNOWN_CAPABILITIES:
+                if (
+                    full_domain.startswith("workday.")
+                    and action in self.KNOWN_CAPABILITIES[full_domain]
+                ):
+                    policy_capability = f"{full_domain}.{action}"
+                    break
+
         # 1. Policy Check
         evaluation = self.policy_engine.evaluate(
             principal_id=principal_id,
             principal_groups=principal_groups,
             principal_type=principal_type,
-            capability=capability,
+            capability=policy_capability,
             environment=environment,
             mfa_verified=mfa_verified,
             token_issued_at=token_issued_at,
             token_expires_at=token_expires_at,
-            request_ip=request_ip
+            request_ip=request_ip,
         )
 
         if not evaluation.allowed:
-            raise HTTPException(status_code=403, detail=f"Access denied to capability: {capability}")
+            raise HTTPException(
+                status_code=403,
+                detail=f"Access denied to capability: {policy_capability}",
+            )
 
         # 2. Connector Execution
         start_time = time.time()
@@ -79,9 +126,9 @@ class ActionService:
                 **parameters,
                 "principal_id": principal_id,
                 "principal_type": principal_type,
-                "mfa_verified": mfa_verified
+                "mfa_verified": mfa_verified,
             }
-            
+
             # For MVP, we route everything to the single injected connector
             # In real world, we'd route based on 'domain' to specific connectors
             result_data = await self.connector.execute(action, enriched_params)
@@ -95,21 +142,29 @@ class ActionService:
                 raise HTTPException(status_code=404, detail=str(e))
             if "timeout" in str(e).lower():
                 raise HTTPException(status_code=504, detail=str(e))
-                
+
             raise HTTPException(status_code=424, detail=f"Connector failure: {str(e)}")
-        
+
         latency_ms = (time.time() - start_time) * 1000
+
+        # Layer 2: Field-level security (data protection in transit)
+        # TODO: centralize fields that the AI agent cannot see
+        # AI agents cannot see PII fields
+        if principal_type == "AI_AGENT" and isinstance(result_data, dict):
+            sensitive_fields = ["salary", "ssn_last_four", ...]
+            result_data = {
+                k: v for k, v in result_data.items() if k not in sensitive_fields
+            }
 
         # 3. Provenance Construction
         provenance = Provenance(
-            source=f"{domain}-connector", # Simplified source naming
+            source=f"{domain}-connector",  # Simplified source naming
             timestamp=datetime.now(timezone.utc),
             trace_id=str(uuid.uuid4()),
             latency_ms=round(latency_ms, 2),
-            actor=principal_id
+            actor=principal_id,
         )
 
         return ActionResponse(
-            data=result_data,
-            meta=ProvenanceWrapper(provenance=provenance)
+            data=result_data, meta=ProvenanceWrapper(provenance=provenance)
         )

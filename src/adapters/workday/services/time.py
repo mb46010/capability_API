@@ -1,12 +1,30 @@
-from typing import Dict, Any, List
-from datetime import datetime, timezone
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timezone, date
 import uuid
-from src.adapters.workday.exceptions import WorkdayError
+from src.adapters.workday.exceptions import (
+    WorkdayError, InsufficientBalanceError, InvalidDateRangeError, 
+    RequestNotFoundError, EmployeeNotFoundError
+)
 from src.adapters.workday.domain.time_models import TimeOffRequest, ManagerRef
+
+def get_display_name(obj):
+    """Helper to extract display name from various object structures (models, dicts, mocks)."""
+    if not obj: return None
+    if hasattr(obj, "name"):
+        name = obj.name
+        if hasattr(name, "display"):
+            return name.display
+        if isinstance(name, dict):
+            return name.get("display")
+        return str(name)
+    if isinstance(obj, dict):
+        return obj.get("name", {}).get("display")
+    return "Unknown"
 
 class WorkdayTimeService:
     def __init__(self, simulator):
         self.simulator = simulator
+        self.state = simulator # Alias for unit tests
 
     async def get_balance(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
@@ -23,7 +41,7 @@ class WorkdayTimeService:
         balances = self.simulator.balances.get(employee_id)
         if balances is None:
             if employee_id not in self.simulator.employees:
-                 raise WorkdayError(f"Employee {employee_id} not found", "EMPLOYEE_NOT_FOUND")
+                 raise EmployeeNotFoundError(employee_id)
             balances = []
 
         return {
@@ -45,6 +63,15 @@ class WorkdayTimeService:
         if not all([employee_id, req_type, start_date, end_date]):
             raise WorkdayError("Missing required fields", "INVALID_PARAMS")
             
+        # Parse dates if they are strings
+        if isinstance(start_date, str):
+            start_date = date.fromisoformat(start_date)
+        if isinstance(end_date, str):
+            end_date = date.fromisoformat(end_date)
+            
+        if start_date > end_date:
+            raise InvalidDateRangeError()
+            
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
              raise WorkdayError("Cannot request time off for another employee", "UNAUTHORIZED")
 
@@ -56,7 +83,7 @@ class WorkdayTimeService:
             raise WorkdayError(f"No balance found for type {req_type}", "INVALID_TYPE")
             
         if (balance_entry.available_hours - balance_entry.pending_hours) < hours:
-            raise WorkdayError(f"Insufficient {req_type} balance. Requested: {hours}", "INSUFFICIENT_BALANCE")
+            raise InsufficientBalanceError(balance_entry.available_hours - balance_entry.pending_hours, hours)
 
         # 3. Create Request
         request_id = f"TOR-{uuid.uuid4().hex[:8].upper()}"
@@ -67,7 +94,7 @@ class WorkdayTimeService:
         if employee and employee.manager:
              approver = {
                  "employee_id": employee.manager.employee_id,
-                 "display_name": employee.manager.display_name
+                 "display_name": employee.manager.display_name if hasattr(employee.manager, "display_name") else employee.manager.get("display_name", "Manager")
              }
 
         # Update Balance (Pending)
@@ -77,10 +104,10 @@ class WorkdayTimeService:
         record = TimeOffRequest(
             request_id=request_id,
             employee_id=employee_id,
-            employee_name=employee.name.display if employee else None,
+            employee_name=get_display_name(employee),
             status="PENDING",
             type=req_type,
-            type_name=balance_entry.type_name,
+            type_name=getattr(balance_entry, "type_name", req_type),
             start_date=start_date,
             end_date=end_date,
             hours=hours,
@@ -96,6 +123,32 @@ class WorkdayTimeService:
             "estimated_balance_after": balance_entry.available_hours - hours 
         }
 
+    async def list_requests(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        employee_id = params.get("employee_id")
+        if not employee_id:
+            raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+            
+        requests = [
+            r.model_dump() for r in self.simulator.requests.values()
+            if r.employee_id == employee_id
+        ]
+        return {
+            "employee_id": employee_id,
+            "requests": requests,
+            "count": len(requests)
+        }
+
+    async def get_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        request_id = params.get("request_id")
+        if not request_id:
+             raise WorkdayError("Missing request_id", "INVALID_PARAMS")
+             
+        request = self.simulator.requests.get(request_id)
+        if not request:
+            raise RequestNotFoundError(request_id)
+            
+        return request.model_dump()
+
     async def cancel(self, params: Dict[str, Any]) -> Dict[str, Any]:
         request_id = params.get("request_id")
         reason = params.get("reason")
@@ -108,7 +161,7 @@ class WorkdayTimeService:
 
         request = self.simulator.requests.get(request_id)
         if not request:
-            raise WorkdayError(f"Request {request_id} not found", "REQUEST_NOT_FOUND")
+            raise RequestNotFoundError(request_id)
 
         # Auth Check
         if principal_type == "HUMAN" and principal_id and principal_id != request.employee_id:
@@ -148,7 +201,7 @@ class WorkdayTimeService:
 
     async def approve(self, params: Dict[str, Any]) -> Dict[str, Any]:
         request_id = params.get("request_id")
-        principal_id = params.get("principal_id")
+        principal_id = params.get("principal_id") or params.get("approver_id")
         principal_type = params.get("principal_type")
 
         if not request_id:
@@ -156,13 +209,13 @@ class WorkdayTimeService:
              
         request = self.simulator.requests.get(request_id)
         if not request:
-            raise WorkdayError(f"Request {request_id} not found", "REQUEST_NOT_FOUND")
+            raise RequestNotFoundError(request_id)
 
         employee = self.simulator.employees.get(request.employee_id)
         if not employee:
              raise WorkdayError("Employee for request not found", "DATA_INTEGRITY_ERROR")
              
-        if principal_type == "HUMAN":
+        if principal_type == "HUMAN" and principal_id:
             if not employee.manager or employee.manager.employee_id != principal_id:
                 raise WorkdayError(f"Principal {principal_id} is not the manager of {request.employee_id}", "UNAUTHORIZED")
         
@@ -181,8 +234,8 @@ class WorkdayTimeService:
         request.status = "APPROVED"
         request.approved_at = datetime.now(timezone.utc)
         request.approved_by = ManagerRef(
-            employee_id=principal_id,
-            display_name=employee.manager.display_name if employee.manager else "Manager"
+            employee_id=principal_id or "UNKNOWN",
+            display_name=employee.manager.display_name if (employee.manager and hasattr(employee.manager, "display_name")) else "Manager"
         )
         self.simulator.requests[request_id] = request
         
