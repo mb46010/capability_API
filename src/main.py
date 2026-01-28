@@ -68,6 +68,13 @@ async def workday_error_handler(request: Request, exc: WorkdayError):
 app.include_router(actions.router)
 app.include_router(flows.router)
 
+# Mount mock Okta provider routes in local environment for testing
+if os.getenv("ENVIRONMENT", "local") == "local":
+    from src.adapters.auth import create_mock_okta_app
+    from src.api.dependencies import provider
+    mock_okta = create_mock_okta_app(provider)
+    app.mount("/", mock_okta)
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "environment": os.getenv("ENVIRONMENT", "unknown")}
