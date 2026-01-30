@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-25
 - Local Filesystem (003-documentation)
 - Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC) (004-workday-actions)
 - In-memory (Workday Simulator) with YAML fixtures for persistence (004-workday-actions)
+- Python 3.11+ + FastMCP >= 3.0.0b1, httpx, pydantic-settings, PyJWT (for token inspection) (005-hr-mcp-server)
+- N/A (Stateless adapter/gateway) (005-hr-mcp-server)
 
 - Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK (001-capability-api)
 
@@ -28,9 +30,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 005-hr-mcp-server: Added Python 3.11+ + FastMCP >= 3.0.0b1, httpx, pydantic-settings, PyJWT (for token inspection)
+- 005-hr-mcp-server: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 - 004-workday-actions: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC)
-- 003-documentation: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 003-documentation: Added Markdown (GFM), Mermaid.js + None (Project uses Python 3.11+, Pydantic V2)
 
 
 <!-- MANUAL ADDITIONS START -->

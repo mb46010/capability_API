@@ -1,0 +1,52 @@
+openapi: 3.0.3
+info:
+  title: HR Platform MCP Tools Interface
+  description: Representation of the HR tools exposed by the MCP server.
+  version: 1.0.0
+paths:
+  /tools/hcm/get_employee:
+    post:
+      summary: (MCP Tool) get_employee
+      description: Look up employee profile with role-based filtering.
+      parameters:
+        - name: employee_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Employee profile
+  /tools/time/request_time_off:
+    post:
+      summary: (MCP Tool) request_time_off
+      description: Submit a new time off request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                hours:
+                  type: number
+      responses:
+        '201':
+          description: Request submitted
+  /tools/payroll/get_compensation:
+    post:
+      summary: (MCP Tool) get_compensation
+      description: View sensitive salary details (MFA Required).
+      responses:
+        '200':
+          description: Compensation data
+        '401':
+          description: MFA Required

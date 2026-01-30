@@ -47,7 +47,10 @@ C4Container
     Container(workday_adapter, "Workday Adapter", "Python", "Simulated or Real Workday connector")
     Container(auth_adapter, "Auth Adapter", "Python", "Token verification logic")
     Container(fs_adapter, "Filesystem Adapter", "Python", "Local storage for policies and flows")
+    Container(mcp_server, "HR MCP Server", "FastMCP 3.0", "AI-agent gateway with RBAC")
   }
+
+  Rel(mcp_server, routes, "Invokes", "HTTPS/JSON")
 
   Rel(routes, action_service, "Calls", "Internal")
   Rel(routes, flow_service, "Calls", "Internal")
@@ -67,6 +70,16 @@ C4Container
 | `FlowRunnerPort` | `LocalFlowRunnerAdapter` | Long-running process execution |
 | `PolicyLoaderPort`| `FilePolicyLoaderAdapter`| Policy document persistence |
 | `TokenVerifier` | `MockTokenVerifier` | Identity validation |
+
+## Module Documentation
+
+For detailed information on specific system components, refer to the following module guides:
+
+- **[API Layer](modules/api_layer.md)**: Entry points, routing, and dependencies.
+- **[Domain Entities](modules/domain_entities.md)**: Core data models and audit protocols.
+- **[Auth Adapter](modules/auth_adapter.md)**: OIDC simulation and token verification.
+- **[Workday Simulator](modules/workday_adapter.md)**: Simulated HRIS implementation (HCM, Time, Payroll).
+- **[Filesystem Adapter](modules/filesystem_adapter.md)**: Policy loading and flow execution.
 
 ## Core Principles
 1. **The Sanctuary**: The `domain/` directory MUST NOT import from `adapters/` or `api/`.

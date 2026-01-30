@@ -16,3 +16,5 @@ PyJWT>=2.8.0
 cryptography>=42.0.0
 
 
+fastmcp>=3.0.0b1
+pydantic-settings>=2.1.0
