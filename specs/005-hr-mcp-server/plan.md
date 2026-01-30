@@ -1,61 +1,78 @@
 # Implementation Plan: HR Platform MCP Server
 
-**Feature Branch**: `005-hr-mcp-server`  
-**Spec**: [spec.md](./spec.md)  
-**Research**: [research.md](./research.md)
+**Branch**: `005-hr-mcp-server` | **Date**: 2026-01-30 | **Spec**: [specs/005-hr-mcp-server/spec.md](./spec.md)
+**Input**: Feature specification from `/specs/005-hr-mcp-server/spec.md`
+
+## Summary
+Implement a governed HR MCP server using FastMCP 3.0 that acts as a secure gateway to the Capability API. The server provides role-based tool discovery, enforces MFA for payroll actions, and ensures auditable execution with PII masking.
 
 ## Technical Context
 
-| Area | Choice | Rationale |
-|------|--------|-----------|
-| **Language** | Python 3.11+ | Constitutional requirement (Article I) |
-| **Framework** | FastMCP 3.0 | Modern, Python-native MCP implementation with high-level abstractions |
-| **Communication** | HTTP/1.1 (JSON) | Standard interface for Capability API calls |
-| **Auth** | Bearer Passthrough | Stateless adapter pattern; preserves backend policy enforcement |
-| **Testing** | Pytest | Project standard; support for async testing |
+**Language/Version**: Python 3.11+
+**Primary Dependencies**: FastMCP >= 3.0.0b1, httpx, pydantic-settings, PyJWT (for token inspection)
+**Storage**: N/A (Stateless adapter/gateway)
+**Testing**: pytest, pytest-asyncio, pytest-mock
+**Target Platform**: Linux server / Containerized
+**Project Type**: Single project (MCP Server)
+**Performance Goals**: < 100ms latency for tool execution (excluding backend)
+**Constraints**: < 100MB memory footprint, Stateless passthrough
+**Scale/Scope**: 11 core HR tools (HCM, Time, Payroll)
 
 ## Constitution Check
 
-| Article | Requirement | Compliance Strategy |
-|---------|-------------|---------------------|
-| **I** | Python-Native | Entire MCP server implemented in Python using FastMCP |
-| **II** | Hexagonal Integrity | MCP server acts as a Protocol Adapter (Adapter layer) |
-| **III** | Idempotency | Passthrough of transaction IDs to backend; optimistic concurrency |
-| **IV** | TDD | Unit tests for tool routing and error mapping before implementation |
-| **VIII** | PII Masking | All logs redacting sensitive fields; VERBOSE restricted to audit trail |
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-## Development Gates
+- [x] **Hexagonal Integrity**: Yes, the MCP server is a Protocol Adapter (Adapter layer) in the hexagonal architecture.
+- [x] **Actions vs Flows**: Yes, this is an ACTION-based interface for HR capabilities.
+- [x] **Python-Native**: Yes, using FastMCP 3.0 and standard library.
+- [x] **Observability**: Yes, provenance logging and audit trails are defined (FR-010).
+- [x] **Privacy & PII**: Yes, PII masking is mandatory in logs (Article VIII).
+- [x] **Local Parity**: Yes, connecting to local Capability API via .env configuration.
 
-- [x] **Spec Approved**: Feature specification finalized and clarified.
-- [x] **Research Complete**: FastMCP 3.0 integration patterns validated.
-- [ ] **Data Model Defined**: Entities and validation rules documented.
-- [ ] **Contracts Finalized**: OpenAPI schema for backend interaction complete.
-- [ ] **Test Coverage**: 80%+ unit test coverage for tool logic.
+## Project Structure
 
-## Milestones
+### Documentation (this feature)
 
-### Milestone 1: Core Connectivity & Auth
-- Initialize FastMCP server.
-- Implement Bearer token extraction and passthrough logic.
-- Verify connectivity to Capability API via a simple "ping" or health tool.
+```text
+specs/005-hr-mcp-server/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+├── contracts/           # Phase 1 output
+│   └── openapi.yaml     # MCP Tool schema representation
+└── tasks.md             # Phase 2 output
+```
 
-### Milestone 2: Domain Implementation (HCM & Time)
-- Implement `workday.hcm.*` tools with role-based filtering logic.
-- Implement `workday.time.*` tools with concurrency and balance validation.
-- Add metadata tags for model discovery.
+### Source Code (repository root)
 
-### Milestone 3: Payroll & MFA
-- Implement `workday.payroll.*` tools.
-- Implement the 401 MFA_REQUIRED error mapping.
-- Verify verbose audit logging for financial actions.
+```text
+src/
+├── mcp/
+│   ├── __init__.py
+│   ├── server.py        # FastMCP entry point
+│   ├── tools/           # Domain-specific tool modules
+│   │   ├── hcm.py
+│   │   ├── time.py
+│   │   └── payroll.py
+│   ├── adapters/        # External interfaces
+│   │   ├── auth.py      # Token extraction & validation
+│   │   └── backend.py   # Capability API client
+│   ├── models/          # Tool schemas (Pydantic)
+│   └── lib/             # Utilities
+│       ├── logging.py   # PII-masking logger
+│       └── errors.py    # Error mapping logic
+tests/
+├── integration/
+│   └── mcp/             # MCP-specific integration tests
+└── unit/
+    └── mcp/             # MCP unit tests
+```
 
-### Milestone 4: Discovery & Polish
-- Implement dynamic tool listing based on token claims.
-- Add PII masking to standard logs.
-- Final integration testing with Chainlit UI.
+**Structure Decision**: Single project structure within the `src/mcp` namespace to isolate the MCP adapter from the core Capability API while sharing the same repository.
 
-## Artifacts Generated
-- `research.md`: Technical decisions and best practices.
-- `data-model.md`: Schema and entity definitions.
-- `contracts/openapi.yaml`: Backend interface contract.
-- `quickstart.md`: Developer onboarding guide.
+## Complexity Tracking
+
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| None | N/A | N/A |

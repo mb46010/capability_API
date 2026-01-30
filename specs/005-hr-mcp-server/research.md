@@ -1,32 +1,26 @@
-# Research: HR Platform MCP Server Integration
+# Research: HR Platform MCP Server
 
-## Decisions
+## FastMCP 3.0 Integration Patterns
+- **Decision**: Use `FastMCP` class from `fastmcp` package for high-level tool definition.
+- **Rationale**: Provides automatic schema generation and a clean decorator-based interface.
+- **Alternatives considered**: `mcp` SDK (Too low-level, requires manual schema management).
 
-### Framework: FastMCP 3.0 (Python)
-- **Decision**: Use the Python-based FastMCP 3.0 framework for implementing the MCP server.
-- **Rationale**: Aligns with Article I of the Constitution (Python-Native logic). FastMCP provides a high-level decorator-based API that simplifies tool definition and context management.
-- **Alternatives considered**: MCP SDK (lower level), Node.js MCP (rejected due to constitutional Python preference).
+## PII Masking with Standard Logging
+- **Decision**: Implement a custom `logging.Filter` or `logging.Formatter` that uses regex patterns to redact sensitive fields (emails, phone numbers, SSNs) in JSON and text logs.
+- **Rationale**: Compliance with Constitution Article VIII. Centralized masking ensures no accidental leaks.
+- **Alternatives considered**: Individual redaction in every log call (Error-prone and violates DRY).
 
-### Authentication: Bearer Token Passthrough
-- **Decision**: The MCP server will be stateless. It will extract the Bearer token from the incoming MCP request context (sent by Chainlit) and inject it into the headers of outbound calls to the Capability API.
-- **Rationale**: Maintains Article II (Hexagonal Integrity) by treating the MCP server as a protocol adapter. It ensures the Capability API remains the single source of truth for policy enforcement.
+## Bearer Token Extraction and Passthrough
+- **Decision**: Extract token from MCP session metadata/headers and pass it as an `Authorization` header in all backend calls via `httpx.AsyncClient`.
+- **Rationale**: Statelessness and alignment with Capability API security architecture.
+- **Alternatives considered**: Shared service account (Violates RBAC/Principal tracking).
 
-### Tool Discovery: Dynamic Filtering
-- **Decision**: Implement the `list_tools` MCP primitive to dynamically filter available tools based on the roles/claims found in the provided token.
-- **Rationale**: Prevents AI model "hallucination" attempts on unauthorized tools (FR-004) and improves UX by only surfacing relevant actions.
+## Local Service Discovery
+- **Decision**: Use `pydantic-settings` to load `CAPABILITY_API_BASE_URL` from `.env`.
+- **Rationale**: Flexibility for local development (pointing to localhost) vs containerized testing.
+- **Alternatives considered**: Hardcoded URLs (Violates Constitution Article V).
 
-### Logging & Privacy: PII Masking
-- **Decision**: Implement a custom logging formatter or wrapper that redacts fields matching the PII schema (names, emails, phones, salaries) for standard logs, while allowing VERBOSE logging only to the protected audit trail.
-- **Regulated by**: Article VIII (Professional Logging & Privacy).
-
-## Best Practices for FastMCP 3.0
-
-1. **Context Management**: Use the `Context` object to access request-level metadata (auth tokens).
-2. **Metadata Tags**: Use the `tags` parameter in `@mcp.tool` to group tools by domain (hcm, payroll, time) as specified in FR-009.
-3. **Async Everything**: All tool implementations must be `async` to handle I/O to the Capability API efficiently.
-4. **Structured Errors**: Map backend error codes (MFA_REQUIRED, FORBIDDEN) to user-friendly MCP error responses.
-
-## Integration Patterns
-
-- **Pattern**: Protocol Adapter.
-- **Flow**: Chainlit (Client) -> MCP (Protocol) -> FastMCP Server (Adapter) -> Capability API (Core Logic) -> Workday Simulator (Persistence).
+## FastMCP RBAC (Dynamic Tool Discovery)
+- **Decision**: Leverage `FastMCP`'s ability to filter tools during the `list_tools` request based on the caller's identity extracted from the session context.
+- **Rationale**: Ensures AI Agents or restricted users cannot even "see" unauthorized tools.
+- **Alternatives considered**: Server-side error on call (Poorer UX for AI Agents).

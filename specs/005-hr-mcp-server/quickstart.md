@@ -1,48 +1,41 @@
 # Quickstart: HR Platform MCP Server
 
-## Prerequisites
+## Development Setup
+
+### 1. Prerequisites
 - Python 3.11+
-- FastMCP 3.0 (`mcp[fastmcp]`)
-- Running instance of Capability API (Port 8000)
-- Running instance of Mock Okta (Port 9000)
+- Working Capability API instance (Local or Remote)
 
-## Installation
-
-1. **Clone and Setup**:
-   ```bash
-   git checkout 005-hr-mcp-server
-   pip install "mcp[fastmcp]" httpx pydantic-settings
-   ```
-
-2. **Environment Configuration**:
-   Create a `.env` file in the root:
-   ```env
-   CAPABILITY_API_URL=http://localhost:8000
-   MOCK_OKTA_URL=http://localhost:9000
-   LOG_LEVEL=INFO
-   ```
-
-## Running the Server
-
-Start the MCP server using the FastMCP CLI or directly with Python:
-
+### 2. Environment Configuration
+Create a `.env` file in the project root:
 ```bash
-python src/mcp_server.py
+CAPABILITY_API_BASE_URL=http://localhost:8000
+LOG_LEVEL=INFO
+AUDIT_LOG_PATH=logs/mcp-audit.jsonl
 ```
 
-## Testing
-
-### Unit Tests
+### 3. Running the MCP Server
 ```bash
-pytest tests/unit/test_mcp_tools.py
+# Install dependencies
+pip install fastmcp httpx pydantic-settings
+
+# Start the server (Inspector mode recommended for dev)
+fastmcp dev src/mcp/server.py
 ```
 
-### Manual Verification (using MCP Inspector)
+## Testing Tools
+
+### Using the MCP Inspector
+FastMCP provides a built-in inspector at `http://localhost:3000` when running in `dev` mode. Use it to:
+- Browse available tools (Verify RBAC based on token).
+- Execute tools with test parameters.
+- Inspect raw MCP JSON-RPC traffic.
+
+### Automated Tests
 ```bash
-npx @modelcontextprotocol/inspector python src/mcp_server.py
+# Run all MCP tests
+pytest tests/unit/mcp/ tests/integration/mcp/
 ```
 
-## Integration with Chainlit
-The Chainlit app should be configured to connect to `http://localhost:3000` (or the configured host/port) and pass the `auth_token` in the request context.
-
-```
+## Security Note
+All tools require a valid Bearer token passed via the client. For local testing, use the Capability API's mock token endpoint to generate valid tokens for different personas.

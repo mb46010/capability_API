@@ -1,37 +1,26 @@
 openapi: 3.0.3
 info:
-  title: HR Platform MCP Server Contract
-  description: Interface for HCM, Time Management, and Payroll tools exposed via MCP.
+  title: HR Platform MCP Tools Interface
+  description: Representation of the HR tools exposed by the MCP server.
   version: 1.0.0
 paths:
-  /actions/workday.hcm/get_employee:
+  /tools/hcm/get_employee:
     post:
-      summary: Look up employee profile
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                parameters:
-                  type: object
-                  properties:
-                    employee_id:
-                      type: string
+      summary: (MCP Tool) get_employee
+      description: Look up employee profile with role-based filtering.
+      parameters:
+        - name: employee_id
+          in: query
+          required: true
+          schema:
+            type: string
       responses:
         '200':
-          description: Successful profile retrieval
-        '403':
-          description: Forbidden (e.g., AI Agent requesting PII)
-
-  /actions/workday.time/request:
+          description: Employee profile
+  /tools/time/request_time_off:
     post:
-      summary: Submit PTO request
-      security:
-        - bearerAuth: []
+      summary: (MCP Tool) request_time_off
+      description: Submit a new time off request.
       requestBody:
         required: true
         content:
@@ -39,42 +28,25 @@ paths:
             schema:
               type: object
               properties:
-                parameters:
-                  type: object
-                  properties:
-                    employee_id:
-                      type: string
-                    type:
-                      type: string
-                      enum: [PTO, SICK]
-                    start_date:
-                      type: string
-                      format: date
-                    end_date:
-                      type: string
-                      format: date
-                    hours:
-                      type: number
+                type:
+                  type: string
+                start_date:
+                  type: string
+                  format: date
+                end_date:
+                  type: string
+                  format: date
+                hours:
+                  type: number
       responses:
         '201':
-          description: Request created
-        '400':
-          description: Insufficient balance
-
-  /actions/workday.payroll/get_compensation:
+          description: Request submitted
+  /tools/payroll/get_compensation:
     post:
-      summary: View compensation (MFA Required)
-      security:
-        - bearerAuth: []
+      summary: (MCP Tool) get_compensation
+      description: View sensitive salary details (MFA Required).
       responses:
         '200':
-          description: Compensation details
+          description: Compensation data
         '401':
           description: MFA Required
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

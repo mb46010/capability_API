@@ -1,156 +1,104 @@
 # Tasks: HR Platform MCP Server
 
+**Branch**: `005-hr-mcp-server`
 **Input**: Design documents from `/specs/005-hr-mcp-server/`
-**Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-## Phase 1: Setup (Shared Infrastructure)
+## Phase 1: Setup
 
-**Purpose**: Project initialization and basic structure
+**Goal**: Initialize project structure and dependencies.
 
-- [ ] T001 Create project structure: `src/`, `src/tools/`, `src/adapters/`, `src/lib/`, `tests/unit/`, `tests/integration/`
-- [ ] T002 Initialize Python project with `mcp[fastmcp]`, `httpx`, `pydantic-settings` dependencies in `requirements.txt`
-- [ ] T003 [P] Configure `.env` and environment variables in `src/config.py`
-- [ ] T004 Create `README.ai.md` for the module (Constitution Article VI)
+- [X] T001 Create MCP project structure in `src/mcp/`, `src/mcp/tools/`, `src/mcp/adapters/`, `src/mcp/models/`, `src/mcp/lib/`
+- [X] T002 Update `requirements.txt` with `fastmcp>=3.0.0b1`, `pydantic-settings`, `PyJWT`, and `httpx`
+- [X] T003 Implement configuration management using `pydantic-settings` in `src/mcp/lib/config.py`
+- [X] T004 Create `src/mcp/__init__.py` and `src/mcp/tools/__init__.py`
 
----
+## Phase 2: Foundational
 
-## Phase 2: Foundational (Blocking Prerequisites)
+**Goal**: Implement core utilities and shared adapters.
 
-**Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
+- [X] T005 [P] Implement PII-masking logging filter in `src/mcp/lib/logging.py` (Constitution Article VIII)
+- [X] T006 [P] Implement Backend client for Capability API communication in `src/mcp/adapters/backend.py`
+- [X] T007 [P] Implement Auth Context extractor for OIDC token inspection in `src/mcp/adapters/auth.py`
+- [X] T008 [P] Implement semantic error mapper in `src/mcp/lib/errors.py`
+- [X] T009 Initialize FastMCP server instance in `src/mcp/server.py`
 
-**⚠️ CRITICAL**: No user story work can begin until this phase is complete
+## Phase 3: US1 - AI Agent Limited Access (P1)
 
-- [ ] T005 [P] Implement PII-masking logger in `src/lib/logging.py` (Constitution Article VIII)
-- [ ] T006 [P] Implement Capability API async client in `src/adapters/backend_client.py`
-- [ ] T007 [P] Implement Auth Context extractor and bearer passthrough logic in `src/adapters/auth.py`
-- [ ] T008 [P] Implement backend error mapper (401, 403, 400) to MCP errors in `src/lib/errors.py`
-- [ ] T009 Initialize FastMCP server instance in `src/mcp_server.py`
+**Goal**: Enable restricted organizational lookup for AI Agents.
 
-**Checkpoint**: Foundation ready - user tool implementation can now begin
+**Independent Test**: Execute `get_employee` as an AI Agent and verify PII fields are omitted.
 
----
+- [X] T010 [P] [US1] Define Employee and Org Chart Pydantic models in `src/mcp/models/hcm.py`
+- [X] T011 [US1] Create unit tests for HCM tool authorization and filtering in `tests/unit/mcp/test_hcm_tools.py`
+- [X] T012 [US1] Implement `get_employee` tool with backend-filtered response passthrough in `src/mcp/tools/hcm.py`
+- [X] T013 [US1] Implement `get_manager_chain` and `get_org_chart` tools in `src/mcp/tools/hcm.py`
+- [X] T014 [US1] Implement `update_contact_info` tool in `src/mcp/tools/hcm.py`
+- [X] T015 [US1] Register HCM tools in `src/mcp/server.py`
+- [X] T016 [US1] Integration test for AI Agent data filtering in `tests/integration/mcp/test_ai_agent_scenarios.py`
 
-## Phase 3: User Story 1 - AI Agent Limited Access (Priority: P1) 🎯 MVP
+## Phase 4: US2 - Self-Service Time Management (P1)
 
-**Goal**: Ensure AI Agents get filtered data and restricted access to HCM tools.
+**Goal**: Allow employees to manage their own time-off requests.
 
-**Independent Test**: Call `get_employee` with an AI Agent token and verify PII redaction.
+**Independent Test**: Execute `request_time_off` as an employee and verify it appears in the backend.
 
-### Tests for User Story 1
+- [X] T017 [P] [US2] Define TimeOffRequest and Balance Pydantic models in `src/mcp/models/time.py`
+- [X] T018 [US2] Create unit tests for Time tools in `tests/unit/mcp/test_time_tools.py`
+- [X] T019 [US2] Implement `get_pto_balance` tool in `src/mcp/tools/time.py`
+- [X] T020 [US2] Implement `request_time_off` with auto-generated Transaction ID in `src/mcp/tools/time.py`
+- [X] T021 [US2] Implement `cancel_time_off` tool in `src/mcp/tools/time.py`
+- [X] T022 [US2] Register Time tools in `src/mcp/server.py`
+- [X] T023 [US2] Integration test for employee time-off flow in `tests/integration/mcp/test_employee_flows.py`
 
-- [ ] T010 [P] [US1] Unit test for `get_employee` filtering in `tests/unit/test_hcm_tools.py`
-- [ ] T011 [P] [US1] Integration test for AI Agent access denial in `tests/integration/test_security_filters.py`
+## Phase 5: US3 - Manager Approval Lifecycle (P1)
 
-### Implementation for User Story 1
+**Goal**: Enable managers to oversee and approve requests.
 
-- [ ] T012 [P] [US1] Define HCM entity schemas (Employee) in `src/models/hcm.py`
-- [ ] T013 [US1] Implement `get_employee` tool with dynamic filtering and metadata tags in `src/tools/hcm.py`
-- [ ] T014 [US1] Implement `get_manager_chain` and `get_org_chart` tools with metadata tags in `src/tools/hcm.py`
-- [ ] T015 [US1] Add HCM tools to the main MCP server in `src/mcp_server.py`
+**Independent Test**: Execute `approve_time_off` as a manager for a subordinate's request and verify success.
 
-**Checkpoint**: US1 functional - AI Agents can lookup organizational data safely.
+- [X] T024 [US3] Create unit tests for manager-specific tools in `tests/unit/mcp/test_manager_tools.py`
+- [X] T025 [US3] Implement `list_direct_reports` tool in `src/mcp/tools/hcm.py`
+- [X] T026 [US3] Implement `approve_time_off` tool in `src/mcp/tools/time.py`
+- [X] T027 [US3] Register manager-only tools in `src/mcp/server.py`
+- [X] T028 [US3] Integration test for manager approval lifecycle in `tests/integration/mcp/test_manager_scenarios.py`
 
----
+## Phase 6: US4 - MFA-Protected Payroll Access (P2)
 
-## Phase 4: User Story 2 - Employee Self-Service Time Management (Priority: P1)
+**Goal**: Secure sensitive payroll data with MFA enforcement.
 
-**Goal**: Enable employees to check PTO balances and submit requests.
+**Independent Test**: Execute `get_compensation` without MFA and verify `MFA_REQUIRED` 401 error.
 
-**Independent Test**: Call `request_time_off` as an employee and verify the request appears in the backend simulator.
-
-### Tests for User Story 2
-
-- [ ] T016 [P] [US2] Unit test for `get_pto_balance` and `request_time_off` in `tests/unit/test_time_tools.py`
-
-### Implementation for User Story 2
-
-- [ ] T017 [P] [US2] Define Time Management entity schemas (TimeOffRequest) in `src/models/time.py`
-- [ ] T018 [US2] Implement `get_pto_balance` tool with metadata tags in `src/tools/time.py`
-- [ ] T019 [US2] Implement `request_time_off` tool with validation and metadata tags in `src/tools/time.py`
-- [ ] T020 [US2] Add Time tools to the main MCP server in `src/mcp_server.py`
-
-**Checkpoint**: US2 functional - Employees can manage their own leave.
-
----
-
-## Phase 5: User Story 3 - Manager Approval Lifecycle (Priority: P1)
-
-**Goal**: Enable managers to view and approve subordinates' requests.
-
-**Independent Test**: Call `approve_time_off` as a manager for a report's request and verify success.
-
-### Tests for User Story 3
-
-- [ ] T021 [P] [US3] Unit test for manager relationship validation in `tests/unit/test_manager_tools.py`
-
-### Implementation for User Story 3
-
-- [ ] T022 [US3] Implement `list_direct_reports` tool (HCM domain) in `src/tools/hcm.py`
-- [ ] T023 [US3] Implement `approve_time_off` and `cancel_time_off` tools in `src/tools/time.py`
-- [ ] T024 [US3] Add manager-specific tool registration in `src/mcp_server.py`
-
-**Checkpoint**: US3 functional - HR approval lifecycle is complete.
-
----
-
-## Phase 6: User Story 4 - MFA-Protected Payroll Access (Priority: P2)
-
-**Goal**: Secure compensation and pay statement data with MFA enforcement.
-
-**Independent Test**: Call `get_compensation` without MFA and verify `MFA_REQUIRED` 401 error.
-
-### Tests for User Story 4
-
-- [ ] T025 [P] [US4] Unit test for Payroll MFA enforcement in `tests/unit/test_payroll_tools.py`
-
-### Implementation for User Story 4
-
-- [ ] T026 [P] [US4] Define Payroll entity schemas (Compensation) in `src/models/payroll.py`
-- [ ] T027 [US4] Implement `get_compensation` and `get_pay_statement` tools in `src/tools/payroll.py`
-- [ ] T028 [US4] Add Payroll tools with `sensitive` tags to the main MCP server in `src/mcp_server.py`
-
-**Checkpoint**: US4 functional - Sensitive data is now MFA-protected.
-
----
+- [X] T029 [P] [US4] Define Compensation and Pay Statement Pydantic models in `src/mcp/models/payroll.py`
+- [X] T030 [US4] Create unit tests for Payroll tools and MFA checks in `tests/unit/mcp/test_payroll_tools.py`
+- [X] T031 [US4] Implement `get_compensation` tool with MFA enforcement in `src/mcp/tools/payroll.py`
+- [X] T032 [US4] Implement `get_pay_statement` tool in `src/mcp/tools/payroll.py`
+- [X] T033 [US4] Register Payroll tools in `src/mcp/server.py`
+- [X] T034 [US4] Integration test for MFA-protected access in `tests/integration/mcp/test_security_scenarios.py`
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-**Purpose**: Final quality checks and discovery features.
+**Goal**: Finalize security, performance, and documentation.
 
-- [ ] T029 Implement dynamic tool discovery logic (filtering `list_tools`) in `src/mcp_server.py`
-- [ ] T030 [P] Update `docs/architecture.md` with MCP server sequence diagrams
-- [ ] T031 Perform final integration smoke test using `scripts/api/smoke-test.sh`
-- [ ] T032 Validate all success criteria in `quickstart.md`
-- [ ] T033 [P] Implement latency benchmarking test to verify SC-004 (<100ms) in `tests/performance/test_latency.py`
-
----
+- [X] T035 Implement dynamic tool discovery logic (filtering `list_tools`) in `src/mcp/server.py`
+- [X] T036 Implement latency benchmarking tests in `tests/performance/mcp/test_latency.py`
+- [X] T037 Update `docs/architecture.md` with MCP server integration details
+- [X] T038 Conduct final end-to-end smoke test across all personas
 
 ## Dependencies & Execution Order
 
-### Phase Dependencies
+1. **Phase 1 & 2** are strict prerequisites for any tool implementation.
+2. **US1 (Phase 3)** and **US2 (Phase 4)** are independent and can be started in parallel after Phase 2.
+3. **US3 (Phase 5)** depends on US1 (for reports) and US2 (for requests).
+4. **US4 (Phase 6)** is independent and can be started after Phase 2.
+5. **Phase 7** requires all tool phases to be complete.
 
-- **Setup (Phase 1)**: No dependencies.
-- **Foundational (Phase 2)**: Depends on Phase 1.
-- **User Stories (Phase 3-6)**: Depend on Phase 2.
-- **Polish (Phase 7)**: Depends on all core features (Phase 3-6).
+## Parallel Execution Examples
 
-### Parallel Opportunities
-
-- T005, T006, T007, T008 can be implemented in parallel.
-- Once Foundation (Phase 2) is complete, US1 (Phase 3), US2 (Phase 4), and US4 (Phase 6) can be started in parallel as they touch different domain files.
-- US3 depends on US2 (for requests to approve) and US1 (for employee listing).
-
----
+- **Developer A**: T010, T012, T013 (US1 Implementation)
+- **Developer B**: T017, T019, T020 (US2 Implementation)
+- **Developer C**: T029, T031, T032 (US4 Implementation)
 
 ## Implementation Strategy
 
-### MVP First (User Story 1 Only)
-
-1. Complete Phase 1 & 2.
-2. Complete Phase 3 (US1).
-3. Validate AI Agent filtering.
-
-### Incremental Delivery
-
-1. Foundation -> Organzational Lookup (HCM) -> Leave Management (Time) -> Payroll (MFA).
-2. Each phase is a logical increment delivering specific domain value.
+- **MVP Scope**: Complete Phase 1, 2, and 3 (US1). This provides the first functional governed interface for AI Agents.
+- **Incremental Delivery**: Following the MVP, deliver US2 (Self-service), then US3 (Manager workflow), and finally US4 (Sensitive data).

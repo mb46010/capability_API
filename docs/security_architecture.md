@@ -5,7 +5,7 @@
 Our platform implements security at **three layers**:
 
 ### Layer 1: Centralized Policy Engine
-- **What**: YAML-based policy file defines all access grants
+- **What**: YAML-based policy file defines all access grants. See **[Policy Schema](policy_schema.md)** for details.
 - **Why**: Single source of truth for auditing and compliance
 - **Example**: AI agents cannot access `workday.payroll.*` capabilities
 

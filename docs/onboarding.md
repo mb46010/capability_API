@@ -54,5 +54,6 @@ pytest tests/integration/
 
 ## Key Documentation to Read
 1. **Architecture**: `docs/architecture.md`
-2. **Constitution**: `.specify/memory/constitution.md`
-3. **Workflow**: `specs/` directory for feature-specific plans.
+2. **API Usage**: `docs/api_usage.md`
+3. **Constitution**: `.specify/memory/constitution.md`
+4. **Workflow**: `specs/` directory for feature-specific plans.
