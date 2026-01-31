@@ -32,7 +32,6 @@ Python 3.11+: Follow standard conventions
 ## Recent Changes
 - 005-hr-mcp-server: Added Python 3.11+ + FastMCP >= 3.0.0b1, httpx, pydantic-settings, PyJWT (for token inspection)
 - 005-hr-mcp-server: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 004-workday-actions: Added Python 3.11+ + FastAPI, Pydantic V2, Authlib (for OIDC)
 
 
 <!-- MANUAL ADDITIONS START -->

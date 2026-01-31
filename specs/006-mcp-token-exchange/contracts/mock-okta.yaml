@@ -1,0 +1,50 @@
+openapi: 3.0.3
+info:
+  title: Mock Okta API
+  version: 1.0.0
+paths:
+  /oauth2/v1/token:
+    post:
+      summary: Token Endpoint (Issue & Exchange)
+      description: Issues new tokens or exchanges existing tokens (RFC 8693).
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum:
+                    - client_credentials
+                    - password
+                    - urn:ietf:params:oauth:grant-type:token-exchange
+                subject_token:
+                  type: string
+                  description: Required for token-exchange
+                subject_token_type:
+                  type: string
+                  description: Required for token-exchange
+                scope:
+                  type: string
+      responses:
+        '200':
+          description: Successful Token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: Bearer
+                  expires_in:
+                    type: integer
+                  scope:
+                    type: string
+                  issued_token_type:
+                    type: string
+        '400':
+          description: Invalid Request (e.g. nesting attempt)

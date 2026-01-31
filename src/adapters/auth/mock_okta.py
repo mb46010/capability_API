@@ -296,6 +296,75 @@ class MockOktaProvider:
 
         return token
 
+    def exchange_token(
+        self,
+        subject_token: str,
+        scope: str = "mcp:use",
+        audience: str | None = None,
+        requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
+    ) -> str:
+        """
+        Exchange a subject token for a new scoped token (RFC 8693).
+        
+        Args:
+            subject_token: The user's access token to exchange
+            scope: The requested scope for the new token
+            audience: Optional audience override
+            requested_token_type: The type of token requested
+            
+        Returns:
+            New signed JWT string
+            
+        Raises:
+            ValueError: If validation fails
+        """
+        try:
+            # 1. Validate subject token
+            claims = self.verify_token(subject_token)
+        except jwt.InvalidTokenError as e:
+            raise ValueError(f"Invalid subject token: {str(e)}")
+
+        # 2. Check for nesting (Chain of Chains)
+        if claims.get("acting_as") == "mcp-server":
+            raise ValueError("Subject token is already an exchanged token")
+
+        # 3. Prepare new token claims
+        now = int(time.time())
+        ttl_seconds = 300  # 5 minutes fixed TTL for exchanged tokens
+        
+        new_claims = {
+            "sub": claims["sub"],
+            "principal_type": claims.get("principal_type", PrincipalType.HUMAN.value),
+            "groups": claims.get("groups", []),
+            # Copy auth_time or fallback to iat
+            "auth_time": claims.get("auth_time", claims["iat"]),
+            # Provenance claims
+            "acting_as": "mcp-server",
+            "original_token_id": claims["jti"],
+            "scope": [scope] if isinstance(scope, str) else scope,
+            # Standard claims
+            "iss": self.issuer,
+            "aud": audience or self.audience,
+            "iat": now,
+            "exp": now + ttl_seconds,
+            "jti": str(uuid.uuid4()),
+            "cid": self.client_id,
+        }
+        
+        # Copy AMR if present
+        if "amr" in claims:
+            new_claims["amr"] = claims["amr"]
+
+        # 4. Sign the new token
+        token = jwt.encode(
+            new_claims,
+            self._private_key,
+            algorithm="RS256",
+            headers={"kid": self._kid},
+        )
+        
+        return token
+
     def revoke_token(self, token: str) -> bool:
         """
         Revoke a token. Returns True if token was valid and is now revoked.
@@ -560,6 +629,10 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
         username: str = Form(None),
         password: str = Form(None),
         scope: str = Form("openid"),
+        subject_token: str = Form(None),
+        subject_token_type: str = Form(None),
+        requested_token_type: str = Form(None),
+        audience: str = Form(None),
     ):
         """
         Token endpoint - issues tokens.
@@ -567,7 +640,30 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
         Supports:
         - client_credentials: For machine/service accounts
         - password: For testing user authentication (NOT for production!)
+        - urn:ietf:params:oauth:grant-type:token-exchange: For RFC 8693 token exchange
         """
+        if grant_type == "urn:ietf:params:oauth:grant-type:token-exchange":
+            if not subject_token:
+                raise HTTPException(status_code=400, detail="subject_token required")
+            
+            try:
+                exchanged_token = provider.exchange_token(
+                    subject_token=subject_token,
+                    scope=scope,
+                    audience=audience,
+                    requested_token_type=requested_token_type,
+                )
+                
+                return {
+                    "access_token": exchanged_token,
+                    "issued_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                    "token_type": "Bearer",
+                    "expires_in": 300,
+                    "scope": scope,
+                }
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+                
         if grant_type == "client_credentials":
             # Machine token - use client_id as subject
             if not client_id:

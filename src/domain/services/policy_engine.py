@@ -25,7 +25,9 @@ class PolicyEngine:
         mfa_verified: bool = False,
         token_issued_at: Optional[int] = None,
         token_expires_at: Optional[int] = None,
-        request_ip: Optional[str] = None
+        request_ip: Optional[str] = None,
+        token_scopes: Optional[List[str]] = None,
+        auth_time: Optional[int] = None
     ) -> PolicyEvaluationResult:
         """
         Evaluate if a principal is allowed to perform a capability in an environment.
@@ -57,7 +59,7 @@ class PolicyEngine:
         for rule in env_policies:
             if self._matches_principal_subject(rule, principal_id):
                 if self._matches_capability(rule, capability):
-                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip):
+                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip, token_scopes, auth_time):
                         return PolicyEvaluationResult(
                             allowed=True,
                             policy_name=rule.name,
@@ -68,7 +70,7 @@ class PolicyEngine:
         for rule in env_policies:
              if self._matches_principal_group(rule, principal_groups):
                 if self._matches_capability(rule, capability):
-                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip):
+                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip, token_scopes, auth_time):
                         return PolicyEvaluationResult(
                             allowed=True,
                             policy_name=rule.name,
@@ -79,7 +81,7 @@ class PolicyEngine:
         for rule in env_policies:
             if self._matches_principal_type(rule, principal_type):
                 if self._matches_capability(rule, capability):
-                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip):
+                    if self._evaluate_conditions(rule, mfa_verified, token_issued_at, token_expires_at, request_ip, token_scopes, auth_time):
                         return PolicyEvaluationResult(
                             allowed=True,
                             policy_name=rule.name,
@@ -158,7 +160,10 @@ class PolicyEngine:
         mfa_verified: bool,
         token_issued_at: Optional[int],
         token_expires_at: Optional[int],
-        request_ip: Optional[str]
+        request_ip: Optional[str],
+        token_scopes: Optional[List[str]] = None,
+        auth_time: Optional[int] = None,
+        current_time_override: Optional[int] = None
     ) -> bool:
         if not rule.conditions:
             return True
@@ -174,6 +179,22 @@ class PolicyEngine:
                 return False
             ttl = token_expires_at - token_issued_at
             if ttl > rule.conditions.max_ttl_seconds:
+                return False
+
+        # Scope Check
+        if rule.conditions.required_scope:
+            if not token_scopes or rule.conditions.required_scope not in token_scopes:
+                return False
+
+        # Auth Freshness Check
+        if rule.conditions.max_auth_age_seconds:
+            if auth_time is None:
+                return False
+            
+            import time
+            current_time = current_time_override if current_time_override is not None else int(time.time())
+            auth_age = current_time - auth_time
+            if auth_age > rule.conditions.max_auth_age_seconds:
                 return False
 
         # IP Allowlist

@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, Optional
 from src.mcp.adapters.backend import backend_client
-from src.mcp.adapters.auth import authenticate_and_authorize
+from src.mcp.adapters.auth import authenticate_and_authorize, get_mcp_token
 from src.mcp.lib.errors import map_backend_error
 from src.mcp.lib.logging import audit_logger
 
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 async def get_compensation(ctx: Any, employee_id: str) -> str:
     """View sensitive salary and bonus details. REQUIRES MFA."""
-    token, principal, error = await authenticate_and_authorize(ctx, "get_compensation")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "get_compensation")
     if error: return f"ERROR: {error}"
     
     # MFA Enforcement (Spec FR-005) - Extra check beyond RBAC
@@ -17,11 +17,13 @@ async def get_compensation(ctx: Any, employee_id: str) -> str:
         return "ERROR: MFA_REQUIRED: This action requires multi-factor authentication."
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         response = await backend_client.call_action(
             domain="workday.payroll",
             action="get_compensation",
             parameters={"employee_id": employee_id},
-            token=token
+            token=mcp_token
         )
         audit_logger.log("get_compensation", {"employee_id": employee_id}, principal.subject)
         return str(response.get("data", {}))
@@ -30,7 +32,7 @@ async def get_compensation(ctx: Any, employee_id: str) -> str:
 
 async def get_pay_statement(ctx: Any, statement_id: str) -> str:
     """View detailed pay statement (stub/slip). REQUIRES MFA."""
-    token, principal, error = await authenticate_and_authorize(ctx, "get_pay_statement")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "get_pay_statement")
     if error: return f"ERROR: {error}"
     
     # MFA Enforcement
@@ -38,11 +40,13 @@ async def get_pay_statement(ctx: Any, statement_id: str) -> str:
         return "ERROR: MFA_REQUIRED: This action requires multi-factor authentication."
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         response = await backend_client.call_action(
             domain="workday.payroll",
             action="get_pay_statement",
             parameters={"statement_id": statement_id},
-            token=token
+            token=mcp_token
         )
         audit_logger.log("get_pay_statement", {"statement_id": statement_id}, principal.subject)
         return str(response.get("data", {}))
@@ -51,18 +55,20 @@ async def get_pay_statement(ctx: Any, statement_id: str) -> str:
 
 async def list_pay_statements(ctx: Any, employee_id: str, year: Optional[int] = None) -> str:
     """List historical pay statements. REQUIRES MFA."""
-    token, principal, error = await authenticate_and_authorize(ctx, "list_pay_statements")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "list_pay_statements")
     if error: return f"ERROR: {error}"
     
     if not principal.mfa_verified and principal.principal_type != "MACHINE":
         return "ERROR: MFA_REQUIRED: This action requires multi-factor authentication."
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         response = await backend_client.call_action(
             domain="workday.payroll",
             action="list_pay_statements",
             parameters={"employee_id": employee_id, "year": year},
-            token=token
+            token=mcp_token
         )
         audit_logger.log("list_pay_statements", {"employee_id": employee_id, "year": year}, principal.subject)
         return str(response.get("data", {}))

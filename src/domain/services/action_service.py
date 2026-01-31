@@ -91,8 +91,25 @@ class ActionService:
         token_expires_at: Optional[int] = None,
         request_ip: Optional[str] = None,
         idempotency_key: Optional[str] = None,
+        token_claims: Optional[dict] = None,
     ) -> ActionResponse:
         self._validate_capability(domain, action)
+
+        # Direct API Protection check (FR-005)
+        if token_claims:
+            scopes = token_claims.get("scope", [])
+            # Handle both list and string scope formats
+            if isinstance(scopes, str):
+                scopes = scopes.split(" ")
+            
+            acting_as = token_claims.get("acting_as")
+            if "mcp:use" in scopes and not acting_as:
+                raise HTTPException(
+                    status_code=403,
+                    detail="MCP-scoped tokens cannot be used for direct API access"
+                )
+        else:
+            scopes = []
 
         # Determine the capability string for policy check.
         # If the domain is just 'workday', try to find its subdomain.
@@ -117,6 +134,7 @@ class ActionService:
             token_issued_at=token_issued_at,
             token_expires_at=token_expires_at,
             request_ip=request_ip,
+            token_scopes=scopes
         )
 
         if not evaluation.allowed:
@@ -135,6 +153,7 @@ class ActionService:
                 "principal_type": principal_type,
                 "mfa_verified": mfa_verified,
                 "idempotency_key": idempotency_key,
+                "token_claims": token_claims # Pass token metadata to connector for logging
             }
 
             # For MVP, we route everything to the single injected connector

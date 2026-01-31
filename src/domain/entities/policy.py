@@ -35,6 +35,8 @@ class PolicyConditions(BaseModel):
     require_mfa: Optional[bool] = Field(None, description="If true, requires Multi-Factor Authentication presence in token")
     ip_allowlist: Optional[List[str]] = Field(None, description="Allowed source IP addresses or ranges")
     time_window: Optional[Dict[str, str]] = Field(None, description="Operational window (e.g., start: '09:00', end: '17:00')")
+    required_scope: Optional[str] = Field(None, description="Scope required to access this capability (e.g., 'mcp:use')")
+    max_auth_age_seconds: Optional[int] = Field(None, description="Maximum allowed age of authentication in seconds")
 
 class PolicyRule(BaseModel):
     name: str = Field(description="Unique, descriptive name for the rule")

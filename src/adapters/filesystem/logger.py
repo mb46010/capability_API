@@ -52,7 +52,7 @@ class JSONLLogger:
             
         return data
 
-    def log_event(self, event_type: str, payload: Dict[str, Any], actor: str = "system"):
+    def log_event(self, event_type: str, payload: Dict[str, Any], actor: str = "system", token_claims: Optional[Dict[str, Any]] = None):
         """
         Log an event to the JSONL file with robust PII redaction.
         """
@@ -66,6 +66,29 @@ class JSONLLogger:
             "payload": safe_payload
         }
         
-        # 2. Append to file
+        # 2. Enrich with Token Provenance (FR-004)
+        if token_claims:
+            entry.update({
+                "acting_through": token_claims.get("acting_as"),
+                "token_type": "exchanged" if "original_token_id" in token_claims else "original",
+                "token_scope": token_claims.get("scope", []),
+                "token_id": token_claims.get("jti"),
+                "original_token_id": token_claims.get("original_token_id"),
+                "mfa_verified": "mfa" in token_claims.get("amr", []),
+            })
+            
+            # Temporal Metadata
+            if "iat" in token_claims and "exp" in token_claims:
+                entry["token_issued_at"] = datetime.fromtimestamp(token_claims["iat"], timezone.utc).isoformat()
+                entry["token_expires_at"] = datetime.fromtimestamp(token_claims["exp"], timezone.utc).isoformat()
+                entry["token_ttl_seconds"] = token_claims["exp"] - token_claims["iat"]
+            
+            if "auth_time" in token_claims:
+                entry["auth_time"] = datetime.fromtimestamp(token_claims["auth_time"], timezone.utc).isoformat()
+                # Calculate auth_age relative to now
+                import time
+                entry["auth_age_seconds"] = int(time.time()) - token_claims["auth_time"]
+        
+        # 3. Append to file
         with open(self.log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, cls=JSONDateTimeEncoder) + "\n")

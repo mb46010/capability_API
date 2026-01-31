@@ -1,9 +1,15 @@
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Dict, Tuple
 from pydantic import BaseModel
 import jwt
 import logging
+import time
+import httpx
+from src.mcp.lib.config import settings
 
 logger = logging.getLogger(__name__)
+
+# Token Cache: Key = user_token_signature, Value = (mcp_token, expires_at_timestamp)
+_mcp_token_cache: Dict[str, Tuple[str, float]] = {}
 
 class PrincipalContext(BaseModel):
     subject: str
@@ -60,6 +66,61 @@ def get_token_from_context(ctx: Any) -> Optional[str]:
     except Exception as e:
         logger.debug(f"Token extraction failed: {str(e)}")
         return None
+
+async def get_mcp_token(user_token: str) -> str:
+    """
+    Exchange user token for MCP-scoped token with caching.
+    
+    Args:
+        user_token: The full user token.
+        
+    Returns:
+        The MCP-scoped token.
+        
+    Raises:
+        Exception: If exchange fails.
+    """
+    # 1. Check Cache
+    # We use the token signature (last part) as key to save memory/log-safety
+    token_parts = user_token.split(".")
+    cache_key = token_parts[-1] if len(token_parts) == 3 else user_token
+    
+    now = time.time()
+    if cache_key in _mcp_token_cache:
+        cached_token, expires_at = _mcp_token_cache[cache_key]
+        if now < expires_at:
+            logger.debug("Returning cached MCP token")
+            return cached_token
+        else:
+            del _mcp_token_cache[cache_key]
+
+    # 2. Perform Exchange
+    logger.info("Exchanging user token for MCP scope")
+    token_endpoint = f"{settings.OKTA_ISSUER}/v1/token"
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            token_endpoint,
+            data={
+                "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
+                "subject_token": user_token,
+                "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
+                "scope": "mcp:use",
+                "audience": settings.CAPABILITY_API_AUDIENCE
+            }
+        )
+        response.raise_for_status()
+        data = response.json()
+        
+    mcp_token = data["access_token"]
+    
+    # 3. Cache Result
+    # Cache for 4 minutes (240s) to be safe within 5 min TTL
+    expires_at = now + 240
+    _mcp_token_cache[cache_key] = (mcp_token, expires_at)
+    
+    return mcp_token
 
 def is_tool_allowed(principal: PrincipalContext, tool_name: str) -> bool:
     """

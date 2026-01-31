@@ -2,7 +2,7 @@ import logging
 import uuid
 from typing import Dict, Any, Optional
 from src.mcp.adapters.backend import backend_client
-from src.mcp.adapters.auth import authenticate_and_authorize
+from src.mcp.adapters.auth import authenticate_and_authorize, get_mcp_token
 from src.mcp.lib.errors import map_backend_error
 from src.mcp.lib.logging import audit_logger
 
@@ -10,17 +10,20 @@ logger = logging.getLogger(__name__)
 
 async def get_employee(ctx: Any, employee_id: str) -> str:
     """Look up employee profile with role-based filtering (Passthrough to Capability API)."""
-    token, principal, error = await authenticate_and_authorize(ctx, "get_employee")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "get_employee")
     if error: return f"ERROR: {error}"
     
     principal_id = principal.subject
     
     try:
+        # Exchange for MCP token
+        mcp_token = await get_mcp_token(user_token)
+        
         coro = backend_client.call_action(
             domain="workday.hcm",
             action="get_employee",
             parameters={"employee_id": employee_id},
-            token=token
+            token=mcp_token
         )
         response = await coro
         audit_logger.log("get_employee", {"employee_id": employee_id}, principal_id)
@@ -32,17 +35,19 @@ async def get_employee(ctx: Any, employee_id: str) -> str:
 
 async def get_manager_chain(ctx: Any, employee_id: str) -> str:
     """Get the reporting line for an employee."""
-    token, principal, error = await authenticate_and_authorize(ctx, "get_manager_chain")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "get_manager_chain")
     if error: return f"ERROR: {error}"
     
     principal_id = principal.subject
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         coro = backend_client.call_action(
             domain="workday.hcm",
             action="get_manager_chain",
             parameters={"employee_id": employee_id},
-            token=token
+            token=mcp_token
         )
         response = await coro
         audit_logger.log("get_manager_chain", {"employee_id": employee_id}, principal_id)
@@ -52,17 +57,19 @@ async def get_manager_chain(ctx: Any, employee_id: str) -> str:
 
 async def get_org_chart(ctx: Any, root_id: str, depth: int = 2) -> str:
     """View the organizational structure starting from a root employee."""
-    token, principal, error = await authenticate_and_authorize(ctx, "get_org_chart")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "get_org_chart")
     if error: return f"ERROR: {error}"
     
     principal_id = principal.subject
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         coro = backend_client.call_action(
             domain="workday.hcm",
             action="get_org_chart",
             parameters={"root_id": root_id, "depth": depth},
-            token=token
+            token=mcp_token
         )
         response = await coro
         audit_logger.log("get_org_chart", {"root_id": root_id, "depth": depth}, principal_id)
@@ -72,17 +79,19 @@ async def get_org_chart(ctx: Any, root_id: str, depth: int = 2) -> str:
 
 async def update_contact_info(ctx: Any, employee_id: str, updates: dict) -> str:
     """Update employee contact information (Personal Email, Phone). Enabled for AGENTS (No MFA)."""
-    token, principal, error = await authenticate_and_authorize(ctx, "update_contact_info")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "update_contact_info")
     if error: return f"ERROR: {error}"
     
     principal_id = principal.subject
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         coro = backend_client.call_action(
             domain="workday.hcm",
             action="update_contact_info",
             parameters={"employee_id": employee_id, "updates": updates},
-            token=token
+            token=mcp_token
         )
         response = await coro
         audit_logger.log("update_contact_info", {"employee_id": employee_id, "updates": updates}, principal_id)
@@ -92,17 +101,19 @@ async def update_contact_info(ctx: Any, employee_id: str, updates: dict) -> str:
 
 async def list_direct_reports(ctx: Any, manager_id: str) -> str:
     """View all direct reports for a given manager."""
-    token, principal, error = await authenticate_and_authorize(ctx, "list_direct_reports")
+    user_token, principal, error = await authenticate_and_authorize(ctx, "list_direct_reports")
     if error: return f"ERROR: {error}"
     
     principal_id = principal.subject
 
     try:
+        mcp_token = await get_mcp_token(user_token)
+        
         coro = backend_client.call_action(
             domain="workday.hcm",
             action="list_direct_reports",
             parameters={"manager_id": manager_id},
-            token=token
+            token=mcp_token
         )
         response = await coro
         audit_logger.log("list_direct_reports", {"manager_id": manager_id}, principal_id)

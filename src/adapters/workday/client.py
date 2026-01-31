@@ -112,11 +112,15 @@ class WorkdaySimulator(ConnectorPort):
             result = await handler(parameters)
             logger.info(f"{action} execution successful")
             
+            # Extract token metadata for audit
+            token_claims = parameters.get("token_claims")
+            
             # Audit Log
             self.audit_logger.log_event(
                 event_type=action,
                 payload=parameters, # We log the inputs
-                actor=parameters.get("principal_id", "unknown") # Assuming passed in params or context
+                actor=parameters.get("principal_id", "unknown"), # Assuming passed in params or context
+                token_claims=token_claims
             )
 
             # Cache result if idempotency key provided
