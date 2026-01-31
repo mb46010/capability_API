@@ -1,26 +1,26 @@
-# Domain Entities Context
+# Domain Entities: Capabilities
 
-## Purpose
-Defines the core data structures for the Capability API.
+## Overview
+This module defines the core data structures for the Capability Registry. These Pydantic models represent the single source of truth for all system capabilities.
 
-## Core Models
+## Key Models
 
-### Action Protocol
-- `ActionRequest`: Standard envelope for all action inputs.
-  - `parameters`: Dict of arguments specific to the action.
-  - `dry_run`: Boolean to simulate execution without side effects.
+### `CapabilityEntry`
+Represents a single atomic capability (Action or Flow).
+- **id**: Unique string identifier (e.g. `workday.hcm.get_employee`)
+- **domain**: Functional domain (e.g. `workday.hcm`)
+- **type**: `action` (sync) or `flow` (async)
+- **sensitivity**: Data sensitivity classification
+- **deprecated**: Boolean flag for soft deprecation
 
-- `ActionResponse`: Standard envelope for all action outputs.
-  - `data`: The actual result payload (Dict or List).
-  - `meta`: Metadata wrapper containing `provenance`.
+### `CapabilityRegistry`
+Root container for the entire registry.
+- **version**: Schema version
+- **metadata**: Ownership and timestamp info
+- **capabilities**: List of `CapabilityEntry` objects
 
-- `Provenance`: Audit trail metadata.
-  - `source`: Originating adapter/system.
-  - `timestamp`: Execution time (UTC).
-  - `trace_id`: Unique correlation ID.
-  - `latency_ms`: Execution duration.
-  - `actor`: Principal ID who invoked the action.
-
-## Shared Types
-- `Money`: {amount, currency, frequency}
-- `EmployeeReference`: {employee_id, display_name}
+## Usage
+These models are primarily used by:
+1. `CapabilityRegistryService` (to load/validate YAML)
+2. `PolicyLoader` (to validate policy references)
+3. `ActionService` (to validate runtime requests)

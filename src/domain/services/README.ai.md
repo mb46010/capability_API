@@ -1,24 +1,23 @@
-# Module Context: Domain Services
+# Domain Services: Capability Registry
 
-**AI Facts for Coding Agents**
+## Overview
+The `CapabilityRegistryService` is the system's authoritative source for what the system can *do*. it loads definitions from `config/capabilities/index.yaml` and provides lookup, validation, and discovery services.
 
-## Purpose
-Core business logic sanctuary. Orchestrates actions and flows without knowing about transport or storage implementations.
+## Key Features
 
-## Key Exports
-- `ActionService`: Evaluates policies and routes short-lived deterministic operations to connectors.
-- `FlowService`: Manages state and execution of long-running HR processes.
-- `PolicyEngine`: Pure logic engine for capability-based authorization.
+### 1. Unified Registry
+Loads all actions and flows into an O(1) lookup map. Use the `get_capability_registry()` factory to obtain the singleton instance.
 
-## Dependency Graph (Functional)
-- **Imports**: `src.domain.entities.*`, `src.domain.ports.*`
-- **Ports**: Consumes `ConnectorPort`, `FlowRunnerPort`, `PolicyLoaderPort`.
+### 2. Wildcard Expansion
+Supports expanding patterns like `workday.hcm.*` into a set of all matching capability IDs. Used by the policy engine for broad permission grants.
 
-## Architectural Constraints
-- MUST NOT import from `src.adapters.*` (Hexagonal core purity).
-- MUST return `ActionResponse` or `FlowStatusResponse` entities.
-- Policy evaluation is mandatory before any port execution.
+### 3. Typo Detection & Suggestions
+Provides fuzzy matching using `difflib` to suggest correct capability IDs when an invalid one is provided.
 
-## Local Gotchas
-- Latency is calculated in the `ActionService` layer, not the connector.
-- AI Agent field filtering happens in `ActionService.execute_action`.
+### 4. Validation
+Includes methods to validate lists of capability strings (common in policy files) and returns structured error messages with suggestions.
+
+## Integration Points
+- **Policy Loader**: Validates policy files at startup.
+- **Action Service**: Validates incoming API requests and handles deprecation warnings.
+- **CLI Tool**: Exposes registry data for humans and CI/CD pipelines.

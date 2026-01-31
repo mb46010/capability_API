@@ -1,11 +1,13 @@
 import uuid
 import time
+import logging
 from typing import Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
 from src.lib.context import get_request_id
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.ports.connector import ConnectorPort
+from src.domain.services.capability_registry import CapabilityRegistryService, get_capability_registry
 from src.domain.entities.action import (
     ActionResponse,
     Provenance,
@@ -14,66 +16,52 @@ from src.domain.entities.action import (
 )
 from src.adapters.workday.exceptions import WorkdayError
 
+logger = logging.getLogger(__name__)
 
 class ActionService:
-    # We support both 'workday' (global) and specific subdomains (legacy/contract tests)
-    KNOWN_CAPABILITIES = {
-        # "workday": [
-        #     "get_employee",
-        #     "get_employee_full",
-        #     "get_manager_chain",
-        #     "list_direct_reports",
-        #     "update_contact_info",
-        #     "update_employee",
-        #     "terminate_employee",
-        #     "delete_employee",
-        #     "get_org_chart",
-        #     "get_balance",
-        #     "request",
-        #     "cancel",
-        #     "approve",
-        #     "list_requests",
-        #     "get_request",
-        #     "get_compensation",
-        #     "get_pay_statement",
-        #     "list_pay_statements",
-        # ],
-        "workday.hcm": [
-            "get_employee",
-            "get_employee_full",
-            "get_manager_chain",
-            "list_direct_reports",
-            "update_contact_info",
-            "update_employee",
-            "terminate_employee",
-            "get_org_chart",
-        ],
-        "workday.time": [
-            "get_balance",
-            "request",
-            "cancel",
-            "approve",
-            "list_requests",
-            "get_request",
-        ],
-        "workday.payroll": [
-            "get_compensation",
-            "get_pay_statement",
-            "list_pay_statements",
-        ],
-        "hr": ["onboarding", "offboarding", "role_change", "compensation_review"],
-    }
-
-    def __init__(self, policy_engine: PolicyEngine, connector: ConnectorPort):
+    """
+    Service for executing actions across different domains.
+    Now uses CapabilityRegistry for validation and discovery.
+    """
+    def __init__(
+        self, 
+        policy_engine: PolicyEngine, 
+        connector: ConnectorPort,
+        registry: Optional[CapabilityRegistryService] = None
+    ):
         self.policy_engine = policy_engine
         self.connector = connector
+        # Use provided registry or get the singleton instance
+        self.registry = registry or get_capability_registry()
 
-    def _validate_capability(self, domain: str, action: str):
-        if domain not in self.KNOWN_CAPABILITIES:
-            raise HTTPException(status_code=400, detail=f"Unknown domain: {domain}")
-        if action not in self.KNOWN_CAPABILITIES[domain]:
+    def _validate_capability(self, domain: str, action: str) -> str:
+        """
+        Validate capability exists in registry and return the canonical ID.
+        """
+        capability_id = f"{domain}.{action}"
+        
+        # 1. Try full capability ID first
+        if self.registry.exists(capability_id):
+            return capability_id
+            
+        # 2. Try with subdomain expansion (workday -> workday.hcm, etc.)
+        if domain == "workday":
+            for subdomain in ["hcm", "time", "payroll"]:
+                full_id = f"workday.{subdomain}.{action}"
+                if self.registry.exists(full_id):
+                    return full_id
+                    
+        # 3. Not found - provide helpful error with suggestions
+        similar = self.registry._find_similar(capability_id)
+        if similar:
             raise HTTPException(
-                status_code=400, detail=f"Unknown action: {domain}.{action}"
+                status_code=400, 
+                detail=f"Unknown capability: {capability_id}. Did you mean: {', '.join(similar[:3])}?"
+            )
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Unknown capability: {capability_id}"
             )
 
     async def execute_action(
@@ -85,7 +73,6 @@ class ActionService:
         principal_groups: list,
         principal_type: str,
         environment: str,
-        # New context for policy conditions
         mfa_verified: bool = False,
         token_issued_at: Optional[int] = None,
         token_expires_at: Optional[int] = None,
@@ -93,7 +80,13 @@ class ActionService:
         idempotency_key: Optional[str] = None,
         token_claims: Optional[dict] = None,
     ) -> ActionResponse:
-        self._validate_capability(domain, action)
+        # Validate and get canonical capability ID
+        policy_capability = self._validate_capability(domain, action)
+
+        # Check for deprecation
+        cap_entry = self.registry.get(policy_capability)
+        if cap_entry and cap_entry.deprecated:
+            logger.warning(f"Principal {principal_id} is using deprecated capability: {policy_capability}")
 
         # Direct API Protection check (FR-005)
         if token_claims:
@@ -110,18 +103,6 @@ class ActionService:
                 )
         else:
             scopes = []
-
-        # Determine the capability string for policy check.
-        # If the domain is just 'workday', try to find its subdomain.
-        policy_capability = f"{domain}.{action}"
-        if domain == "workday":
-            for full_domain in self.KNOWN_CAPABILITIES:
-                if (
-                    full_domain.startswith("workday.")
-                    and action in self.KNOWN_CAPABILITIES[full_domain]
-                ):
-                    policy_capability = f"{full_domain}.{action}"
-                    break
 
         # 1. Policy Check
         evaluation = self.policy_engine.evaluate(
@@ -164,7 +145,6 @@ class ActionService:
             raise
         except Exception as e:
             # Fail-fast logic
-            # T110: 5.1 Non-existent employee -> Should be 404
             if "not found" in str(e).lower():
                 raise HTTPException(status_code=404, detail=str(e))
             if "timeout" in str(e).lower():
@@ -183,7 +163,7 @@ class ActionService:
 
         # 3. Provenance Construction
         provenance = Provenance(
-            source=f"{domain}-connector",  # Simplified source naming
+            source=f"{domain}-connector",
             timestamp=datetime.now(timezone.utc),
             trace_id=get_request_id(),
             latency_ms=round(latency_ms, 2),

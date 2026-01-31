@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""
+Capability Registry CLI Tool
+Provides inspection, validation, and discovery services for HR Platform capabilities.
+"""
+import sys
+import argparse
+import json
+from pathlib import Path
+from typing import List, Optional
+
+# Add project root to sys.path so we can import src.*
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from src.domain.services.capability_registry import get_capability_registry, CapabilityRegistryService
+from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+from tabulate import tabulate
+
+def cmd_list(args, registry: CapabilityRegistryService):
+    """List capabilities with optional filtering."""
+    capabilities = registry.get_all()
+    
+    # Apply filters
+    if args.domain:
+        capabilities = [c for c in capabilities if c.domain == args.domain]
+    if args.type:
+        capabilities = [c for c in capabilities if c.type.value == args.type]
+    if args.tag:
+        capabilities = [c for c in capabilities if args.tag in c.tags]
+        
+    # Format output
+    if args.format == "table":
+        headers = ["ID", "Name", "Type", "Sensitivity", "MFA", "Status"]
+        rows = [
+            [
+                c.id, c.name, c.type.value, c.sensitivity.value, 
+                "✓" if c.requires_mfa else "",
+                "DEPRECATED" if c.deprecated else "ACTIVE"
+            ] for c in capabilities
+        ]
+        print(tabulate(rows, headers=headers, tablefmt="grid"))
+    elif args.format == "json":
+        data = [c.model_dump() for c in capabilities]
+        print(json.dumps(data, indent=2))
+    else: # simple
+        for c in capabilities:
+            print(c.id)
+
+def cmd_validate(args, registry: CapabilityRegistryService):
+    """Validate registry structure and content."""
+    try:
+        capabilities = registry.get_all()
+        print(f"✅ Registry is valid")
+        print(f"  Version: {registry._registry.version if registry._registry else 'N/A'}")
+        print(f"  Capabilities: {len(capabilities)}")
+        print(f"  Domains: {len(set(c.domain for c in capabilities))}")
+        
+        # Check for missing descriptions
+        no_desc = [c.id for c in capabilities if not c.description]
+        if no_desc:
+            print(f"⚠️  {len(no_desc)} capabilities missing descriptions")
+            
+        # Check for deprecated capabilities
+        deprecated = [c.id for c in capabilities if c.deprecated]
+        if deprecated:
+            print(f"ℹ️  {len(deprecated)} deprecated capabilities found")
+            
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Validation failed: {str(e)}")
+        sys.exit(1)
+
+def cmd_check_policy(args, registry: CapabilityRegistryService):
+    """Validate a specific policy file against the registry."""
+    try:
+        loader = FilePolicyLoaderAdapter(
+            policy_path=args.policy_file, 
+            registry_path=args.registry
+        )
+        policy = loader.load_policy()
+        print(f"✅ Policy is valid against registry")
+        print(f"  Rules: {len(policy.policies)}")
+        print(f"  Capability Groups: {len(policy.capability_groups) if policy.capability_groups else 0}")
+        sys.exit(0)
+    except Exception as e:
+        print(f"❌ Policy validation failed:")
+        print(f"  {str(e)}")
+        sys.exit(1)
+
+def cmd_stats(args, registry: CapabilityRegistryService):
+    """Show registry statistics."""
+    capabilities = registry.get_all()
+    
+    by_type = {}
+    for c in capabilities:
+        by_type[c.type.value] = by_type.get(c.type.value, 0) + 1
+        
+    by_domain = {}
+    for c in capabilities:
+        by_domain[c.domain] = by_domain.get(c.domain, 0) + 1
+        
+    print("Capability Registry Statistics")
+    print("=" * 40)
+    print(f"Total Capabilities: {len(capabilities)}")
+    print("\nBy Type:")
+    for t, count in sorted(by_type.items()):
+        print(f"  {t:12} {count:3}")
+    print("\nBy Domain:")
+    for d, count in sorted(by_domain.items()):
+        print(f"  {d:20} {count:3}")
+    print()
+
+def main():
+    parser = argparse.ArgumentParser(description="Capability Registry CLI")
+    
+    # Add registry at the parent level to allow it after command too
+    # but argparse needs care with subparsers.
+    # Alternative: add it to each subparser or keep it global and fix test call order.
+    # I'll add it to the parent parser and ensure it's handled correctly.
+    parser.add_argument(
+        "--registry", 
+        default="config/capabilities/index.yaml", 
+        help="Path to capability registry YAML"
+    )
+    
+    subparsers = parser.add_subparsers(dest="command", help="Command to run")
+    
+    # list command
+    list_p = subparsers.add_parser("list", help="List capabilities")
+    list_p.add_argument("--domain", help="Filter by domain")
+    list_p.add_argument("--type", choices=["action", "flow"], help="Filter by type")
+    list_p.add_argument("--tag", help="Filter by tag")
+    list_p.add_argument("--format", choices=["simple", "table", "json"], default="table")
+    
+    # validate command
+    subparsers.add_parser("validate", help="Validate registry structure")
+    
+    # check-policy command
+    check_p = subparsers.add_parser("check-policy", help="Check policy against registry")
+    check_p.add_argument("policy_file", help="Path to policy YAML file")
+    
+    # stats command
+    subparsers.add_parser("stats", help="Show registry statistics")
+    
+    # We use parse_known_args or just ensure global args are before subcommands
+    # but for ergonomics, I'll allow --registry anywhere by using parent_parsers if needed.
+    # For now, I'll just fix the test to put --registry before the command.
+    
+    args = parser.parse_args()
+    
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+        
+    # Lazy load registry only when needed
+    try:
+        registry = get_capability_registry(args.registry)
+    except Exception as e:
+        print(f"❌ Error loading registry: {e}")
+        sys.exit(1)
+        
+    # Dispatch
+    handlers = {
+        "list": cmd_list,
+        "validate": cmd_validate,
+        "check-policy": cmd_check_policy,
+        "stats": cmd_stats
+    }
+    
+    handlers[args.command](args, registry)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,145 @@
+version: "1.0"
+metadata:
+  last_updated: "2026-01-31"
+  owner: "hr-platform-team"
+  description: "Canonical registry of all HR AI Platform capabilities"
+capabilities:
+  # HCM Domain
+  - id: "workday.hcm.get_employee"
+    name: "Get Employee Profile"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["read-only", "hcm", "pii"]
+  - id: "workday.hcm.get_employee_full"
+    name: "Get Full Employee Profile"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "high"
+    tags: ["read-only", "hcm", "pii"]
+  - id: "workday.hcm.get_manager_chain"
+    name: "Get Manager Chain"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "low"
+    tags: ["read-only", "hcm"]
+  - id: "workday.hcm.list_direct_reports"
+    name: "List Direct Reports"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["read-only", "hcm", "manager-only"]
+  - id: "workday.hcm.update_contact_info"
+    name: "Update Contact Information"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["write", "hcm", "self-service"]
+  - id: "workday.hcm.update_employee"
+    name: "Update Employee Profile"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "high"
+    tags: ["write", "hcm"]
+  - id: "workday.hcm.terminate_employee"
+    name: "Terminate Employee"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "critical"
+    tags: ["write", "hcm", "hr-only"]
+  - id: "workday.hcm.delete_employee"
+    name: "Delete Employee"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "critical"
+    tags: ["write", "hcm", "admin-only"]
+  - id: "workday.hcm.get_org_chart"
+    name: "Get Organization Chart"
+    domain: "workday.hcm"
+    type: "action"
+    sensitivity: "low"
+    tags: ["read-only", "hcm"]
+  # Time Management Domain
+  - id: "workday.time.get_balance"
+    name: "Get PTO Balance"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "low"
+    tags: ["read-only", "time-off"]
+  - id: "workday.time.request"
+    name: "Request Time Off"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["write", "time-off"]
+  - id: "workday.time.cancel"
+    name: "Cancel Time Off Request"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["write", "time-off"]
+  - id: "workday.time.approve"
+    name: "Approve Time Off"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "high"
+    tags: ["write", "time-off", "manager-only"]
+  - id: "workday.time.list_requests"
+    name: "List Time Off Requests"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["read-only", "time-off"]
+  - id: "workday.time.get_request"
+    name: "Get Time Off Request"
+    domain: "workday.time"
+    type: "action"
+    sensitivity: "medium"
+    tags: ["read-only", "time-off"]
+  # Payroll Domain
+  - id: "workday.payroll.get_compensation"
+    name: "Get Compensation Details"
+    domain: "workday.payroll"
+    type: "action"
+    sensitivity: "critical"
+    requires_mfa: true
+    tags: ["read-only", "payroll", "pii", "mfa-required"]
+  - id: "workday.payroll.get_pay_statement"
+    name: "Get Pay Statement"
+    domain: "workday.payroll"
+    type: "action"
+    sensitivity: "critical"
+    requires_mfa: true
+    tags: ["read-only", "payroll", "pii", "mfa-required"]
+  - id: "workday.payroll.list_pay_statements"
+    name: "List Pay Statements"
+    domain: "workday.payroll"
+    type: "action"
+    sensitivity: "high"
+    requires_mfa: true
+    tags: ["read-only", "payroll", "mfa-required"]
+  # Long-Running Flows
+  - id: "hr.onboarding"
+    name: "Employee Onboarding Flow"
+    domain: "hr"
+    type: "flow"
+    sensitivity: "high"
+    tags: ["workflow", "onboarding"]
+  - id: "hr.offboarding"
+    name: "Employee Offboarding Flow"
+    domain: "hr"
+    type: "flow"
+    sensitivity: "high"
+    tags: ["workflow", "offboarding"]
+  - id: "hr.role_change"
+    name: "Employee Role Change Flow"
+    domain: "hr"
+    type: "flow"
+    sensitivity: "high"
+    tags: ["workflow", "role-change"]
+  - id: "hr.compensation_review"
+    name: "Compensation Review Flow"
+    domain: "hr"
+    type: "flow"
+    sensitivity: "high"
+    tags: ["workflow", "compensation"]

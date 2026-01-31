@@ -60,6 +60,7 @@ Explore the project's documentation for deeper insights into architecture, onboa
 
 ### For Humans
 - **[Architectural Guide](docs/architecture.md)**: High-level system design and hexagonal boundaries.
+- **[Capability Registry](docs/CAPABILITY_REGISTRY.md)**: Governance and discovery of Actions and Flows.
 - **[Onboarding Guide](docs/onboarding.md)**: Environment setup and developer workflow.
 - **[API Layer Overview](src/api/docs/overview.md)**: Design philosophy and core components of the public surface.
 - **[API Getting Started](src/api/docs/getting_started.md)**: Quick guide to running, authenticating, and testing the API.
@@ -80,7 +81,8 @@ Distributed `README.ai.md` files provide high-density functional context for cod
 
 ## Adding a Capability
 
-1. Define the capability logic in `src/domain/services/action_service.py` (or a dedicated domain service).
-2. Add the implementation in `src/adapters/connectors/`.
-3. Update `config/policy.yaml` to grant access to your principal.
-4. Restart the server.
+1. **Update the Registry**: Add the new capability to `config/capabilities/index.yaml`.
+2. **Define Logic**: Add the logic in `src/domain/services/action_service.py` (or a dedicated domain service).
+3. **Implement Adapter**: Add the implementation in the appropriate adapter (e.g., `src/adapters/workday/`).
+4. **Update Policy**: Grant access in `config/policy-workday.yaml`.
+5. **Validate**: Run `./scripts/capability-registry validate` and `check-policy`.
