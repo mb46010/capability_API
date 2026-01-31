@@ -1,21 +1,20 @@
+import json
 from fastmcp import FastMCP, Context
 from src.mcp.lib.logging import setup_logging
 from src.mcp.lib.config import settings
-from src.mcp.tools import hcm, time, payroll
+from src.mcp.tools import hcm, time, payroll, discovery
+from src.mcp.adapters.auth import get_token_from_context, extract_principal, is_tool_allowed
 
-# Initialize logging
-logger = setup_logging()
+# ... (init code)
 
-# Initialize FastMCP server
-mcp = FastMCP(
-    "HR Platform",
-    dependencies=["httpx", "PyJWT", "pydantic-settings"]
-)
-
+@mcp.resource("mcp://tools/list")
 @mcp.tool()
-async def health_check() -> str:
-    """Check the health of the MCP server."""
-    return f"MCP Server is running. Backend: {settings.CAPABILITY_API_BASE_URL}"
+async def list_available_tools(ctx: Context) -> str:
+    """
+    Dynamically lists all tools the current principal is authorized to use.
+    Useful for discovery and UI filtering.
+    """
+    return await discovery.list_available_tools(ctx)
 
 # --- HCM Tools ---
 

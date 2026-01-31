@@ -1,27 +1,39 @@
 import pytest
 import jwt
+import json
 from unittest.mock import AsyncMock, patch, MagicMock
+from src.mcp.tools.discovery import list_available_tools
 
 @pytest.mark.asyncio
-async def test_smoke_all_personas():
-    """Smoke test for all personas (AI Agent, Employee, Admin)."""
-    personas = [
-        {"sub": "agent-1", "type": "AI_AGENT", "tools": ["get_employee"], "forbidden": ["get_compensation"]},
-        {"sub": "emp-1", "type": "HUMAN", "tools": ["get_pto_balance"], "forbidden": ["approve_time_off"]},
-        {"sub": "admin-1", "type": "ADMIN", "tools": ["get_compensation", "approve_time_off"], "forbidden": []}
-    ]
+async def test_available_tools_discovery():
+    """Verify that different personas discover only their authorized tools."""
     
-    for p in personas:
-        token = jwt.encode({"sub": p["sub"], "principal_type": p["type"], "amr": ["mfa"]}, "secret", algorithm="HS256")
-        mock_ctx = MagicMock()
-        mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
-        
-        # Test allowed tools
-        for tool in p["tools"]:
-            # Logic to call tool by name...
-            pass
-            
-        print(f"Smoke test passed for persona: {p['type']}")
+    # 1. AI Agent
+    agent_token = jwt.encode({"sub": "agent-1", "principal_type": "AI_AGENT"}, "secret", algorithm="HS256")
+    mock_ctx = MagicMock()
+    mock_ctx.session = {"metadata": {"Authorization": f"Bearer {agent_token}"}}
+    
+    result = await list_available_tools(mock_ctx)
+    data = json.loads(result)
+    assert "get_employee" in data["available_tools"]
+    assert "get_compensation" not in data["available_tools"]
+    assert data["role"] == "AI_AGENT"
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+    # 2. Employee (Human + groups)
+    emp_token = jwt.encode({"sub": "emp-1", "principal_type": "HUMAN", "groups": ["employees"]}, "secret", algorithm="HS256")
+    mock_ctx.session = {"metadata": {"Authorization": f"Bearer {emp_token}"}}
+    
+    result = await list_available_tools(mock_ctx)
+    data = json.loads(result)
+    assert "request_time_off" in data["available_tools"]
+    assert "approve_time_off" not in data["available_tools"]
+
+    # 3. Admin
+    admin_token = jwt.encode({"sub": "admin-1", "principal_type": "HUMAN", "groups": ["hr-platform-admins"]}, "secret", algorithm="HS256")
+    mock_ctx.session = {"metadata": {"Authorization": f"Bearer {admin_token}"}}
+    
+    result = await list_available_tools(mock_ctx)
+    data = json.loads(result)
+    assert "get_compensation" in data["available_tools"]
+    assert "approve_time_off" in data["available_tools"]
+    assert len(data["available_tools"]) > 10 # Admins see almost everything

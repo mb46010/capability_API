@@ -37,8 +37,9 @@ Build an HR AI Platform whose core product is a governed Capability API: a singl
 3. **Observed Failure**: Retries are automated, alerting is centralized. A silent failure is a constitutional violation.
 
 ### Article IV: Development Standards
-1. **Test-First (TDD Mindset)**: Write tests for "happy path" and "nasty edge cases" before finalizing logic. If it isn't tested, it doesn't work.
+1. **Test-First (TDD Mindset)**: The first task will be to write tests for "happy path" and "nasty edge cases" before finalizing logic. If it isn't tested, it doesn't work.
 2. **Maintainability over Cleverness**: Write code for the "Next Person." Prefer clear, boring code over "clever" one-liners.
+3. **Revise and extend tests and docs before delivery** when you think you are done, take one more look at test and documents. Can you make them more extensive and complete? Then do so!
 
 ### Article V: Configuration & Environment
 1. **Code is Constant, Config is Variable**: No hardcoded URLs, API keys, or folder paths.

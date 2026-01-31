@@ -6,33 +6,38 @@ from fastapi import HTTPException
 from src.lib.context import get_request_id
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.ports.connector import ConnectorPort
-from src.domain.entities.action import ActionResponse, Provenance, ProvenanceWrapper, SecurityContext
+from src.domain.entities.action import (
+    ActionResponse,
+    Provenance,
+    ProvenanceWrapper,
+    SecurityContext,
+)
 from src.adapters.workday.exceptions import WorkdayError
 
 
 class ActionService:
     # We support both 'workday' (global) and specific subdomains (legacy/contract tests)
     KNOWN_CAPABILITIES = {
-        "workday": [
-            "get_employee",
-            "get_employee_full",
-            "get_manager_chain",
-            "list_direct_reports",
-            "update_contact_info",
-            "update_employee",
-            "terminate_employee",
-            "delete_employee",
-            "get_org_chart",
-            "get_balance",
-            "request",
-            "cancel",
-            "approve",
-            "list_requests",
-            "get_request",
-            "get_compensation",
-            "get_pay_statement",
-            "list_pay_statements",
-        ],
+        # "workday": [
+        #     "get_employee",
+        #     "get_employee_full",
+        #     "get_manager_chain",
+        #     "list_direct_reports",
+        #     "update_contact_info",
+        #     "update_employee",
+        #     "terminate_employee",
+        #     "delete_employee",
+        #     "get_org_chart",
+        #     "get_balance",
+        #     "request",
+        #     "cancel",
+        #     "approve",
+        #     "list_requests",
+        #     "get_request",
+        #     "get_compensation",
+        #     "get_pay_statement",
+        #     "list_pay_statements",
+        # ],
         "workday.hcm": [
             "get_employee",
             "get_employee_full",
@@ -85,6 +90,7 @@ class ActionService:
         token_issued_at: Optional[int] = None,
         token_expires_at: Optional[int] = None,
         request_ip: Optional[str] = None,
+        idempotency_key: Optional[str] = None,
     ) -> ActionResponse:
         self._validate_capability(domain, action)
 
@@ -128,6 +134,7 @@ class ActionService:
                 "principal_id": principal_id,
                 "principal_type": principal_type,
                 "mfa_verified": mfa_verified,
+                "idempotency_key": idempotency_key,
             }
 
             # For MVP, we route everything to the single injected connector

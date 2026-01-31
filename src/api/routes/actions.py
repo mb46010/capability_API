@@ -1,5 +1,6 @@
 import os
-from fastapi import APIRouter, Depends, Request
+from typing import Optional
+from fastapi import APIRouter, Depends, Request, Header
 from src.domain.services.action_service import ActionService
 from src.domain.entities.action import ActionRequest, ActionResponse
 from src.domain.services.policy_engine import PolicyEngine
@@ -25,6 +26,8 @@ def get_action_service(
 ) -> ActionService:
     return ActionService(policy_engine, connector)
 
+from fastapi import APIRouter, Depends, Request, Header
+# ... (imports)
 @router.post(
     "/{domain}/{action}",
     response_model=ActionResponse,
@@ -40,7 +43,8 @@ async def execute_action(
     request: ActionRequest,
     req: Request,
     service: ActionService = Depends(get_action_service),
-    principal: VerifiedPrincipal = Depends(get_current_principal)
+    principal: VerifiedPrincipal = Depends(get_current_principal),
+    x_idempotency_key: Optional[str] = Header(None)
 ):
     environment = os.getenv("ENVIRONMENT", "local")
     request_ip = req.client.host if req.client else None
@@ -56,5 +60,6 @@ async def execute_action(
         mfa_verified=principal.mfa_verified,
         token_issued_at=principal.issued_at,
         token_expires_at=principal.expires_at,
-        request_ip=request_ip
+        request_ip=request_ip,
+        idempotency_key=x_idempotency_key
     )

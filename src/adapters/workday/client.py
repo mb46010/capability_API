@@ -36,6 +36,9 @@ class WorkdaySimulator(ConnectorPort):
         self.time_service = WorkdayTimeService(self)
         self.payroll_service = WorkdayPayrollService(self)
 
+        # Idempotency cache (mapping idempotency_key to previous result)
+        self._idempotency_cache: Dict[str, Dict[str, Any]] = {}
+
         # Validate on startup so you catch fixture problems early
         self._validate_fixtures()
 
@@ -66,6 +69,16 @@ class WorkdaySimulator(ConnectorPort):
         Generic entry point for all Workday operations.
         """
         logger.debug(f"Executing {action} with params: {parameters}")
+
+        # Idempotency Check
+        idempotency_key = parameters.get("idempotency_key")
+        is_write = any(kw in action for kw in ["update", "terminate", "request", "approve", "cancel"])
+        
+        if idempotency_key and is_write:
+            if idempotency_key in self._idempotency_cache:
+                logger.info(f"Idempotent hit for key {idempotency_key}. Returning cached result.")
+                return self._idempotency_cache[idempotency_key]
+
         # 1. Failure Injection
         self._inject_failure()
         
@@ -79,7 +92,6 @@ class WorkdaySimulator(ConnectorPort):
         handler = (
             getattr(self.hcm_service, method_name, None) or
             getattr(self.time_service, method_name, None) or
-            getattr(self.payroll_service, method_name, None) or
             getattr(self, f"_{method_name}", None)
         )
             
@@ -106,6 +118,10 @@ class WorkdaySimulator(ConnectorPort):
                 payload=parameters, # We log the inputs
                 actor=parameters.get("principal_id", "unknown") # Assuming passed in params or context
             )
+
+            # Cache result if idempotency key provided
+            if idempotency_key and is_write:
+                self._idempotency_cache[idempotency_key] = result
             
             return result
         except Exception as e:
