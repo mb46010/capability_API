@@ -21,6 +21,7 @@ class FixtureLoader:
         self._load_hcm()
         self._load_time()
         self._load_payroll()
+        self._validate_fixtures()
 
     def _load_hcm(self):
         file = self.path / "employees.yaml"
@@ -29,6 +30,7 @@ class FixtureLoader:
         data = yaml.safe_load(file.read_text())
         
         raw_employees = data.get("employees", {})
+        self._raw_employees = raw_employees # Store for validation
         
         # Pass 1: Create EmployeeFull objects without manager
         for eid, edata in raw_employees.items():
@@ -39,17 +41,50 @@ class FixtureLoader:
         # Pass 2: Rebuild with managers
         for eid, edata in raw_employees.items():
             mid = edata.get("manager_id")
-            if mid and mid in self.employees:
-                m = self.employees[mid]
-                edata_copy = edata.copy()
-                edata_copy["manager"] = ManagerRef(
-                    employee_id=m.employee_id,
-                    display_name=m.name.display
-                )
-                self.employees[eid] = EmployeeFull(**edata_copy)
+            if mid:
+                if mid in self.employees:
+                    m = self.employees[mid]
+                    edata_copy = edata.copy()
+                    edata_copy["manager"] = ManagerRef(
+                        employee_id=m.employee_id,
+                        display_name=m.name.display
+                    )
+                    self.employees[eid] = EmployeeFull(**edata_copy)
+                # Validation will catch dangling mid later
             
         for did, ddata in data.get("departments", {}).items():
             self.departments[did] = Department(**ddata)
+
+    def _validate_fixtures(self):
+        """
+        Check for data integrity issues in loaded fixtures.
+        - Dangling manager references
+        - Circular manager references
+        """
+        if not self.employees:
+            return
+
+        # 1. Check for dangling manager references
+        for eid, edata in getattr(self, "_raw_employees", {}).items():
+            mid = edata.get("manager_id")
+            if mid and mid not in self.employees:
+                raise ValueError(f"Employee {eid} references non-existent manager {mid}")
+
+        # 2. Check for circular manager references
+        for eid in self.employees:
+            visited = set()
+            curr = eid
+            while curr in self.employees:
+                if curr in visited:
+                    path = " -> ".join(list(visited) + [curr])
+                    raise ValueError(f"Circular manager reference detected: {path}")
+                visited.add(curr)
+                
+                # Get raw manager_id to trace the chain
+                raw_data = self._raw_employees.get(curr, {})
+                curr = raw_data.get("manager_id")
+                if not curr:
+                    break
 
     def _load_time(self):
         file = self.path / "time_tracking.yaml"

@@ -141,9 +141,15 @@ class PolicyEngine:
     def _check_wildcard_match(self, pattern: str, target: str) -> bool:
         if pattern == "*": return True
         if pattern == target: return True
-        if pattern.endswith(".*"):
-            prefix = pattern[:-2]
-            return target.startswith(prefix + ".")
+        
+        if pattern.endswith("*"):
+            prefix = pattern[:-1]
+            if prefix.endswith("."):
+                prefix = prefix[:-1]
+            
+            if target.startswith(prefix):
+                # Ensure boundary: target matches prefix exactly or has a dot at the boundary
+                return len(target) == len(prefix) or target[len(prefix)] == "."
         return False
 
     def _evaluate_conditions(

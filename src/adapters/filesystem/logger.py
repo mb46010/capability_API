@@ -19,56 +19,45 @@ class JSONLLogger:
         # PII Patterns to redact
         self.pii_patterns = {
             "email": r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+',
-            "phone": r'\+?1?\d{9,15}',
-            "ssn": r'\d{3}-\d{2}-\d{4}',
+            # Phone: Matches international +1-555... or local 555-555-5555 or (555) 555-5555
+            "phone": r'(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
+            # SSN: Matches 000-00-0000 or 000000000
+            "ssn": r'\b\d{3}[-]?\d{2}[-]?\d{4}\b',
             "salary": r'"amount"\s*:\s*\d+(\.\d+)?' 
         }
 
-    def _redact(self, data: Any) -> Any:
+    def _redact(self, data: Any, key_name: Optional[str] = None) -> Any:
         """
-        Recursively redact PII from dictionaries and strings.
+        Recursively redact PII from dictionaries, lists, and strings.
+        Combines field-name heuristics with pattern matching.
         """
+        # 1. Field Name Heuristic (Redact value completely if key matches)
+        sensitive_fields = ["personal_email", "phone", "mobile", "ssn", "base_salary", "bonus_target", "total_compensation", "password", "secret", "token"]
+        if key_name and key_name.lower() in sensitive_fields:
+            return "[REDACTED]"
+
+        # 2. Recursion
         if isinstance(data, dict):
-            return {k: self._redact(v) for k, v in data.items()}
+            return {k: self._redact(v, key_name=k) for k, v in data.items()}
         elif isinstance(data, list):
             return [self._redact(item) for item in data]
+        
+        # 3. Pattern Matching (Fallback for strings in non-sensitive fields)
         elif isinstance(data, str):
             redacted = data
-            # Simple heuristic redaction
-            # In a real system, we'd use named entity recognition or strict field whitelisting
-            # Here we apply regex replacements for common patterns
-            
-            # Redact email (keep domain?) -> "REDACTED_EMAIL"
-            redacted = re.sub(self.pii_patterns["email"], "[REDACTED_EMAIL]", redacted)
-            
-            # Redact phone
-            redacted = re.sub(self.pii_patterns["phone"], "[REDACTED_PHONE]", redacted)
-            
+            for name, pattern in self.pii_patterns.items():
+                replacement = f"[REDACTED_{name.upper()}]"
+                redacted = re.sub(pattern, replacement, redacted)
             return redacted
+            
         return data
-
-    def _redact_field_aware(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Redact specific sensitive fields by name.
-        """
-        sensitive_fields = ["personal_email", "phone", "base_salary", "bonus_target", "total_compensation"]
-        
-        cleaned = data.copy()
-        for key, value in data.items():
-            if key in sensitive_fields:
-                cleaned[key] = "[REDACTED]"
-            elif isinstance(value, dict):
-                cleaned[key] = self._redact_field_aware(value)
-            elif isinstance(value, list):
-                cleaned[key] = [self._redact_field_aware(i) if isinstance(i, dict) else i for i in value]
-        return cleaned
 
     def log_event(self, event_type: str, payload: Dict[str, Any], actor: str = "system"):
         """
-        Log an event to the JSONL file with PII redaction.
+        Log an event to the JSONL file with robust PII redaction.
         """
         # 1. Redact Payload
-        safe_payload = self._redact_field_aware(payload)
+        safe_payload = self._redact(payload)
         
         entry = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

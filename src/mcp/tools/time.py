@@ -2,29 +2,18 @@ import logging
 import uuid
 from typing import Dict, Any, Optional
 from src.mcp.adapters.backend import backend_client
-from src.mcp.adapters.auth import extract_principal
+from src.mcp.adapters.auth import authenticate_and_authorize
 from src.mcp.lib.errors import map_backend_error
 from src.mcp.lib.logging import audit_logger
 
 logger = logging.getLogger(__name__)
 
-async def get_token_from_context(ctx: Any) -> Optional[str]:
-    try:
-        metadata = getattr(ctx, "session", {}).get("metadata", {})
-        token = metadata.get("authorization") or metadata.get("Authorization")
-        if token and token.startswith("Bearer "):
-            return token[7:]
-        return token
-    except:
-        return None
-
 async def get_pto_balance(ctx: Any, employee_id: str) -> str:
     """Check vacation and sick leave balances."""
-    token = await get_token_from_context(ctx)
-    if not token: return "ERROR: Missing Authorization token."
+    token, principal, error = await authenticate_and_authorize(ctx, "get_pto_balance")
+    if error: return f"ERROR: {error}"
     
-    principal = extract_principal(token)
-    principal_id = principal.subject if principal else "unknown"
+    principal_id = principal.subject
 
     try:
         response = await backend_client.call_action(
@@ -40,11 +29,10 @@ async def get_pto_balance(ctx: Any, employee_id: str) -> str:
 
 async def request_time_off(ctx: Any, employee_id: str, type: str, start_date: str, end_date: str, hours: float, transaction_id: Optional[str] = None) -> str:
     """Submit a new time off request. Auto-generates transaction ID if not provided."""
-    token = await get_token_from_context(ctx)
-    if not token: return "ERROR: Missing Authorization token."
+    token, principal, error = await authenticate_and_authorize(ctx, "request_time_off")
+    if error: return f"ERROR: {error}"
     
-    principal = extract_principal(token)
-    principal_id = principal.subject if principal else "unknown"
+    principal_id = principal.subject
     
     # Auto-generate Transaction ID for idempotency (Spec requirement)
     if not transaction_id:
@@ -73,11 +61,10 @@ async def request_time_off(ctx: Any, employee_id: str, type: str, start_date: st
 
 async def cancel_time_off(ctx: Any, request_id: str, reason: Optional[str] = None) -> str:
     """Cancel a pending or approved time off request."""
-    token = await get_token_from_context(ctx)
-    if not token: return "ERROR: Missing Authorization token."
+    token, principal, error = await authenticate_and_authorize(ctx, "cancel_time_off")
+    if error: return f"ERROR: {error}"
     
-    principal = extract_principal(token)
-    principal_id = principal.subject if principal else "unknown"
+    principal_id = principal.subject
 
     try:
         response = await backend_client.call_action(
@@ -93,11 +80,10 @@ async def cancel_time_off(ctx: Any, request_id: str, reason: Optional[str] = Non
 
 async def approve_time_off(ctx: Any, request_id: str) -> str:
     """Approve a pending time off request (Manager-only)."""
-    token = await get_token_from_context(ctx)
-    if not token: return "ERROR: Missing Authorization token."
+    token, principal, error = await authenticate_and_authorize(ctx, "approve_time_off")
+    if error: return f"ERROR: {error}"
     
-    principal = extract_principal(token)
-    principal_id = principal.subject if principal else "unknown"
+    principal_id = principal.subject
 
     try:
         response = await backend_client.call_action(

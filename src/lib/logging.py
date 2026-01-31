@@ -1,6 +1,7 @@
 import logging
 import re
 from typing import Pattern, List, Tuple
+from src.lib.context import request_id_ctx
 
 class PIIMaskingFormatter(logging.Formatter):
     """
@@ -23,6 +24,11 @@ class PIIMaskingFormatter(logging.Formatter):
         
         for pattern, replacement in self.PATTERNS:
             masked_msg = pattern.sub(replacement, masked_msg)
+            
+        # Prepend Request ID if available
+        rid = request_id_ctx.get()
+        if rid:
+            return f"[{rid}] {masked_msg}"
             
         return masked_msg
 

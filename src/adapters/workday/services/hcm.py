@@ -100,16 +100,23 @@ class WorkdayHCMService:
             raise EmployeeNotFoundError(employee_id)
 
         chain = []
+        visited = {employee_id}
         current_emp = self.simulator.employees[employee_id]
         level = 1
         
         # Traverse up
         while current_emp.manager:
             mgr_id = current_emp.manager.employee_id
+            
+            if mgr_id in visited:
+                path = " -> ".join(list(visited) + [mgr_id])
+                raise WorkdayError(f"Circular manager reference detected: {path}", "DATA_INTEGRITY_ERROR")
+            
             if mgr_id not in self.simulator.employees:
                 break # Broken chain or external manager
             
             manager = self.simulator.employees[mgr_id]
+            visited.add(mgr_id)
             
             # Extract name/title handling both dict and object
             display_name = manager.name.display if hasattr(manager.name, "display") else manager.name.get("display")
@@ -124,9 +131,6 @@ class WorkdayHCMService:
             
             current_emp = manager
             level += 1
-            
-            # Safety brake for loops
-            if level > 20: break
 
         return {
             "employee_id": employee_id,

@@ -146,8 +146,8 @@ class MockOktaProvider:
         self._users: dict[str, MockUser] = {}
         self._setup_default_users()
 
-        # Token revocation list (for testing revocation scenarios)
-        self._revoked_tokens: set[str] = set()
+        # Token revocation list (mapping JTI to expiration timestamp)
+        self._revoked_tokens: dict[str, int] = {}
 
         # Issued tokens tracking (for introspection)
         self._issued_tokens: dict[str, dict[str, Any]] = {}
@@ -301,11 +301,12 @@ class MockOktaProvider:
         Revoke a token. Returns True if token was valid and is now revoked.
         """
         try:
-            # Decode without verification to get JTI
+            # Decode without verification to get JTI and expiration
             unverified = jwt.decode(token, options={"verify_signature": False})
             jti = unverified.get("jti")
-            if jti:
-                self._revoked_tokens.add(jti)
+            exp = unverified.get("exp")
+            if jti and exp:
+                self._revoked_tokens[jti] = exp
                 return True
         except jwt.DecodeError:
             pass
@@ -313,12 +314,22 @@ class MockOktaProvider:
 
     def is_token_revoked(self, token: str) -> bool:
         """Check if a token has been revoked."""
+        self._cleanup_revoked_tokens()
         try:
             unverified = jwt.decode(token, options={"verify_signature": False})
             jti = unverified.get("jti")
             return jti in self._revoked_tokens if jti else False
         except jwt.DecodeError:
             return False
+
+    def _cleanup_revoked_tokens(self) -> None:
+        """Remove expired tokens from the revocation list to prevent memory leak."""
+        now = int(time.time())
+        # We only cleanup every few calls to avoid overhead, or just do it every time if list is small
+        # For simplicity in mock, we'll just do it.
+        expired = [jti for jti, exp in self._revoked_tokens.items() if exp < now]
+        for jti in expired:
+            del self._revoked_tokens[jti]
 
     def verify_token(self, token: str, verify_exp: bool = True) -> dict[str, Any]:
         """
@@ -355,6 +366,7 @@ class MockOktaProvider:
         )
 
         # Check revocation
+        self._cleanup_revoked_tokens()
         if claims.get("jti") in self._revoked_tokens:
             raise jwt.InvalidTokenError("Token has been revoked")
 

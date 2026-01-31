@@ -6,7 +6,11 @@ from src.mcp.adapters.auth import PrincipalContext
 @pytest.mark.asyncio
 async def test_employee_request_time_off_success():
     """Verify an employee can request time off and see balance."""
-    token_payload = {"sub": "EMP001", "principal_type": "HUMAN"}
+    token_payload = {
+        "sub": "EMP001", 
+        "principal_type": "HUMAN",
+        "groups": ["employees"]
+    }
     token = jwt.encode(token_payload, "secret", algorithm="HS256")
     
     mock_ctx = MagicMock()
@@ -31,7 +35,11 @@ async def test_employee_request_time_off_success():
 
 @pytest.mark.asyncio
 async def test_employee_get_balance():
-    token_payload = {"sub": "EMP001", "principal_type": "HUMAN"}
+    token_payload = {
+        "sub": "EMP001", 
+        "principal_type": "HUMAN",
+        "groups": ["employees"]
+    }
     token = jwt.encode(token_payload, "secret", algorithm="HS256")
     
     mock_ctx = MagicMock()

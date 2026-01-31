@@ -3,6 +3,7 @@ import time
 from typing import Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
+from src.lib.context import get_request_id
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.ports.connector import ConnectorPort
 from src.domain.entities.action import ActionResponse, Provenance, ProvenanceWrapper, SecurityContext
@@ -158,7 +159,7 @@ class ActionService:
         provenance = Provenance(
             source=f"{domain}-connector",  # Simplified source naming
             timestamp=datetime.now(timezone.utc),
-            trace_id=str(uuid.uuid4()),
+            trace_id=get_request_id(),
             latency_ms=round(latency_ms, 2),
             actor=principal_id,
         )

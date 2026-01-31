@@ -10,6 +10,7 @@ from src.domain.ports.flow_runner import FlowRunnerPort
 from src.adapters.filesystem.local_flow_runner import LocalFlowRunnerAdapter
 from src.adapters.workday.client import WorkdaySimulator
 from src.adapters.workday.config import WorkdaySimulationConfig
+from src.lib.config_validator import settings
 
 # Auth Dependencies
 provider = MockOktaProvider()
@@ -18,9 +19,8 @@ get_current_principal = create_auth_dependency(verifier)
 
 # Policy Engine Dependency
 # Updated to point to workday-specific policy for US2 verification
-POLICY_PATH = os.getenv("POLICY_PATH", "config/policy-workday.yaml")
-if not Path(POLICY_PATH).exists():
-    raise FileNotFoundError(f"Policy file not found: {POLICY_PATH}")
+# POLICY_PATH is now validated by settings
+POLICY_PATH = settings.POLICY_PATH
 
 @lru_cache
 def get_policy_engine() -> PolicyEngine:

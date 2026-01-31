@@ -4,9 +4,14 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 @pytest.mark.asyncio
 async def test_payroll_mfa_enforcement():
-    """Verify Payroll tools enforce MFA at MCP layer."""
-    # 1. No MFA token
-    token_payload = {"sub": "EMP001", "principal_type": "HUMAN", "amr": ["pwd"]}
+    """Verify Payroll tools enforce MFA at MCP layer for ADMINs."""
+    # 1. No MFA token (but is an ADMIN)
+    token_payload = {
+        "sub": "ADM001", 
+        "principal_type": "HUMAN", 
+        "groups": ["hr-platform-admins"],
+        "amr": ["pwd"]
+    }
     token = jwt.encode(token_payload, "secret", algorithm="HS256")
     
     mock_ctx = MagicMock()
@@ -16,7 +21,7 @@ async def test_payroll_mfa_enforcement():
     result = await get_compensation(mock_ctx, "EMP001")
     assert "MFA_REQUIRED" in result
 
-    # 2. MFA token
+    # 2. MFA token + ADMIN
     token_payload["amr"] = ["mfa", "pwd"]
     token = jwt.encode(token_payload, "secret", algorithm="HS256")
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}

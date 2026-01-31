@@ -1,7 +1,7 @@
 import pytest
 import jwt
 from unittest.mock import AsyncMock, patch, MagicMock
-from src.mcp.server import mcp
+# from src.mcp.server import mcp
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio

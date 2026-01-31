@@ -1,4 +1,5 @@
 import pytest
+import jwt
 from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.tools.time import request_time_off
 
@@ -6,10 +7,18 @@ from src.mcp.tools.time import request_time_off
 @patch("src.mcp.tools.time.backend_client.call_action")
 async def test_request_time_off_auto_id(mock_call):
     """Verify tool auto-generates a transaction ID if missing."""
+    # 1. Create a valid mock token for an EMPLOYEE
+    token_payload = {
+        "sub": "EMP001",
+        "principal_type": "HUMAN",
+        "groups": ["employees"]
+    }
+    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+
     mock_call.return_value = {"data": {"request_id": "TOR-123"}}
     
     mock_ctx = MagicMock()
-    mock_ctx.session = {"metadata": {"Authorization": "Bearer fake"}}
+    mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
     
     await request_time_off(
         mock_ctx, 
@@ -22,6 +31,7 @@ async def test_request_time_off_auto_id(mock_call):
     
     # Check that call_action was called with an auto-generated transaction_id in params
     args, kwargs = mock_call.call_args
+    # backend_client.call_action(domain, action, parameters, token)
     params = args[2] if len(args) > 2 else kwargs.get("parameters", {})
     assert "transaction_id" in params
     assert params["transaction_id"].startswith("TXN-")

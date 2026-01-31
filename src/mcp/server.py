@@ -1,35 +1,70 @@
-from src.mcp.adapters.auth import extract_principal, PrincipalContext
+from fastmcp import FastMCP, Context
+from src.mcp.lib.logging import setup_logging
+from src.mcp.lib.config import settings
+from src.mcp.tools import hcm, time, payroll
 
-# ...
+# Initialize logging
+logger = setup_logging()
 
-async def is_tool_allowed(ctx: Context, tool_name: str) -> bool:
-    """
-    Check if a tool is allowed for the current principal.
-    Used for both dynamic discovery and execution enforcement.
-    """
-    token = await hcm.get_token_from_context(ctx)
-    if not token: return False
-    
-    principal = extract_principal(token)
-    if not principal: return False
-    
-    role = principal.principal_type
-    
-    # RBAC Mapping (FR-004)
-    allowed_tools = {
-        "AI_AGENT": ["get_employee", "get_manager_chain", "get_org_chart", "update_contact_info", "get_pto_balance"],
-        "EMPLOYEE": ["get_employee", "get_manager_chain", "get_org_chart", "update_contact_info", "get_pto_balance", "request_time_off", "cancel_time_off", "list_pay_statements"],
-        "ADMIN": ["get_employee", "get_manager_chain", "get_org_chart", "update_contact_info", "get_pto_balance", "request_time_off", "cancel_time_off", "list_pay_statements", "approve_time_off", "list_direct_reports", "get_compensation", "get_pay_statement"]
-    }
-    
-    return tool_name in allowed_tools.get(role, [])
+# Initialize FastMCP server
+mcp = FastMCP(
+    "HR Platform",
+    dependencies=["httpx", "PyJWT", "pydantic-settings"]
+)
 
-# Note: In a real implementation with FastMCP 3.0, we would use the 
-# server's discovery hooks to filter the tool list returned to the client.
+@mcp.tool()
+async def health_check() -> str:
+    """Check the health of the MCP server."""
+    return f"MCP Server is running. Backend: {settings.CAPABILITY_API_BASE_URL}"
+
+# --- HCM Tools ---
+
+@mcp.tool()
+async def get_employee(ctx: Context, employee_id: str) -> str:
+    """Look up employee profile with role-based filtering (Passthrough to Capability API)."""
+    return await hcm.get_employee(ctx, employee_id)
+
+@mcp.tool()
+async def get_manager_chain(ctx: Context, employee_id: str) -> str:
+    """Get the reporting line for an employee."""
+    return await hcm.get_manager_chain(ctx, employee_id)
+
+@mcp.tool()
+async def get_org_chart(ctx: Context, root_id: str, depth: int = 2) -> str:
+    """View the organizational structure starting from a root employee."""
+    return await hcm.get_org_chart(ctx, root_id, depth)
+
+@mcp.tool()
+async def list_direct_reports(ctx: Context, manager_id: str) -> str:
+    """View all direct reports for a given manager."""
+    return await hcm.list_direct_reports(ctx, manager_id)
+
+@mcp.tool()
+async def update_contact_info(ctx: Context, employee_id: str, updates: dict) -> str:
+    """Update employee contact information (Personal Email, Phone). Enabled for AGENTS (No MFA)."""
+    return await hcm.update_contact_info(ctx, employee_id, updates)
 
 # --- Time Tools ---
 
-# ... (Time tool registrations)
+@mcp.tool()
+async def get_pto_balance(ctx: Context, employee_id: str) -> str:
+    """Check vacation and sick leave balances."""
+    return await time.get_pto_balance(ctx, employee_id)
+
+@mcp.tool()
+async def request_time_off(ctx: Context, employee_id: str, type: str, start_date: str, end_date: str, hours: float, transaction_id: str = None) -> str:
+    """Submit a new time off request. Auto-generates transaction ID if not provided."""
+    return await time.request_time_off(ctx, employee_id, type, start_date, end_date, hours, transaction_id)
+
+@mcp.tool()
+async def cancel_time_off(ctx: Context, request_id: str, reason: str = None) -> str:
+    """Cancel a pending or approved time off request."""
+    return await time.cancel_time_off(ctx, request_id, reason)
+
+@mcp.tool()
+async def approve_time_off(ctx: Context, request_id: str) -> str:
+    """Approve a pending time off request (Manager-only)."""
+    return await time.approve_time_off(ctx, request_id)
 
 # --- Payroll Tools ---
 
