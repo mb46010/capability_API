@@ -1,13 +1,14 @@
 <!--
 Sync Impact Report:
-- Version change: 1.0.0 → 1.1.0
-- List of modified principles: Added Article VIII: Professional Logging & Privacy.
-- Added sections: Article VIII: Professional Logging & Privacy.
+- Version change: 1.1.0 → 1.2.0
+- List of modified principles: Article IV: Development Standards (Strengthened TDD & Docs requirements).
+- Added sections: None.
 - Removed sections: None.
 - Templates requiring updates:
-    - .specify/templates/plan-template.md: ✅ Updated to include PII masking check.
+    - .specify/templates/plan-template.md: ✅ Updated Constitution Check.
     - .specify/templates/spec-template.md: ✅ No update required.
-    - .specify/templates/tasks-template.md: ✅ Updated foundational task for logging to include PII masking.
+    - .specify/templates/tasks-template.md: ✅ Updated to mandate tests and docs.
+    - .gemini/commands/speckit.tasks.toml: ✅ Updated to mandate documentation tasks.
 - Follow-up TODOs: None.
 -->
 
@@ -37,9 +38,10 @@ Build an HR AI Platform whose core product is a governed Capability API: a singl
 3. **Observed Failure**: Retries are automated, alerting is centralized. A silent failure is a constitutional violation.
 
 ### Article IV: Development Standards
-1. **Test-First (TDD Mindset)**: The first task will be to write tests for "happy path" and "nasty edge cases" before finalizing logic. If it isn't tested, it doesn't work.
-2. **Maintainability over Cleverness**: Write code for the "Next Person." Prefer clear, boring code over "clever" one-liners.
-3. **Revise and extend tests and docs before delivery** when you think you are done, take one more look at test and documents. Can you make them more extensive and complete? Then do so!
+1. **Strict Test-First (TDD)**: The first task MUST be to write comprehensive tests for "happy path" and "nasty edge cases" BEFORE writing any logic. If it isn't tested, it doesn't exist.
+2. **Regression & Completeness**: Tests MUST be re-run and expanded AFTER implementation to ensure no regressions. "Enough tests" means covering all defined scenarios.
+3. **Documentation as Definition of Done**: No task is complete until its documentation (docstrings, READMEs, diagrams) is exhaustive and up-to-date.
+4. **Maintainability over Cleverness**: Write code for the "Next Person." Prefer clear, boring code over "clever" one-liners.
 
 ### Article V: Configuration & Environment
 1. **Code is Constant, Config is Variable**: No hardcoded URLs, API keys, or folder paths.
@@ -70,4 +72,4 @@ Build an HR AI Platform whose core product is a governed Capability API: a singl
 3. **Compliance**: All PRs must verify compliance with these articles.
 4. **Ratification**: The original adoption date is 2026-01-25.
 
-**Version**: 1.1.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-01-25
+**Version**: 1.2.0 | **Ratified**: 2026-01-25 | **Last Amended**: 2026-01-31

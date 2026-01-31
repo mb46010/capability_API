@@ -72,6 +72,7 @@ The tasks.md should be immediately executable - each task must be specific enoug
 **CRITICAL**: Tasks MUST be organized by user story to enable independent implementation and testing.
 
 **Tests are MANDATORY**: As per Constitution Article IV (TDD Mindset), you MUST generate test tasks for every user story. Tests MUST be written and fail before implementation begins.
+**Documentation is MANDATORY**: You MUST include tasks to update documentation (README.ai.md, user docs) for each user story before it is considered complete.
 
 ### Checklist Format (REQUIRED)
 

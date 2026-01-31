@@ -36,6 +36,7 @@
 - [ ] **Python-Native**: Is all logic idiomatic Python?
 - [ ] **Observability**: Are provenance logging and audit trails planned?
 - [ ] **Privacy & PII**: Are logs sanitized and PII masked (Article VIII)?
+- [ ] **Development Standards**: Are strict TDD and exhaustive documentation planned (Article IV)?
 - [ ] **Local Parity**: Can this be fully tested against a local filesystem adapter?
 
 ## Project Structure
