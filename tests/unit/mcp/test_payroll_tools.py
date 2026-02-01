@@ -6,20 +6,18 @@ from src.mcp.tools.payroll import get_compensation
 @pytest.mark.asyncio
 @patch("src.mcp.tools.payroll.backend_client.call_action")
 @patch("src.mcp.tools.payroll.get_mcp_token")
-async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call):
+async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call, issue_token):
     """Verify tool returns error if token lacks MFA claim (even for ADMIN)."""
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
     # Principal WITH ADMIN group but WITHOUT MFA
-
-    token_payload = {
-        "sub": "EMP001", 
-        "principal_type": "HUMAN", 
-        "groups": ["hr-platform-admins"],
-        "amr": ["pwd"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(
+        subject="EMP001", 
+        principal_type="HUMAN", 
+        groups=["hr-platform-admins"],
+        additional_claims={"amr": ["pwd"]}
+    )
     
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
@@ -32,20 +30,18 @@ async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call):
 @pytest.mark.asyncio
 @patch("src.mcp.tools.payroll.backend_client.call_action")
 @patch("src.mcp.tools.payroll.get_mcp_token")
-async def test_get_compensation_mfa_present(mock_mcp_token, mock_call):
+async def test_get_compensation_mfa_present(mock_mcp_token, mock_call, issue_token):
     """Verify tool calls backend if token HAS MFA claim and ADMIN role."""
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
     # Principal WITH ADMIN group and WITH MFA
-
-    token_payload = {
-        "sub": "EMP001", 
-        "principal_type": "HUMAN", 
-        "groups": ["hr-platform-admins"],
-        "amr": ["mfa", "pwd"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(
+        subject="EMP001", 
+        principal_type="HUMAN", 
+        groups=["hr-platform-admins"],
+        additional_claims={"amr": ["mfa", "pwd"]}
+    )
     
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}

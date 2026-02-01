@@ -6,19 +6,13 @@ from src.mcp.tools.time import request_time_off
 @pytest.mark.asyncio
 @patch("src.mcp.tools.time.backend_client.call_action")
 @patch("src.mcp.tools.time.get_mcp_token")
-async def test_request_time_off_auto_id(mock_mcp_token, mock_call):
+async def test_request_time_off_auto_id(mock_mcp_token, mock_call, issue_token):
     """Verify tool auto-generates a transaction ID if missing."""
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
     # 1. Create a valid mock token for an EMPLOYEE
-
-    token_payload = {
-        "sub": "EMP001",
-        "principal_type": "HUMAN",
-        "groups": ["employees"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(subject="EMP001", principal_type="HUMAN", groups=["employees"])
 
     mock_call.return_value = {"data": {"request_id": "TOR-123"}}
     
