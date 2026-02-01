@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from src.domain.services.action_service import ActionService
 from src.domain.entities.action import ActionRequest, ActionResponse
 from src.domain.services.policy_engine import PolicyEngine
@@ -13,11 +13,20 @@ from src.lib.config_validator import settings
 router = APIRouter(prefix="/actions", tags=["actions"])
 
 @router.post("/test/reload-fixtures")
-async def reload_fixtures(connector: ConnectorPort = Depends(get_connector)):
-    """Reload fixture data without restarting server."""
+async def reload_fixtures(
+    connector: ConnectorPort = Depends(get_connector),
+    principal: VerifiedPrincipal = Depends(get_current_principal)
+):
+    """Reload fixture data without restarting server. Admin + local/dev only."""
+    if settings.ENVIRONMENT not in ["local", "dev"]:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    if not principal.has_group("hr-platform-admins"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
     if isinstance(connector, WorkdaySimulator):
         connector.reload()
-        return {"status": "reloaded", "type": "workday"}
+        return {"status": "reloaded", "type": "workday", "reloaded_by": principal.subject}
     return {"status": "ignored", "reason": "not using workday simulator"}
 
 def get_action_service(
