@@ -2,11 +2,13 @@ import yaml
 import logging
 from pathlib import Path
 from typing import List, Optional, Set, Dict
-from functools import lru_cache
 from difflib import get_close_matches
+
 from src.domain.entities.capability import CapabilityRegistry, CapabilityEntry, CapabilityType
+from src.lib.matching import capability_matches
 
 logger = logging.getLogger(__name__)
+
 
 class CapabilityRegistryService:
     """
@@ -74,22 +76,12 @@ class CapabilityRegistryService:
           "workday.hcm.*" -> all HCM capabilities
           "*" -> all capabilities
         """
-        if pattern == "*":
-            return set(self._capability_map.keys())
-            
-        if not pattern.endswith(".*"):
-            # Exact match or invalid pattern
-            return {pattern} if self.exists(pattern) else set()
-            
-        prefix = pattern[:-2] # Remove ".*"
-        
         matches = set()
         for cap_id in self._capability_map.keys():
-            if cap_id.startswith(prefix):
-                # Ensure boundary: workday.hcm matches workday.hcm.*, not workday.hcmx.*
-                if len(cap_id) == len(prefix) or cap_id[len(prefix)] == ".":
-                    matches.add(cap_id)
+            if capability_matches(pattern, cap_id):
+                matches.add(cap_id)
         return matches
+
 
     def validate_capability_list(self, capabilities: List[str]) -> List[str]:
         """
@@ -122,10 +114,23 @@ class CapabilityRegistryService:
         """Reload registry from disk."""
         self._load()
 
-@lru_cache(maxsize=1)
+_registry_instance: Optional[CapabilityRegistryService] = None
+
 def get_capability_registry(index_path: str = "config/capabilities/index.yaml") -> CapabilityRegistryService:
     """
     Get singleton registry instance.
-    Uses lru_cache to ensure only one instance is created.
+    Allows for explicit management of the instance.
     """
-    return CapabilityRegistryService(index_path)
+    global _registry_instance
+    if _registry_instance is None:
+        _registry_instance = CapabilityRegistryService(index_path)
+    return _registry_instance
+
+def reset_capability_registry() -> None:
+    """
+    Reset the singleton registry instance.
+    Primarily used for testing with different configurations.
+    """
+    global _registry_instance
+    _registry_instance = None
+

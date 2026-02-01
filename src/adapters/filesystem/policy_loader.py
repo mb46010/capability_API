@@ -1,3 +1,4 @@
+import logging
 import yaml
 from pathlib import Path
 from typing import List
@@ -5,7 +6,10 @@ from src.domain.ports.policy_loader import PolicyLoaderPort
 from src.domain.entities.policy import AccessPolicy
 from src.domain.services.capability_registry import get_capability_registry
 
+logger = logging.getLogger(__name__)
+
 class FilePolicyLoaderAdapter(PolicyLoaderPort):
+
     """
     Adapter for loading access policies from the local filesystem.
     Now includes validation against the Capability Registry.
@@ -24,11 +28,19 @@ class FilePolicyLoaderAdapter(PolicyLoaderPort):
         policy = AccessPolicy(**data)
         
         # 1. Validate internal references (principals, groups)
-        validation_errors = policy.validate_references()
-        if validation_errors:
-            raise ValueError(f"Policy reference validation failed:\n" + "\n".join(validation_errors))
+        validation_messages = policy.validate_references()
+        if validation_messages:
+            errors = [msg for msg in validation_messages if not msg.startswith("WARNING:")]
+            warnings = [msg for msg in validation_messages if msg.startswith("WARNING:")]
+            
+            for warning in warnings:
+                logger.warning(warning)
+                
+            if errors:
+                raise ValueError(f"Policy reference validation failed:\n" + "\n".join(errors))
             
         # 2. Validate capability references against the registry
+
         capability_errors = self._validate_capabilities(policy)
         if capability_errors:
             raise ValueError(

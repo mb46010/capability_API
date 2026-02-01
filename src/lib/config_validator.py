@@ -40,8 +40,12 @@ class AppSettings(BaseSettings):
         Note: We import here to avoid circular dependencies during initialization.
         """
         from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+        from src.domain.services.capability_registry import reset_capability_registry
         
         try:
+            # Ensure we aren't using a stale registry instance from a previous validation run
+            reset_capability_registry()
+            
             loader = FilePolicyLoaderAdapter(
                 policy_path=self.POLICY_PATH, 
                 registry_path=self.CAPABILITY_REGISTRY_PATH
@@ -49,6 +53,7 @@ class AppSettings(BaseSettings):
             # This will raise ValueError if validation fails
             loader.load_policy()
         except Exception as e:
+
             if isinstance(e, FileNotFoundError):
                 raise e
             raise ValueError(f"Policy validation against registry failed: {e}")

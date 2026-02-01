@@ -61,5 +61,7 @@ async def execute_action(
         token_issued_at=principal.issued_at,
         token_expires_at=principal.expires_at,
         request_ip=request_ip,
-        idempotency_key=x_idempotency_key
+        idempotency_key=x_idempotency_key,
+        token_claims=principal.raw_claims
     )
+

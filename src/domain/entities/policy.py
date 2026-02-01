@@ -76,5 +76,18 @@ class AccessPolicy(BaseModel):
             if isinstance(rule.capabilities, str):
                 if rule.capabilities not in self.capability_groups:
                     errors.append(f"Policy '{rule.name}' references undefined capability group '{rule.capabilities}'")
+
+            # Check for ambiguous inline principals (Guardrail)
+            if isinstance(rule.principal, PrincipalDefinition):
+                p = rule.principal
+                has_binding = p.okta_subject or p.okta_group
+                if has_binding and p.type:
+                    # Not an error, but flag it — this policy will ONLY match
+                    # on the specific binding, never as a generic type match
+                    errors.append(
+                        f"WARNING: Policy '{rule.name}' has inline principal with both "
+                        f"type '{p.type.value}' and a specific binding. "
+                        f"It will only match on the binding, not on type alone."
+                    )
         
         return errors

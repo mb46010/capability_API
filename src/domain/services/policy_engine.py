@@ -3,8 +3,10 @@ from datetime import datetime, time as dt_time
 import pytz
 from pydantic import BaseModel
 from src.domain.entities.policy import AccessPolicy, PolicyRule, PrincipalDefinition, Environment
+from src.lib.matching import capability_matches
 
 class PolicyEvaluationResult(BaseModel):
+
     allowed: bool
     policy_name: Optional[str] = None
     audit_level: str = "BASIC"
@@ -31,13 +33,19 @@ class PolicyEngine:
     ) -> PolicyEvaluationResult:
         """
         Evaluate if a principal is allowed to perform a capability in an environment.
-        Follows 'Most Specific Match Wins' logic implicitly by checking specific bindings first if multiple policies apply.
-        However, standard policy engines often iterate and find the FIRST Allow.
-        Our spec says: "policies matching the principal (by subject -> group -> type)".
-        We will iterate through policies and check matches.
+        
+        Evaluation follows "most specific match wins":
+          Pass 1: okta_subject match (exact principal binding)
+          Pass 2: okta_group match (group membership)
+          Pass 3: type match (HUMAN/MACHINE/AI_AGENT) — ONLY for policies
+                  with no subject or group binding
+        
+        A policy with okta_subject that doesn't match the requester
+        will NOT fall through to type matching. This is intentional.
         """
         
         # 1. Filter policies matching the Environment
+
         try:
             target_env = Environment(environment)
         except ValueError:
@@ -136,25 +144,12 @@ class PolicyEngine:
             allowed_caps = rule.capabilities
 
         for allowed in allowed_caps:
-            if self._check_wildcard_match(allowed, capability):
+            if capability_matches(allowed, capability):
                 return True
         return False
 
-    def _check_wildcard_match(self, pattern: str, target: str) -> bool:
-        if pattern == "*": return True
-        if pattern == target: return True
-        
-        if pattern.endswith("*"):
-            prefix = pattern[:-1]
-            if prefix.endswith("."):
-                prefix = prefix[:-1]
-            
-            if target.startswith(prefix):
-                # Ensure boundary: target matches prefix exactly or has a dot at the boundary
-                return len(target) == len(prefix) or target[len(prefix)] == "."
-        return False
-
     def _evaluate_conditions(
+
         self,
         rule: PolicyRule,
         mfa_verified: bool,
