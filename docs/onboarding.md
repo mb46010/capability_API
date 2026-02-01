@@ -38,10 +38,18 @@ python -m src.main
 ```
 The API will be available at `http://localhost:8000`. You can view the interactive documentation at `http://localhost:8000/docs`.
 
+## Environment Flags
+- `ENVIRONMENT`: `local` | `dev` | `prod` | `test`
+- `POLICY_PATH`: `config/policy-workday.yaml` (default)
+- `ENABLE_DEMO_RESET`: `true` | `false` (mounts demo reset endpoint; local only)
+
 ## Running Tests
 We use `pytest` for all tests.
 
 ```bash
+# Quick tests (unit only)
+pytest tests/unit/
+
 # Run all tests
 pytest
 

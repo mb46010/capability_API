@@ -29,7 +29,7 @@ The system follows a **Hexagonal Architecture** (Ports and Adapters) to isolate 
 2. **Run the API**
    Start the FastAPI server locally:
    ```bash
-   python src/main.py
+   python -m src.main
    ```
 
 3. **Verify**
@@ -45,6 +45,11 @@ We provide a suite of demo scripts to showcase AI guardrails, token exchange, an
 ```
 
 ### 🧪 Testing & Validation
+Quick tests (unit only):
+```bash
+pytest tests/unit/
+```
+
 Run the full test suite:
 ```bash
 pytest
@@ -54,6 +59,11 @@ Run the policy verification suite:
 ```bash
 ./scripts/verify-policy run
 ```
+
+### ⚙️ Environment Flags
+- `ENVIRONMENT`: `local` | `dev` | `prod` | `test`
+- `POLICY_PATH`: `config/policy-workday.yaml` (default)
+- `ENABLE_DEMO_RESET`: `true` | `false` (mounts demo reset endpoint; local only)
 
 ## 📚 Documentation Index
 

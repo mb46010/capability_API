@@ -1,4 +1,3 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from src.domain.services.flow_service import FlowService
 from src.domain.entities.flow import FlowStartRequest, FlowStatusResponse
@@ -7,6 +6,7 @@ from src.domain.ports.flow_runner import FlowRunnerPort
 from src.api.dependencies import get_current_principal, get_policy_engine, get_flow_runner_adapter
 from src.adapters.auth import VerifiedPrincipal
 from src.domain.entities.error import ErrorResponse
+from src.lib.config_validator import settings
 
 router = APIRouter(prefix="/flows", tags=["flows"])
 
@@ -34,7 +34,7 @@ async def start_flow(
     principal: VerifiedPrincipal = Depends(get_current_principal)
 ):
     try:
-        environment = os.getenv("ENVIRONMENT", "local")
+        environment = settings.ENVIRONMENT
         request_ip = req.client.host if req.client else None
         
         flow_id = await service.start_flow(

@@ -1,4 +1,3 @@
-import os
 from typing import Optional
 from fastapi import APIRouter, Depends, Request, Header
 from src.domain.services.action_service import ActionService
@@ -9,6 +8,7 @@ from src.api.dependencies import get_current_principal, get_policy_engine, get_c
 from src.adapters.auth import VerifiedPrincipal
 from src.domain.entities.error import ErrorResponse
 from src.adapters.workday.client import WorkdaySimulator
+from src.lib.config_validator import settings
 
 router = APIRouter(prefix="/actions", tags=["actions"])
 
@@ -47,7 +47,7 @@ async def execute_action(
     x_idempotency_key: Optional[str] = Header(None),
     x_acting_through: Optional[str] = Header(None, alias="X-Acting-Through")
 ):
-    environment = os.getenv("ENVIRONMENT", "local")
+    environment = settings.ENVIRONMENT
     request_ip = req.client.host if req.client else None
     
     return await service.execute_action(
@@ -66,4 +66,3 @@ async def execute_action(
         token_claims=principal.raw_claims,
         acting_through=x_acting_through
     )
-
