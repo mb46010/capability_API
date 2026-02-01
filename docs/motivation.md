@@ -23,7 +23,7 @@ We can't just "test" our AI on real employee salary data. Our **Simulator** is a
 We use industry-standard security (Okta) to verify exactly who is making a request. For AI agents, we use a specialized process called **Token Exchange**. This gives the AI a "temporary pass" that lasts only 5 minutes and is limited to very specific tasks, ensuring that even if an AI is compromised, the "blast radius" is tiny.
 
 ### 4. MCP Servers (The AI Bridge)
-AI models need a way to "see" and "use" HR tools. Our **MCP (Model Context Protocol) Servers** act as the bridge. They translate the complex language of HR systems into simple "tools" that an AI can understand, while simultaneously enforcing our strict security rules at the very edge where the AI operates.
+AI models need a way to "see" and "use" HR tools. Our **MCP (Model Context Protocol) Servers** act as the bridge. They translate the complex language of HR systems into simple "tools" that an AI can understand, while simultaneously enforcing our strict security rules—including full JWT signature verification—at the very edge where the AI operates.
 
 ### 5. Policy Verification (The Safety Net)
 Security rules are written in a master file (Policy YAML). However, humans can make mistakes when writing these rules. Our **Policy Verification Framework** mathematically proves our security rules work as intended before they go live. It prevents "silent security holes" by automatically testing 100+ scenarios every time a rule is changed.

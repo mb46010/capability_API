@@ -16,6 +16,9 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 - **Medium**: 4
 - **Low**: 4
 
+# Done
+
+
 ## Critical Issues (Immediate Action Required)
 
 | # | Issue | File | Impact |
@@ -29,6 +32,9 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 |---|-------|------|--------|
 | [003](003-mock-okta-test-endpoints-exposed.md) | Mock Okta Test Endpoints Exposed | `src/adapters/auth/mock_okta.py` | Anyone can create admin tokens or arbitrary users via /test/* endpoints |
 | [004](004-mcp-token-verification-disabled.md) | MCP Token Verification Disabled | `src/mcp/adapters/auth.py` | Token signature not verified, allowing forged tokens to pass RBAC checks |
+
+
+# To Do
 
 ## Medium Priority Issues
 

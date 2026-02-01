@@ -41,6 +41,7 @@ The API will be available at `http://localhost:8000`. You can view the interacti
 ## Environment Flags
 - `ENVIRONMENT`: `local` | `dev` | `prod` | `test`
 - `POLICY_PATH`: `config/policy-workday.yaml` (default)
+- `MOCK_OKTA_TEST_SECRET`: Secret key for mock Okta test endpoints (default: `mock-okta-secret`).
 - `ENABLE_DEMO_RESET`: `true` | `false` (mounts demo reset endpoint; local only)
 
 ## Running Tests

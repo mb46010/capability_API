@@ -4,10 +4,10 @@
 
 Our platform implements security at **three layers**:
 
-### Layer 1: Centralized Policy Engine
-- **What**: YAML-based policy file defines all access grants. See **[Policy Schema](policy_schema.md)** for details.
-- **Why**: Single source of truth for auditing and compliance
-- **Example**: AI agents cannot access `workday.payroll.*` capabilities
+### Layer 1: Centralized Policy Engine & MCP Gateway
+- **What**: YAML-based policy file defines all access grants. The MCP Gateway enforces these rules at the edge using verified JWT signatures.
+- **Why**: Single source of truth for auditing and compliance, preventing bypass via unverified tokens.
+- **Example**: AI agents cannot access `workday.payroll.*` capabilities even at the MCP level.
 
 ### Layer 2: Service-Level Validation
 - **What**: Each business service validates its specific constraints

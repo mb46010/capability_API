@@ -21,6 +21,16 @@ Common issues encountered when working with the Capability API.
 - **Impact**: The policy will ONLY match the specific binding. It will NOT act as a generic grant for all principals of that type.
 - **Solution**: Decide if the policy is meant for one specific entity (remove `type`) or all entities of a type (remove `okta_subject`/`okta_group`).
 
+### 4. Invalid or missing X-Test-Secret
+- **Symptom**: `403 Forbidden` when calling `/auth/test/tokens` or `/auth/test/users`.
+- **Cause**: The `X-Test-Secret` header is missing or does not match the `MOCK_OKTA_TEST_SECRET` configuration.
+- **Solution**: Add `-H "X-Test-Secret: mock-okta-secret"` to your curl command, or check your `.env` file for the correct secret.
+
+### 5. MCP Unauthorized: Invalid or malformed token
+- **Symptom**: MCP tools return `ERROR: UNAUTHORIZED: Invalid or malformed token`.
+- **Cause**: The MCP server now enforces full signature verification. Forged tokens (e.g., those signed with `HS256` and a static secret) are now rejected.
+- **Solution**: Ensure your client is sending a valid token issued by the `MockOktaProvider` (local) or real Okta (prod).
+
 ## Connector Issues
 
 
