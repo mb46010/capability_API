@@ -33,6 +33,16 @@ When evaluating access, policies are checked in this order (first match wins):
 
 All specified conditions must be satisfied (AND logic). If any condition fails, the policy does not apply and evaluation continues to the next matching policy.
 
+## Verification
+
+Before committing changes to `policy-workday.yaml`, you MUST run the verification suite to ensure no security regressions:
+
+```bash
+./scripts/verify-policy run
+```
+
+New capabilities or roles MUST include corresponding positive and negative test cases in `tests/policy/scenarios/`.
+
 ## Implementation Requirements
 
 For detailed JSON Schema and examples, refer to the source document in `src/adapters/auth/policy-schema.md`.

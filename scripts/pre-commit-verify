@@ -1,0 +1,12 @@
+#!/bin/bash
+# Only run if policy or scenarios changed
+if git diff --cached --name-only | grep -qE '^(config/policy|tests/policy/scenarios)'; then
+    echo "Running policy verification..."
+    ./scripts/verify-policy run --format table || {
+        echo ""
+        echo "❌ Policy verification failed - commit rejected"
+        echo "Run './scripts/verify-policy run' to see details"
+        exit 1
+    }
+    echo "✅ Policy verification passed"
+fi

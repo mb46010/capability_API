@@ -1,0 +1,112 @@
+version: "1.0"
+metadata:
+  name: "Baseline Security Scenarios"
+  owner: "security-team"
+  description: "Core access patterns for Admins, Employees, and AI Agents"
+  security_requirement: "SEC-001"
+  last_updated: "2026-02-01"
+
+defaults:
+  request:
+    environment: "prod"
+
+test_cases:
+  # Admins
+  - id: "ADM-001"
+    name: "Admin full access with MFA"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "admin@local.test"
+      groups: ["hr-platform-admins"]
+      mfa_verified: true
+    request:
+      capability: "workday.hcm.get_employee"
+    expected:
+      allowed: true
+      policy_matched: "admin-full-access"
+      audit_level: "VERBOSE"
+
+  - id: "ADM-002"
+    name: "Admin denied WITHOUT MFA"
+    category: "negative"
+    principal:
+      type: "HUMAN"
+      subject: "admin@local.test"
+      groups: ["hr-platform-admins"]
+      mfa_verified: false
+    request:
+      capability: "workday.hcm.get_employee"
+    expected:
+      allowed: false
+      reason_contains: "No matching policy"
+
+  # Employees
+  - id: "EMP-001"
+    name: "Employee can read directory"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "emp001@local.test"
+      groups: ["employees"]
+    request:
+      capability: "workday.hcm.get_employee"
+    expected:
+      allowed: true
+      policy_matched: "employee-self-service-read"
+
+  - id: "EMP-002"
+    name: "Employee can manage own time off"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "emp001@local.test"
+      groups: ["employees"]
+    request:
+      capability: "workday.time.request"
+    expected:
+      allowed: true
+      policy_matched: "employee-time-self-service"
+
+  - id: "EMP-003"
+    name: "Employee CANNOT update info WITHOUT MFA"
+    category: "negative"
+    principal:
+      type: "HUMAN"
+      subject: "emp001@local.test"
+      groups: ["employees"]
+      mfa_verified: false
+    request:
+      capability: "workday.hcm.update_contact_info"
+    expected:
+      allowed: false
+      reason_contains: "No matching policy"
+
+  # AI Agents
+  - id: "AI-001"
+    name: "AI Assistant can read directory"
+    category: "positive"
+    principal:
+      type: "AI_AGENT"
+      subject: "agent-assistant@local.test"
+      token_issued_at: 1000
+      token_expires_at: 1100
+    request:
+      capability: "workday.hcm.get_employee"
+    expected:
+      allowed: true
+      policy_matched: "ai-assistant-directory"
+
+  - id: "AI-002"
+    name: "AI Assistant denied if TTL too long"
+    category: "negative"
+    principal:
+      type: "AI_AGENT"
+      subject: "agent-assistant@local.test"
+      token_issued_at: 1000
+      token_expires_at: 2000 # 1000s > 300s
+    request:
+      capability: "workday.hcm.get_employee"
+    expected:
+      allowed: false
+      reason_contains: "No matching policy"

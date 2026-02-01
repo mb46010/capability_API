@@ -80,6 +80,7 @@ For detailed information on specific system components, refer to the following m
 - **[Auth Adapter](modules/auth_adapter.md)**: OIDC simulation and token verification.
 - **[Workday Simulator](modules/workday_adapter.md)**: Simulated HRIS implementation (HCM, Time, Payroll).
 - **[Filesystem Adapter](modules/filesystem_adapter.md)**: Policy loading and flow execution.
+- **[Policy Verification](modules/policy_verification.md)**: Declarative security testing and compliance reporting.
 
 ## Core Principles
 1. **The Sanctuary**: The `domain/` directory MUST NOT import from `adapters/` or `api/`.

@@ -1,0 +1,53 @@
+version: "1.0"
+metadata:
+  name: "Regression & Wildcard Scenarios"
+  owner: "security-team"
+  description: "Verify wildcard expansion and regression safety"
+  security_requirement: "SEC-002"
+  last_updated: "2026-02-01"
+
+defaults:
+  request:
+    environment: "prod"
+
+test_cases:
+  - id: "REG-001"
+    name: "Admin matches wildcard workday.*"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "admin@local.test"
+      groups: ["hr-platform-admins"]
+      mfa_verified: true
+    request:
+      capability: "workday.any.nested.capability"
+    expected:
+      allowed: true
+      policy_matched: "admin-full-access"
+
+  - id: "REG-002"
+    name: "Admin matches wildcard hr.*"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "admin@local.test"
+      groups: ["hr-platform-admins"]
+      mfa_verified: true
+    request:
+      capability: "hr.onboarding"
+    expected:
+      allowed: true
+      policy_matched: "admin-full-access"
+
+  - id: "REG-003"
+    name: "Staff matches group-based policy"
+    category: "positive"
+    principal:
+      type: "HUMAN"
+      subject: "staff001@local.test"
+      groups: ["hr-staff"]
+    request:
+      capability: "workday.time.get_balance"
+    expected:
+      allowed: true
+      policy_matched: "hr-staff-time-management"

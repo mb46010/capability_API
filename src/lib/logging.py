@@ -42,3 +42,16 @@ def setup_logging(level=logging.INFO):
     if logger.hasHandlers():
         logger.handlers.clear()
     logger.addHandler(handler)
+
+def log_provenance(action: str, resource: str, effect: str, reason: str = None, **metadata):
+    """
+    Structured provenance log entry for security events.
+    """
+    msg = f"PROVENANCE: {action} on {resource} -> {effect}"
+    if reason:
+        msg += f" (Reason: {reason})"
+    if metadata:
+        msg += f" | Metadata: {metadata}"
+    
+    logging.info(msg)
+

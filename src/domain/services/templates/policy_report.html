@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Policy Verification Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; border-bottom: 3px solid #4CAF50; padding-bottom: 10px; }
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin: 30px 0; }
+        .metric { background: #f9f9f9; padding: 20px; border-radius: 4px; text-align: center; border-left: 4px solid #4CAF50; }
+        .metric.failed { border-left-color: #f44336; }
+        .metric-value { font-size: 36px; font-weight: bold; color: #333; }
+        .metric-label { color: #666; margin-top: 5px; }
+        .pass-rate { font-size: 48px; font-weight: bold; color: {{ '#4CAF50' if report.success else '#f44336' }}; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th { background: #333; color: white; padding: 12px; text-align: left; }
+        td { padding: 10px; border-bottom: 1px solid #ddd; }
+        tr:hover { background: #f5f5f5; }
+        .badge { padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: bold; }
+        .badge-pass { background: #4CAF50; color: white; }
+        .badge-fail { background: #f44336; color: white; }
+        .badge-positive { background: #2196F3; color: white; }
+        .badge-negative { background: #FF9800; color: white; }
+        .timestamp { color: #999; font-size: 14px; }
+        .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Policy Verification Report</h1>
+        <div class="timestamp">Generated: {{ timestamp }}</div>
+        
+        <div class="summary">
+            <div class="metric">
+                <div class="metric-value">{{ report.total_tests }}</div>
+                <div class="metric-label">Total Tests</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{{ report.passed }}</div>
+                <div class="metric-label">Passed</div>
+            </div>
+            <div class="metric failed">
+                <div class="metric-value">{{ report.failed }}</div>
+                <div class="metric-label">Failed</div>
+            </div>
+            <div class="metric">
+                <div class="pass-rate">{{ "%.1f"|format(report.pass_rate) }}%</div>
+                <div class="metric-label">Pass Rate</div>
+            </div>
+        </div>
+        
+        {% if report.failed_tests %}
+        <h2>❌ Failed Tests ({{ report.failed }})</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Test Name</th>
+                    <th>Expected</th>
+                    <th>Actual</th>
+                    <th>Error</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in report.failed_tests %}
+                <tr>
+                    <td><code>{{ result.test_id }}</code></td>
+                    <td>{{ result.test_name }}</td>
+                    <td><span class="badge badge-{{ 'positive' if result.expected_allowed else 'negative' }}">
+                        {{ 'ALLOW' if result.expected_allowed else 'DENY' }}
+                    </span></td>
+                    <td><span class="badge badge-{{ 'positive' if result.actual_allowed else 'negative' }}">
+                        {{ 'ALLOW' if result.actual_allowed else 'DENY' }}
+                    </span></td>
+                    <td>{{ result.error_message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <h2>✅ All Tests Passed!</h2>
+        <p>All {{ report.passed }} test cases executed successfully.</p>
+        {% endif %}
+        
+        <h2>Test Results Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Test Name</th>
+                    <th>Result</th>
+                    <th>Policy Matched</th>
+                    <th>Execution Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in report.results %}
+                <tr>
+                    <td><code>{{ result.test_id }}</code></td>
+                    <td>{{ result.test_name }}</td>
+                    <td><span class="badge badge-{{ 'pass' if result.passed else 'fail' }}">
+                        {{ '✓ PASS' if result.passed else '✗ FAIL' }}
+                    </span></td>
+                    <td>{{ result.actual_policy or '-' }}</td>
+                    <td>{{ "%.1f"|format(result.execution_time_ms) }}ms</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Policy Verification Framework v1.0 | HR AI Platform</p>
+            <p>Execution Time: {{ "%.0f"|format(report.execution_time_ms) }}ms</p>
+        </div>
+    </div>
+</body>
+</html>

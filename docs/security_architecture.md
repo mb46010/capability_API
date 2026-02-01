@@ -37,6 +37,10 @@ High-sensitivity operations require Multi-Factor Authentication:
 
 Policy engine validates MFA claim in JWT token.
 
+## Continuous Compliance
+
+All policy changes are verified against declarative test scenarios using the **Policy Verification Framework** before deployment. This ensures that broad wildcards or missing conditions are caught in CI/CD.
+
 ## Testing
 
 Run security test suite:

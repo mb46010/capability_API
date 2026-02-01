@@ -1,0 +1,39 @@
+name: Policy Verification
+
+on:
+  pull_request:
+    paths:
+      - 'config/policy-*.yaml'
+      - 'tests/policy/scenarios/**'
+      - 'src/domain/services/policy_engine.py'
+      - 'src/domain/services/policy_verifier.py'
+  push:
+    branches: [main]
+
+jobs:
+  verify-policy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run policy verification
+        id: verify
+        run: |
+          ./scripts/verify-policy run --format junit > test-results.xml
+        continue-on-error: true
+      
+      - name: Fail if verification failed
+        if: steps.verify.outcome == 'failure'
+        run: |
+          echo "❌ Policy Verification Failed!"
+          exit 1
