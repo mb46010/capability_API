@@ -1,88 +1,92 @@
-# HR AI Platform Capability API
+# Capability API
 
-Governed API exposing deterministic actions and long-running HR flows.
+Governed surface exposing deterministic actions and flow triggers for the HR AI Platform.
 
-## Quickstart
+## 🎯 Motivation
+**New to the project?** Read our **[Motivation & Business Value Guide](docs/motivation.md)** to understand what we are building, why it matters for HR and AI safety, and what to expect in a demo.
+
+## 🏗️ Architecture
+The system follows a **Hexagonal Architecture** (Ports and Adapters) to isolate core HR business logic from external systems like Workday or Okta.
+
+- **Domain Core**: Policy evaluation, action routing, and flow orchestration.
+- **Adapters**: Workday Simulator, Mock Okta (OIDC), and Local Filesystem persistence.
+- **API Surface**: Unified FastAPI surface for Actions and Flows with built-in audit provenance.
+
+## 🚀 Quickstart
 
 ### Prerequisites
 - Python 3.11+
-- Docker (optional)
+- `pip`
 
 ### Setup
 
-1. **Clone & Navigate**
+1. **Clone & Install**
    ```bash
    git clone <repo-url>
-   cd src
-   ```
-
-2. **Environment**
-   ```bash
-   python -m venv .venv
-   source .venv/bin/activate
    pip install -r requirements.txt
    ```
 
-3. **Configuration**
-   Copy the example environment file:
+2. **Run the API**
+   Start the FastAPI server locally:
    ```bash
-   cp .env.example .env
+   python src/main.py
    ```
 
-### Running the API
+3. **Verify**
+   Check the system health:
+   ```bash
+   curl http://localhost:8000/health
+   ```
 
-Start the FastAPI server locally:
-
+### 📺 Interactive Demo
+We provide a suite of demo scripts to showcase AI guardrails, token exchange, and policy safety:
 ```bash
-uvicorn src.main:app --reload --port 8000
+./scripts/demo/run-full-demo.sh
 ```
 
-Once running, you can test the API using our helper scripts:
-```bash
-./scripts/api/smoke-test.sh
-```
-
-The API will be available at:
-- Docs: http://localhost:8000/docs
-- OpenAPI: http://localhost:8000/openapi.json
-
-### Testing
-
+### 🧪 Testing & Validation
 Run the full test suite:
-
 ```bash
 pytest
 ```
 
-## Documentation Index
+Run the policy verification suite:
+```bash
+./scripts/verify-policy run
+```
 
-Explore the project's documentation for deeper insights into architecture, onboarding, and troubleshooting.
+## 📚 Documentation Index
 
-### For Humans
-- **[Architectural Guide](docs/architecture.md)**: High-level system design and hexagonal boundaries.
-- **[Capability Registry](docs/CAPABILITY_REGISTRY.md)**: Governance and discovery of Actions and Flows.
-- **[Onboarding Guide](docs/onboarding.md)**: Environment setup and developer workflow.
-- **[API Layer Overview](src/api/docs/overview.md)**: Design philosophy and core components of the public surface.
-- **[API Getting Started](src/api/docs/getting_started.md)**: Quick guide to running, authenticating, and testing the API.
-- **[Workday Technical Docs](src/adapters/workday/docs/technical.md)**: Deep-dive into the Workday simulator implementation.
-- **[Workday Functional Docs](src/adapters/workday/docs/functional.md)**: Business overview of simulation data and personas.
-- **[Troubleshooting](docs/troubleshooting.md)**: Common issues and their resolutions.
-- **[Project Constitution](.specify/memory/constitution.md)**: The core principles governing this project.
+### For Humans (Project & Governance)
+- **[Motivation & Value](docs/motivation.md)**: The "Why" and business context.
+- **[Architectural Guide](docs/architecture.md)**: System design and hexagonal boundaries.
+- **[Security Architecture](docs/security_architecture.md)**: Defense-in-depth and MFA enforcement.
+- **[Policy Schema](docs/policy_schema.md)**: Rules for defining access control.
+- **[Policy Verification](docs/modules/policy_verification.md)**: How we prove policies work.
+- **[Capability Registry](docs/CAPABILITY_REGISTRY.md)**: Discovery of available Actions and Flows.
+- **[Workday Simulator](docs/modules/workday_technical.md)**: Details on the high-fidelity HRIS simulation.
+- **[Onboarding Guide](docs/onboarding.md)**: Detailed setup for developers.
+- **[Troubleshooting](docs/troubleshooting.md)**: Common issues and fixes.
+- **[Project Constitution](.specify/memory/constitution.md)**: Core principles and development standards.
 
-### For AI Agents
-Distributed `README.ai.md` files provide high-density functional context for coding agents:
-- [Domain Core](src/domain/services/README.ai.md)
-- [Hexagonal Ports](src/domain/ports/README.ai.md)
-- [Workday Adapter](src/adapters/workday/README.ai.md)
-- [Auth Provider](src/adapters/auth/README.ai.md)
-- [Filesystem Implementation](src/adapters/filesystem/README.ai.md)
-- [API Layer](src/api/README.ai.md)
-- [Common Library](src/lib/README.ai.md)
+### For AI Agents (Technical Context)
+Distributed `README.ai.md` files provide functional context for coding agents:
+- **[Domain Entities](src/domain/entities/README.ai.md)**: Data models and validation rules.
+- **[Domain Services](src/domain/services/README.ai.md)**: Core business logic and verification runner.
+- **[Hexagonal Ports](src/domain/ports/README.ai.md)**: Abstract interfaces for infrastructure.
+- **[Workday Adapter](src/adapters/workday/README.ai.md)**: HRIS simulation implementation.
+- **[Auth Provider](src/adapters/auth/README.ai.md)**: OIDC mock and JWT verification.
+- **[Filesystem Implementation](src/adapters/filesystem/README.ai.md)**: Local storage for policies.
+- **[API Layer](src/api/README.ai.md)**: Routing and dependency injection.
+- **[Common Library](src/lib/README.ai.md)**: Logging, context, and shared utilities.
 
-## Adding a Capability
+## 🛠️ Adding a Capability
 
-1. **Update the Registry**: Add the new capability to `config/capabilities/index.yaml`.
-2. **Define Logic**: Add the logic in `src/domain/services/action_service.py` (or a dedicated domain service).
-3. **Implement Adapter**: Add the implementation in the appropriate adapter (e.g., `src/adapters/workday/`).
-4. **Update Policy**: Grant access in `config/policy-workday.yaml`.
-5. **Validate**: Run `./scripts/capability-registry validate` and `check-policy`.
+1.  **Registry**: Add the capability to `config/capabilities/index.yaml`.
+2.  **Logic**: Implement the logic in `src/domain/services/` or `src/domain/entities/`.
+3.  **Adapter**: Update the Workday Simulator or relevant adapter.
+4.  **Policy**: Grant access in `config/policy-workday.yaml`.
+5.  **Verify**:
+    - Validate Registry: `./scripts/capability-registry validate`
+    - Verify Security: `./scripts/verify-policy run`
+    - Run Tests: `pytest`
