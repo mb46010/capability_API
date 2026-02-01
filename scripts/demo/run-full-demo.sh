@@ -1,12 +1,18 @@
 #!/bin/bash
 set -e
 
+# HR AI Platform Stakeholder Demo Orchestrator
+
+# 0. Environment Setup
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Clear screen for fresh start
 clear
 
 echo "############################################################"
 echo "#                                                          #"
-# HR AI Platform Stakeholder Demo
+echo "#        HR AI Platform Stakeholder Demo                   #"
 echo "#                                                          #"
 echo "############################################################"
 echo ""
@@ -21,22 +27,22 @@ echo "4. Compliance Reporting (Audit evidence)"
 echo ""
 read -p "Press [Enter] to start Demo 1..."
 
-./scripts/demo/demo-1-guardrails.sh
+./demo-1-guardrails.sh
 
 echo ""
 read -p "Press [Enter] to start Demo 2..."
 
-./scripts/demo/demo-2-token-exchange.sh
+./demo-2-token-exchange.sh
 
 echo ""
 read -p "Press [Enter] to start Demo 3..."
 
-./scripts/demo/demo-3-policy-verification.sh
+./demo-3-policy-verification.sh
 
 echo ""
 read -p "Press [Enter] to start Demo 4..."
 
-./scripts/demo/demo-4-compliance-report.sh
+./demo-4-compliance-report.sh
 
 echo ""
 echo "############################################################"

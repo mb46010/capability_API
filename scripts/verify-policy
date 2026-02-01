@@ -1,2 +1,21 @@
 #!/bin/bash
-python3 src/scripts/verify-policy.py "$@"
+
+# Policy Verification CLI Wrapper
+# This script ensures the Python environment is set up and calls the verifier.
+
+# 0. Environment Setup
+# Get the directory where this script is located (scripts/)
+DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
+# Project root is the parent directory
+ROOT_DIR="$(cd "$DIR/.." && pwd)"
+
+if [ ! -f "$ROOT_DIR/src/scripts/verify-policy.py" ]; then
+    echo "Error: Could not find verifier script at $ROOT_DIR/src/scripts/verify-policy.py"
+    exit 1
+fi
+
+# Run the python script
+# We set PYTHONPATH to include the project root so internal imports work
+export PYTHONPATH="$ROOT_DIR:$PYTHONPATH"
+python3 "$ROOT_DIR/src/scripts/verify-policy.py" "$@"

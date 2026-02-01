@@ -13,7 +13,7 @@ echo ""
 
 # 1. Get user token (Long-lived)
 echo "Step 1: User authenticates (1-hour session)..."
-USER_TOKEN=$(curl -s -X POST $AUTH_URL/oauth2/v1/token \
+USER_TOKEN=$(curl -s -X POST "$AUTH_URL/oauth2/v1/token" \
   -d "grant_type=password&username=user@local.test&password=any" | jq -r .access_token)
 
 echo "User Token (Last 10 chars): ...${USER_TOKEN: -10}"
@@ -21,7 +21,7 @@ echo ""
 
 # 2. Exchange for AI token (Short-lived)
 echo "Step 2: AI Agent exchanges user token for a 'Task Pass' (5-min session)..."
-MCP_TOKEN=$(curl -s -X POST $AUTH_URL/oauth2/v1/token \
+MCP_TOKEN=$(curl -s -X POST "$AUTH_URL/oauth2/v1/token" \
   -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
   -d "subject_token=$USER_TOKEN" \
   -d "scope=mcp:use" | jq -r .access_token)
@@ -35,7 +35,7 @@ echo "Step 3: Verifying scope enforcement..."
 echo "Scenario: AI tries to use its scoped token to call the API directly."
 echo "------------------------------------------------------------"
 
-RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST $API_URL/actions/workday.hcm/get_employee \
+RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$API_URL/actions/workday.hcm/get_employee" \
   -H "Authorization: Bearer $MCP_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"parameters": {"employee_id": "EMP001"}}')
