@@ -41,7 +41,9 @@ Ensure the policy correctly references existing capabilities:
 ## Runtime Behavior
 - **Startup**: The system cross-validates all policy files against the registry. If a policy references a non-existent capability, the application will fail to start.
 - **Execution**: `ActionService` validates every request against the registry.
+- **Subdomain Expansion**: If a domain is provided without a subdomain (e.g., `workday.get_employee`), the system dynamically derives available subdomains from the registry to find the canonical match (e.g., `workday.hcm.get_employee`).
 - **Deprecation**: If a capability is marked as `deprecated: true`, it will still execute, but a warning will be logged.
+
 
 ## CLI Reference
 - `list`: List all capabilities with optional filtering by `--domain`, `--type`, or `--tag`.

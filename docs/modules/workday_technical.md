@@ -20,7 +20,8 @@ The simulator is implemented as a **Hexagonal Adapter** that fulfills the `Conne
 Unlike a stateless proxy, this simulator maintains a **mutable in-memory state**.
 - Changes made via `update_employee` or `request_time_off` are stored in the current process memory.
 - **Persistence**: State is volatile and resets when the server restarts.
-- **Reloading**: The `/actions/test/reload-fixtures` endpoint allows refreshing the state from the YAML files without a restart.
+- **Reloading**: The `/demo/reset` endpoint allows clearing all service caches and refreshing state from the YAML files without a restart.
+
 
 ## Simulation Features
 

@@ -12,9 +12,10 @@ Our platform implements security at **three layers**:
 ### Layer 2: Service-Level Validation
 - **What**: Each business service validates its specific constraints
 - **Why**: Context-aware checks (e.g., "managers can only approve their direct reports")
-- **Example**: Time-off approval verifies manager relationship
+- **Defense in Depth**: Sensitive operations (Compensation, Time-Off Approval) perform explicit MFA verification in the service layer, providing a secondary safety net if policies are misconfigured.
 
 ### Layer 3: Data Filtering
+
 - **What**: Response payloads are filtered based on principal type
 - **Why**: Even if authorization succeeds, PII is removed for AI agents
 - **Example**: AI agent sees employee name but not SSN

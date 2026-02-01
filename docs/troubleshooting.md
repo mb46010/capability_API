@@ -15,7 +15,14 @@ Common issues encountered when working with the Capability API.
     - Verify that MFA is present in the token if the policy requires it (`amr: ["mfa"]`).
     - Ensure the `ENVIRONMENT` env var matches the policy environment.
 
+### 3. Ambiguous Principal Warning
+- **Symptom**: Startup log shows `WARNING: Policy '...' has inline principal with both type '...' and a specific binding.`
+- **Cause**: A policy rule defines an inline principal that includes both a generic `type` (e.g., `AI_AGENT`) and a specific `okta_subject` or `okta_group`.
+- **Impact**: The policy will ONLY match the specific binding. It will NOT act as a generic grant for all principals of that type.
+- **Solution**: Decide if the policy is meant for one specific entity (remove `type`) or all entities of a type (remove `okta_subject`/`okta_group`).
+
 ## Connector Issues
+
 
 ### 1. Employee Not Found (`EMPLOYEE_NOT_FOUND`)
 - **Cause**: The requested employee ID does not exist in the YAML fixtures.

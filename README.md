@@ -63,7 +63,9 @@ Run the policy verification suite:
 - **[Security Architecture](docs/security_architecture.md)**: Defense-in-depth and MFA enforcement.
 - **[Policy Schema](docs/policy_schema.md)**: Rules for defining access control.
 - **[Policy Verification](docs/modules/policy_verification.md)**: How we prove policies work.
+- **[Token Exchange](docs/modules/token_exchange.md)**: Secure cross-system identity delegation.
 - **[Capability Registry](docs/CAPABILITY_REGISTRY.md)**: Discovery of available Actions and Flows.
+
 - **[Workday Simulator](docs/modules/workday_technical.md)**: Details on the high-fidelity HRIS simulation.
 - **[Onboarding Guide](docs/onboarding.md)**: Detailed setup for developers.
 - **[Troubleshooting](docs/troubleshooting.md)**: Common issues and fixes.

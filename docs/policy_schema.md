@@ -17,7 +17,7 @@ Capabilities use dot-notation namespacing: `{domain}.{operation}` or `{domain}.{
 
 Matching rules:
 - **Exact match**: `workday.get_employee` matches only that capability
-- **Wildcard suffix**: `workday.*` matches all Workday capabilities
+- **Domain wildcard**: `workday.*` matches all Workday capabilities. **Note**: Wildcards MUST end with `.*`.
 - **Full wildcard**: `*` matches everything (use with extreme caution)
 
 ### Principal Resolution Order
@@ -28,6 +28,9 @@ When evaluating access, policies are checked in this order (first match wins):
 2. Policies matching the principal's `okta_group`
 3. Policies matching the principal's `type` (HUMAN, MACHINE, AI_AGENT)
 4. No match → DENY
+
+**Guardrail**: If an inline principal definition includes both a specific binding (subject/group) AND a `type`, it will ONLY match on the specific binding. A warning will be logged at startup if such an ambiguous definition is detected.
+
 
 ### Condition Evaluation
 

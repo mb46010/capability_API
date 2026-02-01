@@ -41,6 +41,7 @@ We provide a set of pre-configured identities in our "fixtures" to test various 
 | `EMP200` | Diana Ross | CEO | The root of the organization. |
 
 ## How to perform a "Reset"
-If you have modified data during a demo or test session and want to return to the original "Golden State," you can trigger a reload by calling the following technical endpoint:
-`POST /actions/test/reload-fixtures`
-*(Note: Requires developer assistance or specific tooling).*
+If you have modified data during a demo or test session and want to return to the original "Golden State," you can trigger a full service reload (clearing all caches and re-reading files) by calling:
+`POST /demo/reset`
+*(Note: Requires `ENABLE_DEMO_RESET=true` environment variable).*
+

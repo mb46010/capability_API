@@ -40,7 +40,8 @@ curl -X POST http://localhost:8000/actions/workday.hcm/get_employee \
 
 ## Advanced Authentication (MFA)
 
-For actions requiring MFA (like `get_compensation`), your token must include the `amr: ["mfa"]` claim. You can use the mock's admin endpoint to mint such a token:
+For actions requiring MFA (like `get_compensation` or `approve` time-off), your token must include the `amr: ["mfa"]` claim. You can use the mock's admin endpoint to mint such a token:
+
 ```bash
 curl -X POST http://localhost:8000/test/tokens \
   -H "Content-Type: application/json" \

@@ -23,8 +23,9 @@ Centralized logic for:
 ## Execution Flow
 
 1.  **Request**: Client sends POST to `/actions/{domain}/{action}`.
-2.  **Auth**: `get_current_principal` validates the JWT.
+2.  **Auth**: `get_current_principal` validates the JWT and extracts `VerifiedPrincipal` (preserving raw claims for scope validation).
 3.  **Authorization**: `ActionService` asks `PolicyEngine` if the principal is allowed to invoke the capability.
+
 4.  **Execution**: `ActionService` calls the appropriate adapter (e.g., `WorkdaySimulator`).
 5.  **Response**: Result is wrapped in `ActionResponse` with execution metadata.
 
