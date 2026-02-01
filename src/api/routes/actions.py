@@ -44,7 +44,8 @@ async def execute_action(
     req: Request,
     service: ActionService = Depends(get_action_service),
     principal: VerifiedPrincipal = Depends(get_current_principal),
-    x_idempotency_key: Optional[str] = Header(None)
+    x_idempotency_key: Optional[str] = Header(None),
+    x_acting_through: Optional[str] = Header(None, alias="X-Acting-Through")
 ):
     environment = os.getenv("ENVIRONMENT", "local")
     request_ip = req.client.host if req.client else None
@@ -62,6 +63,7 @@ async def execute_action(
         token_expires_at=principal.expires_at,
         request_ip=request_ip,
         idempotency_key=x_idempotency_key,
-        token_claims=principal.raw_claims
+        token_claims=principal.raw_claims,
+        acting_through=x_acting_through
     )
 

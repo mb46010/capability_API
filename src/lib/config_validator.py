@@ -21,9 +21,14 @@ class AppSettings(BaseSettings):
     @classmethod
     def validate_file_exists(cls, v: str) -> str:
         path = Path(v)
+        if not path.is_absolute():
+            # Resolve relative to project root (parent of 'src')
+            project_root = Path(__file__).resolve().parent.parent.parent
+            path = project_root / v
+        
         if not path.exists():
-            raise FileNotFoundError(f"Required file not found: {v}")
-        return v
+            raise FileNotFoundError(f"Required file not found: {v} (resolved to: {path.absolute()})")
+        return str(path)
 
     @field_validator("ENVIRONMENT")
     @classmethod

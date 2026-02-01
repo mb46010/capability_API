@@ -12,6 +12,11 @@ class FileScenarioLoaderAdapter(ScenarioLoaderPort):
 
     def load_all_test_suites(self, scenarios_dir: str) -> List[PolicyTestSuite]:
         scenarios_path = Path(scenarios_dir)
+        if not scenarios_path.exists() and not scenarios_path.is_absolute():
+            # Resolve relative to project root (parent of 'src')
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            scenarios_path = project_root / scenarios_dir
+            
         suites = []
         if scenarios_path.is_file():
             suites.append(self.load_test_suite(str(scenarios_path)))

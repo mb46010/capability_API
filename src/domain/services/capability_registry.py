@@ -16,7 +16,13 @@ class CapabilityRegistryService:
     Canonical source of truth for all actions and flows.
     """
     def __init__(self, index_path: str = "config/capabilities/index.yaml"):
-        self.index_path = Path(index_path)
+        path = Path(index_path)
+        if not path.exists() and not path.is_absolute():
+            # Try resolving relative to project root (parent of 'src')
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            path = project_root / index_path
+            
+        self.index_path = path
         self._registry: Optional[CapabilityRegistry] = None
         self._capability_map: Dict[str, CapabilityEntry] = {}
         self._load()
@@ -136,6 +142,9 @@ def get_capability_registry(index_path: str = "config/capabilities/index.yaml") 
     Allows for explicit management of the instance.
     """
     global _registry_instance
+    
+    # If we have an instance but index_path is different, we might need to reload or reset
+    # For now, if instance exists, we return it. If it doesn't, we create it.
     if _registry_instance is None:
         _registry_instance = CapabilityRegistryService(index_path)
     return _registry_instance

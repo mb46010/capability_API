@@ -81,6 +81,7 @@ class ActionService:
         request_ip: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         token_claims: Optional[dict] = None,
+        acting_through: Optional[str] = None,
     ) -> ActionResponse:
         # Validate and get canonical capability ID
         policy_capability = self._validate_capability(domain, action)
@@ -97,8 +98,7 @@ class ActionService:
             if isinstance(scopes, str):
                 scopes = scopes.split(" ")
             
-            acting_as = token_claims.get("acting_as")
-            if "mcp:use" in scopes and not acting_as:
+            if "mcp:use" in scopes and not acting_through:
                 raise HTTPException(
                     status_code=403,
                     detail="MCP-scoped tokens cannot be used for direct API access"

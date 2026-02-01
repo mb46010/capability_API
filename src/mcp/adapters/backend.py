@@ -14,7 +14,8 @@ class CapabilityAPIClient:
         url = f"{self.base_url}/actions/{domain}/{action}"
         headers = {
             "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-Acting-Through": "mcp-server"
         }
         payload = {"parameters": parameters}
         

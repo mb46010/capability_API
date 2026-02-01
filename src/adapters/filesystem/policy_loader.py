@@ -15,7 +15,13 @@ class FilePolicyLoaderAdapter(PolicyLoaderPort):
     Now includes validation against the Capability Registry.
     """
     def __init__(self, policy_path: str, registry_path: str = "config/capabilities/index.yaml"):
-        self.policy_path = Path(policy_path)
+        path = Path(policy_path)
+        if not path.exists() and not path.is_absolute():
+            # Resolve relative to project root (parent of 'src')
+            project_root = Path(__file__).resolve().parent.parent.parent.parent
+            path = project_root / policy_path
+            
+        self.policy_path = path
         self.registry = get_capability_registry(registry_path)
 
     def load_policy(self) -> AccessPolicy:
