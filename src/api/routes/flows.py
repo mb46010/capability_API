@@ -63,6 +63,10 @@ async def get_flow_status(
     principal: VerifiedPrincipal = Depends(get_current_principal)
 ):
     try:
-        return await service.get_status(flow_id)
+        return await service.get_status(
+            flow_id=flow_id,
+            principal_id=principal.subject,
+            principal_groups=principal.groups,
+        )
     except ValueError:
         raise HTTPException(status_code=404, detail="Flow not found")

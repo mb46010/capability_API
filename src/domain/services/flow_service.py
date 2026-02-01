@@ -43,16 +43,24 @@ class FlowService:
             raise HTTPException(status_code=403, detail=f"Access denied to flow: {capability}")
 
         # 2. Start Flow via Adapter
-        return await self.adapter.start_flow(domain, flow, params)
+        return await self.adapter.start_flow(domain, flow, params, principal_id)
 
-    async def get_status(self, flow_id: str) -> FlowStatusResponse:
-        # Note: In a real system, we might want to check if the principal has access to view this flow status.
-        # For now, we'll assume getting status is allowed if authenticated (or add specific policy check if needed).
-        # The prompt specifically mentioned "trigger any flow", implying start_flow is the critical gap.
-        
+    async def get_status(
+        self,
+        flow_id: str,
+        principal_id: str,
+        principal_groups: List[str],
+    ) -> FlowStatusResponse:
         raw_status = await self.adapter.get_flow_status(flow_id)
         if not raw_status:
              raise ValueError(f"Flow {flow_id} not found")
+
+        owner_id = raw_status.get("principal_id")
+        is_admin = "hr-platform-admins" in principal_groups
+        if owner_id is None and not is_admin:
+            raise HTTPException(status_code=403, detail="Flow access denied")
+        if owner_id is not None and owner_id != principal_id and not is_admin:
+            raise HTTPException(status_code=403, detail="Flow access denied")
         
         # Convert raw dict to Pydantic model
         return FlowStatusResponse(

@@ -3,7 +3,13 @@ from typing import Dict, Any, Optional
 
 class FlowRunnerPort(ABC):
     @abstractmethod
-    async def start_flow(self, domain: str, flow: str, params: Dict[str, Any]) -> str:
+    async def start_flow(
+        self,
+        domain: str,
+        flow: str,
+        params: Dict[str, Any],
+        principal_id: str,
+    ) -> str:
         """Starts a flow execution and returns the Execution ID."""
         pass
 

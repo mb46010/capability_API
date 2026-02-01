@@ -10,14 +10,15 @@ class MockFlowAdapter(FlowRunnerPort):
     def __init__(self):
         self.flows = {}
 
-    async def start_flow(self, domain: str, flow: str, params: dict) -> str:
+    async def start_flow(self, domain: str, flow: str, params: dict, principal_id: str) -> str:
         flow_id = "test-flow-123"
         self.flows[flow_id] = {
             "flow_id": flow_id,
             "status": "RUNNING",
             "domain": domain,
             "flow": flow,
-            "params": params
+            "params": params,
+            "principal_id": principal_id,
         }
         return flow_id
 
@@ -80,6 +81,27 @@ async def test_get_flow_status_success(flow_service, mock_policy_engine):
     mock_policy_engine.evaluate.return_value = PolicyEvaluationResult(allowed=True)
     await flow_service.start_flow("hr", "onboarding", {}, "user", [], "HUMAN", "local")
     
-    status = await flow_service.get_status("test-flow-123")
+    status = await flow_service.get_status("test-flow-123", "user", [])
     assert status.flow_id == "test-flow-123"
     assert status.status == "RUNNING"
+
+@pytest.mark.asyncio
+async def test_get_flow_status_denied_for_other_user(flow_service, mock_policy_engine):
+    mock_policy_engine.evaluate.return_value = PolicyEvaluationResult(allowed=True)
+    await flow_service.start_flow("hr", "onboarding", {}, "owner", [], "HUMAN", "local")
+
+    with pytest.raises(HTTPException) as excinfo:
+        await flow_service.get_status("test-flow-123", "other-user", [])
+    assert excinfo.value.status_code == 403
+
+@pytest.mark.asyncio
+async def test_get_flow_status_allows_admin(flow_service, mock_policy_engine):
+    mock_policy_engine.evaluate.return_value = PolicyEvaluationResult(allowed=True)
+    await flow_service.start_flow("hr", "onboarding", {}, "owner", [], "HUMAN", "local")
+
+    status = await flow_service.get_status(
+        "test-flow-123",
+        "admin-user",
+        ["hr-platform-admins"],
+    )
+    assert status.flow_id == "test-flow-123"

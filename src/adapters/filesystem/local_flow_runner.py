@@ -8,7 +8,13 @@ class LocalFlowRunnerAdapter(FlowRunnerPort):
         # In-memory store for MVP. For persistence, this should write to a file/DB.
         self._executions: Dict[str, Dict[str, Any]] = {}
 
-    async def start_flow(self, domain: str, flow: str, params: Dict[str, Any]) -> str:
+    async def start_flow(
+        self,
+        domain: str,
+        flow: str,
+        params: Dict[str, Any],
+        principal_id: str,
+    ) -> str:
         flow_id = str(uuid.uuid4())
         self._executions[flow_id] = {
             "flow_id": flow_id,
@@ -18,6 +24,7 @@ class LocalFlowRunnerAdapter(FlowRunnerPort):
             "start_time": datetime.now(timezone.utc).isoformat(),
             "current_step": "init",
             "params": params,
+            "principal_id": principal_id,
             "result": None,
             "error": None
         }
