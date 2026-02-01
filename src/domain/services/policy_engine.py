@@ -223,7 +223,13 @@ class PolicyEngine:
                     start_time = datetime.strptime(start_str, "%H:%M").time()
                     end_time = datetime.strptime(end_str, "%H:%M").time()
                     
-                    if not (start_time <= current_time <= end_time):
+                    if start_time <= end_time:
+                        in_window = start_time <= current_time <= end_time
+                    else:
+                        # Window crosses midnight (e.g., 22:00–06:00)
+                        in_window = current_time >= start_time or current_time <= end_time
+
+                    if not in_window:
                         return False
             except Exception:
                 # Log error? Fail safe.
