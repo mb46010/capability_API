@@ -590,7 +590,7 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
 
     This can be run standalone or mounted as a sub-application for testing.
     """
-    from fastapi import FastAPI, HTTPException, Header, Form, Request
+    from fastapi import FastAPI, HTTPException, Header, Form, Request, Depends
     from fastapi.responses import JSONResponse
 
     if provider is None:
@@ -769,8 +769,19 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
     # Test/Admin endpoints (not part of OIDC spec, but useful for testing)
     # ---------------------------------------------------------------------------
 
+    async def verify_test_secret(x_test_secret: str = Header(None, alias="X-Test-Secret")):
+        from src.lib.config_validator import settings
+        if not settings.MOCK_OKTA_TEST_SECRET or x_test_secret != settings.MOCK_OKTA_TEST_SECRET:
+            raise HTTPException(
+                status_code=403,
+                detail="Invalid or missing X-Test-Secret header"
+            )
+
     @app.post("/test/users")
-    async def create_test_user(request_data: CreateUserRequest):
+    async def create_test_user(
+        request_data: CreateUserRequest,
+        _ = Depends(verify_test_secret)
+    ):
         """Create a test user (admin endpoint for testing)."""
         user = MockUser(
             subject=request_data.subject,
@@ -785,7 +796,10 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
         return {"status": "created", "subject": user.subject}
 
     @app.get("/test/users/{subject}")
-    async def get_test_user(subject: str):
+    async def get_test_user(
+        subject: str,
+        _ = Depends(verify_test_secret)
+    ):
         """Get a test user (admin endpoint for testing)."""
         user = provider.get_user(subject)
         if not user:
@@ -799,7 +813,10 @@ def create_mock_okta_app(provider: MockOktaProvider | None = None):
         }
 
     @app.post("/test/tokens")
-    async def create_test_token(request_data: CreateTokenRequest):
+    async def create_test_token(
+        request_data: CreateTokenRequest,
+        _ = Depends(verify_test_secret)
+    ):
         """
         Create a token directly (bypassing OAuth flows).
 

@@ -21,6 +21,7 @@ echo ""
 
 AGENT_TOKEN=$(curl -s -X POST http://localhost:9000/test/tokens \
   -H "Content-Type: application/json" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
   -d '{"subject": "agent-assistant@local.test"}' | jq -r .access_token)
 
 echo "Response from AI agent query:"
@@ -41,6 +42,7 @@ echo ""
 
 USER_TOKEN=$(curl -s -X POST http://localhost:9000/test/tokens \
   -H "Content-Type: application/json" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
   -d '{"subject": "EMP001"}' | jq -r .access_token)
 
 echo "Response without MFA:"
@@ -56,6 +58,7 @@ echo ""
 echo "Now trying with MFA token..."
 MFA_TOKEN=$(curl -s -X POST http://localhost:9000/test/tokens \
   -H "Content-Type: application/json" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
   -d '{"subject": "EMP001", "additional_claims": {"amr": ["mfa", "pwd"]}}' | jq -r .access_token)
 
 curl -s -X POST http://localhost:8000/actions/workday.payroll/get_compensation \

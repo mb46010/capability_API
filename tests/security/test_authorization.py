@@ -8,6 +8,7 @@ run: pytest tests/security/ -v --tb=short
 import pytest
 from fastapi.testclient import TestClient
 from src.main import app
+from src.lib.config_validator import settings
 
 client = TestClient(app)
 
@@ -18,7 +19,9 @@ class TestSecurityBoundaries:
     def test_ai_agent_cannot_see_salary(self):
         # Get AI agent token
         token_resp = client.post(
-            "/auth/test/tokens", json={"subject": "agent-assistant@local.test"}
+            "/auth/test/tokens", 
+            json={"subject": "agent-assistant@local.test"},
+            headers={"X-Test-Secret": settings.MOCK_OKTA_TEST_SECRET}
         )
         token = token_resp.json()["access_token"]
 
@@ -37,7 +40,9 @@ class TestSecurityBoundaries:
         """AI agents see limited employee fields"""
         # Get AI agent token
         token_resp = client.post(
-            "/auth/test/tokens", json={"subject": "agent-assistant@local.test"}
+            "/auth/test/tokens", 
+            json={"subject": "agent-assistant@local.test"},
+            headers={"X-Test-Secret": settings.MOCK_OKTA_TEST_SECRET}
         )
         token = token_resp.json()["access_token"]
 
@@ -60,7 +65,11 @@ class TestSecurityBoundaries:
     def test_user_cannot_access_others_data(self):
         """Users can only access their own data"""
         # Get token for EMP001
-        token_resp = client.post("/auth/test/tokens", json={"subject": "EMP001"})
+        token_resp = client.post(
+            "/auth/test/tokens", 
+            json={"subject": "EMP001"},
+            headers={"X-Test-Secret": settings.MOCK_OKTA_TEST_SECRET}
+        )
         token = token_resp.json()["access_token"]
 
         # Try to access EMP042's data
@@ -82,6 +91,7 @@ class TestSecurityBoundaries:
                 "subject": "EMP001"
                 # No MFA claim
             },
+            headers={"X-Test-Secret": settings.MOCK_OKTA_TEST_SECRET}
         )
         token = token_resp.json()["access_token"]
 

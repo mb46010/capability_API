@@ -19,17 +19,18 @@ def cmd_run(args):
     report = verifier.run_all_tests(args.scenarios)
 
     
-    # Print summary
-    print("=" * 60)
-    print("Policy Verification Report")
-    print("=" * 60)
-    print(f"Total Tests: {report.total_tests}")
-    print(f"Passed:      {report.passed} ✅")
-    print(f"Failed:      {report.failed} ❌")
-    print(f"Skipped:     {report.skipped} ⏭️")
-    print(f"Pass Rate:   {report.pass_rate:.1f}%")
-    print(f"Execution:   {report.execution_time_ms:.0f}ms")
-    print("=" * 60)
+    # Print summary (only for table format)
+    if args.format == "table":
+        print("=" * 60)
+        print("Policy Verification Report")
+        print("=" * 60)
+        print(f"Total Tests: {report.total_tests}")
+        print(f"Passed:      {report.passed} ✅")
+        print(f"Failed:      {report.failed} ❌")
+        print(f"Skipped:     {report.skipped} ⏭️")
+        print(f"Pass Rate:   {report.pass_rate:.1f}%")
+        print(f"Execution:   {report.execution_time_ms:.0f}ms")
+        print("=" * 60)
     
     if args.format == "table":
         if report.results:

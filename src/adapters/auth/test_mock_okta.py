@@ -30,6 +30,7 @@ from src.adapters.auth import (
     AuthConfig,
     create_token_verifier,
 )
+from src.lib.config_validator import settings
 
 
 # ---------------------------------------------------------------------------
@@ -463,7 +464,22 @@ class TestOIDCEndpoints:
 class TestAdminEndpoints:
     """Tests for test/admin endpoints."""
 
-    def test_create_user(self, app, verifier):
+    @pytest.fixture
+    def auth_headers(self):
+        return {"X-Test-Secret": settings.MOCK_OKTA_TEST_SECRET}
+
+    def test_unauthorized_access(self, app):
+        """Endpoints are protected without secret."""
+        response = app.post("/test/users", json={"subject": "test"})
+        assert response.status_code == 403
+        
+        response = app.get("/test/users/admin@local.test")
+        assert response.status_code == 403
+        
+        response = app.post("/test/tokens", json={"subject": "test"})
+        assert response.status_code == 403
+
+    def test_create_user(self, app, verifier, auth_headers):
         """Can create new test users via API."""
         response = app.post(
             "/test/users",
@@ -474,6 +490,7 @@ class TestAdminEndpoints:
                 "name": "New Test User",
                 "email": "new-test-user@example.com",
             },
+            headers=auth_headers
         )
         assert response.status_code == 200
 
@@ -481,6 +498,7 @@ class TestAdminEndpoints:
         response = app.post(
             "/test/tokens",
             json={"subject": "new-test-user@example.com"},
+            headers=auth_headers
         )
         assert response.status_code == 200
 
@@ -489,21 +507,21 @@ class TestAdminEndpoints:
         assert principal.subject == "new-test-user@example.com"
         assert principal.has_group("test-group")
 
-    def test_get_user(self, app):
+    def test_get_user(self, app, auth_headers):
         """Can retrieve user details."""
-        response = app.get("/test/users/admin@local.test")
+        response = app.get("/test/users/admin@local.test", headers=auth_headers)
         assert response.status_code == 200
 
         data = response.json()
         assert data["subject"] == "admin@local.test"
         assert data["principal_type"] == "HUMAN"
 
-    def test_get_nonexistent_user(self, app):
+    def test_get_nonexistent_user(self, app, auth_headers):
         """404 for nonexistent user."""
-        response = app.get("/test/users/nonexistent@example.com")
+        response = app.get("/test/users/nonexistent@example.com", headers=auth_headers)
         assert response.status_code == 404
 
-    def test_create_token_directly(self, app, verifier):
+    def test_create_token_directly(self, app, verifier, auth_headers):
         """Can create tokens with custom claims."""
         response = app.post(
             "/test/tokens",
@@ -512,6 +530,7 @@ class TestAdminEndpoints:
                 "ttl_seconds": 60,
                 "additional_claims": {"custom": "value"},
             },
+            headers=auth_headers
         )
         assert response.status_code == 200
 

@@ -51,7 +51,8 @@ run_smoke_test() {
     local TOKEN_JSON
     TOKEN_JSON=$(curl -s -X POST "$AUTH_URL/test/tokens" \
       -H "Content-Type: application/json" \
-      -d '{"subject": "admin@local.test", "principal_type": "HUMAN", "groups": ["hr-platform-admins"], "additional_claims": {"amr": ["mfa"]}}' 2>/dev/null)
+      -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+      -d '{"subject": "EMP001", "principal_type": "HUMAN", "groups": ["employees"], "additional_claims": {"amr": ["mfa"]}}' 2>/dev/null)
 
     if [ -z "$TOKEN_JSON" ]; then
         echo "Error: Failed to obtain response from $AUTH_URL"
