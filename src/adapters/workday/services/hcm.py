@@ -2,8 +2,10 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
 from src.adapters.workday.exceptions import WorkdayError, EmployeeNotFoundError
+from src.adapters.workday.domain.hcm_models import EmployeePhone
 
 class WorkdayHCMService:
+
     def __init__(self, simulator):
         self.simulator = simulator
 
@@ -252,19 +254,18 @@ class WorkdayHCMService:
             # Assumes employee.phone is an object/model
             phone_updates = updates["phone"]
             if not getattr(employee, "phone", None):
-                # Init phone object if missing (simplified)
-                 class Phone: pass
-                 employee.phone = Phone()
+                employee.phone = EmployeePhone()
             
             for key, val in phone_updates.items():
-                old_val = getattr(employee.phone, key, None)
-                if old_val != val:
-                    setattr(employee.phone, key, val)
-                    changes.append({
-                        "field": f"phone.{key}",
-                        "old_value": old_val,
-                        "new_value": val
-                    })
+                if hasattr(employee.phone, key):
+                    old_val = getattr(employee.phone, key, None)
+                    if old_val != val:
+                        setattr(employee.phone, key, val)
+                        changes.append({
+                            "field": f"phone.{key}",
+                            "old_value": old_val,
+                            "new_value": val
+                        })
 
         return {
             "employee_id": employee_id,
