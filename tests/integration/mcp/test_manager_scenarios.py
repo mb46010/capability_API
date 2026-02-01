@@ -8,20 +8,17 @@ from src.mcp.tools.time import approve_time_off
 @pytest.mark.asyncio
 @patch("src.mcp.tools.hcm.get_mcp_token")
 @patch("src.mcp.tools.time.get_mcp_token")
-async def test_manager_approve_flow(mock_time_token, mock_hcm_token):
+async def test_manager_approve_flow(mock_time_token, mock_hcm_token, issue_token):
     """Verify manager can list reports and approve requests."""
     # Mock token exchange
     mock_hcm_token.side_effect = lambda t: f"mcp-{t}"
     mock_time_token.side_effect = lambda t: f"mcp-{t}"
     
-    token_payload = {
-
-
-        "sub": "MGR001",
-        "principal_type": "HUMAN",
-        "groups": ["hr-platform-admins"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(
+        subject="MGR001",
+        principal_type="HUMAN",
+        groups=["hr-platform-admins"]
+    )
     
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}

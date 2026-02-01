@@ -5,11 +5,36 @@ import logging
 import time
 import httpx
 from src.mcp.lib.config import settings
+from src.adapters.auth import (
+    create_token_verifier,
+    AuthConfig,
+    TokenVerifier,
+    TokenVerificationError,
+)
 
 logger = logging.getLogger(__name__)
 
 # Token Cache: Key = user_token_signature, Value = (mcp_token, expires_at_timestamp)
 _mcp_token_cache: Dict[str, Tuple[str, float]] = {}
+
+# Global verifier instance
+_verifier: Optional[TokenVerifier] = None
+
+def get_verifier() -> TokenVerifier:
+    """Lazy initialization of token verifier."""
+    global _verifier
+    if _verifier is None:
+        if settings.ENVIRONMENT == "local":
+            config = AuthConfig.for_local_development()
+            config.issuer = settings.OKTA_ISSUER
+            config.audience = settings.CAPABILITY_API_AUDIENCE
+        else:
+            config = AuthConfig.for_production(
+                issuer=settings.OKTA_ISSUER,
+                audience=settings.CAPABILITY_API_AUDIENCE,
+            )
+        _verifier = create_token_verifier(config)
+    return _verifier
 
 class PrincipalContext(BaseModel):
     subject: str
@@ -19,23 +44,26 @@ class PrincipalContext(BaseModel):
     raw_token: str
 
 def extract_principal(token: str) -> Optional[PrincipalContext]:
+    """
+    Extract and verify principal from JWT token.
+    Enforces signature verification and standard claims validation.
+    """
     try:
-        # Decode without verification - backend will verify. 
-        # We just need the claims for tool discovery logic.
-        payload = jwt.decode(token, options={"verify_signature": False})
-        
-        amr = payload.get("amr", [])
-        mfa_verified = "mfa" in amr
+        verifier = get_verifier()
+        principal = verifier.verify(token)
         
         return PrincipalContext(
-            subject=payload.get("sub", "unknown"),
-            principal_type=payload.get("principal_type", "HUMAN"),
-            groups=payload.get("groups", []),
-            mfa_verified=mfa_verified,
+            subject=principal.subject,
+            principal_type=principal.principal_type.value,
+            groups=principal.groups,
+            mfa_verified=principal.mfa_verified,
             raw_token=token
         )
+    except TokenVerificationError as e:
+        logger.error(f"Token verification failed: {str(e)} (code={e.error_code})")
+        return None
     except Exception as e:
-        logger.error(f"Failed to decode token: {str(e)}")
+        logger.error(f"Failed to process token: {str(e)}")
         return None
 
 def get_token_from_context(ctx: Any) -> Optional[str]:

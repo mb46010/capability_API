@@ -5,18 +5,16 @@ from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
 @patch("src.mcp.tools.time.get_mcp_token")
-async def test_employee_request_time_off_success(mock_mcp_token):
+async def test_employee_request_time_off_success(mock_mcp_token, issue_token):
     """Verify an employee can request time off and see balance."""
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
-    token_payload = {
-
-        "sub": "EMP001", 
-        "principal_type": "HUMAN",
-        "groups": ["employees"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(
+        subject="EMP001", 
+        principal_type="HUMAN",
+        groups=["employees"]
+    )
     
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
@@ -40,17 +38,15 @@ async def test_employee_request_time_off_success(mock_mcp_token):
 
 @pytest.mark.asyncio
 @patch("src.mcp.tools.time.get_mcp_token")
-async def test_employee_get_balance(mock_mcp_token):
+async def test_employee_get_balance(mock_mcp_token, issue_token):
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
-    token_payload = {
-
-        "sub": "EMP001", 
-        "principal_type": "HUMAN",
-        "groups": ["employees"]
-    }
-    token = jwt.encode(token_payload, "secret", algorithm="HS256")
+    token = issue_token(
+        subject="EMP001", 
+        principal_type="HUMAN",
+        groups=["employees"]
+    )
     
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
