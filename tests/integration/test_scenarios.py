@@ -91,12 +91,15 @@ async def test_1_4_unauthorized_user_denied(async_client):
 @pytest.mark.asyncio
 async def test_1_5_machine_workflow_scoped_access(async_client, monkeypatch):
     """Test 1.5: Machine Workflow Scoped Access."""
-    monkeypatch.setenv("ENVIRONMENT", "dev")
+    # Patch the settings object directly (env var won't affect already-loaded settings)
+    from src.lib.config_validator import settings
+    monkeypatch.setattr(settings, "ENVIRONMENT", "dev")
+
     token = provider.issue_token(
-        subject="svc-workflow@local.test", 
+        subject="svc-workflow@local.test",
         principal_type="MACHINE"
     )
-    
+
     # Allowed: get_employee_full
     resp1 = await async_client.post(
         "/actions/workday.hcm/get_employee_full",
@@ -106,7 +109,7 @@ async def test_1_5_machine_workflow_scoped_access(async_client, monkeypatch):
     assert resp1.status_code == 200
     assert "national_id_last_four" in resp1.json()["data"]
 
-    # Denied: terminate_employee (not in policy for MACHINE)
+    # Denied: terminate_employee (not in policy for MACHINE in dev environment)
     resp2 = await async_client.post(
         "/actions/workday.hcm/terminate_employee",
         json={"parameters": {"employee_id": "EMP001", "termination_date": "2026-12-31", "reason_code": "VOLUNTARY_RESIGNATION"}},

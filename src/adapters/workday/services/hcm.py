@@ -275,5 +275,40 @@ class WorkdayHCMService:
             "changes": changes
         }
 
+    async def terminate_employee(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Initiate employee termination workflow."""
+        employee_id = params.get("employee_id")
+        termination_date = params.get("termination_date")
+        reason_code = params.get("reason_code")
 
-    
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        mfa_verified = params.get("mfa_verified", False)
+
+        if not employee_id:
+            raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+        if not termination_date:
+            raise WorkdayError("Missing termination_date", "INVALID_PARAMS")
+        if not reason_code:
+            raise WorkdayError("Missing reason_code", "INVALID_PARAMS")
+
+        # MFA required for termination (high sensitivity)
+        if not mfa_verified and principal_type != "MACHINE":
+            raise WorkdayError("MFA required for employee termination", "MFA_REQUIRED")
+
+        employee = self.simulator.employees.get(employee_id)
+        if not employee:
+            raise EmployeeNotFoundError(employee_id)
+
+        # Update employee status
+        employee.status = "PENDING_TERMINATION"
+
+        return {
+            "employee_id": employee_id,
+            "transaction_id": f"TERM-{uuid.uuid4().hex[:8]}",
+            "status": "PENDING_APPROVAL",
+            "termination_date": termination_date,
+            "reason_code": reason_code,
+            "initiated_by": principal_id,
+            "initiated_at": datetime.now(timezone.utc).isoformat()
+        }
