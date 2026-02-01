@@ -9,10 +9,15 @@ from tabulate import tabulate
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 from src.domain.services.policy_verifier import PolicyVerificationService
+from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+from src.adapters.filesystem.scenario_loader import FileScenarioLoaderAdapter
 
 def cmd_run(args):
-    verifier = PolicyVerificationService(args.policy)
+    policy_loader = FilePolicyLoaderAdapter(args.policy)
+    scenario_loader = FileScenarioLoaderAdapter()
+    verifier = PolicyVerificationService(policy_loader, scenario_loader)
     report = verifier.run_all_tests(args.scenarios)
+
     
     # Print summary
     print("=" * 60)
@@ -77,8 +82,11 @@ def cmd_run(args):
     sys.exit(0 if report.success else 1)
 
 def cmd_list_scenarios(args):
-    verifier = PolicyVerificationService(args.policy)
+    policy_loader = FilePolicyLoaderAdapter(args.policy)
+    scenario_loader = FileScenarioLoaderAdapter()
+    verifier = PolicyVerificationService(policy_loader, scenario_loader)
     suites = verifier.scenario_loader.load_all_test_suites(args.scenarios)
+
     
     print("Available Test Scenarios:")
     for suite in suites:

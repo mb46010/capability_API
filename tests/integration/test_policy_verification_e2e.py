@@ -1,6 +1,8 @@
 import pytest
 from pathlib import Path
 from src.domain.services.policy_verifier import PolicyVerificationService
+from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+from src.adapters.filesystem.scenario_loader import FileScenarioLoaderAdapter
 
 def test_full_verification_run():
     # Use the actual policy file
@@ -10,7 +12,7 @@ def test_full_verification_run():
     scenarios_dir = Path("tests/policy/scenarios_tmp")
     scenarios_dir.mkdir(parents=True, exist_ok=True)
     
-    # Create a baseline scenario
+    # ... (baseline_content)
     baseline_content = """version: "1.0"
 metadata:
   name: "Baseline Integration Tests"
@@ -64,7 +66,9 @@ test_cases:
 """
     (scenarios_dir / "baseline.yaml").write_text(baseline_content)
     
-    verifier = PolicyVerificationService(policy_path)
+    policy_loader = FilePolicyLoaderAdapter(policy_path)
+    scenario_loader = FileScenarioLoaderAdapter()
+    verifier = PolicyVerificationService(policy_loader, scenario_loader)
     report = verifier.run_all_tests(str(scenarios_dir))
     
     # Cleanup
@@ -77,9 +81,12 @@ test_cases:
 
 def test_wildcard_matching():
     policy_path = "config/policy-workday.yaml"
-    verifier = PolicyVerificationService(policy_path)
+    policy_loader = FilePolicyLoaderAdapter(policy_path)
+    scenario_loader = FileScenarioLoaderAdapter()
+    verifier = PolicyVerificationService(policy_loader, scenario_loader)
     
     # Case that matches workday.*
+
     test = {
         "id": "WILD-001",
         "name": "Wildcard match test",

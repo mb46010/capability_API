@@ -1,13 +1,11 @@
 from typing import Optional, Dict, Any
+from src.domain.exceptions import ConnectorError
 
-class WorkdayError(Exception):
+class WorkdayError(ConnectorError):
     """Base error for all Workday simulator operations."""
     def __init__(self, message: str, error_code: str, details: Optional[Dict[str, Any]] = None, retry_allowed: bool = False):
-        super().__init__(message)
-        self.message = message
-        self.error_code = error_code
-        self.details = details or {}
-        self.retry_allowed = retry_allowed
+        super().__init__(message, error_code, details, retry_allowed)
+
 
 class EmployeeNotFoundError(WorkdayError):
     def __init__(self, employee_id: str):

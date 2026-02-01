@@ -5,12 +5,13 @@ from pathlib import Path
 
 from src.domain.entities.policy_test import PolicyTestSuite, PolicyTestCase, TestPrincipal, TestRequest
 from src.domain.services.policy_engine import PolicyEngine
-from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
-from src.adapters.filesystem.scenario_loader import FileScenarioLoaderAdapter
+from src.domain.ports.policy_loader import PolicyLoaderPort
+from src.domain.ports.scenario_loader import ScenarioLoaderPort
 
 
 @dataclass
 class TestResult:
+
     """Result of a single test case execution."""
     test_id: str
     test_name: str
@@ -47,12 +48,12 @@ class PolicyVerificationService:
     Service for verifying policies against test scenarios.
     """
 
-    def __init__(self, policy_path: str):
+    def __init__(self, policy_loader: PolicyLoaderPort, scenario_loader: ScenarioLoaderPort):
         # Load policy
-        loader = FilePolicyLoaderAdapter(policy_path)
-        policy = loader.load_policy()
+        policy = policy_loader.load_policy()
         self.policy_engine = PolicyEngine(policy)
-        self.scenario_loader = FileScenarioLoaderAdapter()
+        self.scenario_loader = scenario_loader
+
 
     def run_test_case(self, test: PolicyTestCase, suite_defaults: Optional[Dict[str, Any]] = None) -> TestResult:
         """Execute a single test case."""

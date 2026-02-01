@@ -14,9 +14,10 @@ from src.domain.entities.action import (
     ProvenanceWrapper,
     SecurityContext,
 )
-from src.adapters.workday.exceptions import WorkdayError
+from src.domain.exceptions import ConnectorError
 
 logger = logging.getLogger(__name__)
+
 
 class ActionService:
     """
@@ -44,14 +45,15 @@ class ActionService:
         if self.registry.exists(capability_id):
             return capability_id
             
-        # 2. Try with subdomain expansion (workday -> workday.hcm, etc.)
-        if domain == "workday":
-            for subdomain in ["hcm", "time", "payroll"]:
-                full_id = f"workday.{subdomain}.{action}"
-                if self.registry.exists(full_id):
-                    return full_id
+        # 2. Try with subdomain expansion (e.g., workday -> workday.hcm, etc.)
+        subdomains = self.registry.get_subdomains(domain)
+        for subdomain in subdomains:
+            full_id = f"{domain}.{subdomain}.{action}"
+            if self.registry.exists(full_id):
+                return full_id
                     
         # 3. Not found - provide helpful error with suggestions
+
         similar = self.registry._find_similar(capability_id)
         if similar:
             raise HTTPException(
@@ -140,10 +142,11 @@ class ActionService:
             # For MVP, we route everything to the single injected connector
             # In real world, we'd route based on 'domain' to specific connectors
             result_data = await self.connector.execute(action, enriched_params)
-        except WorkdayError:
-            # Let Workday-specific errors bubble up to main.py handler
+        except ConnectorError:
+            # Let Connector-specific errors bubble up
             raise
         except Exception as e:
+
             # Fail-fast logic
             if "not found" in str(e).lower():
                 raise HTTPException(status_code=404, detail=str(e))

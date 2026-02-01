@@ -83,7 +83,21 @@ class CapabilityRegistryService:
         return matches
 
 
+    def get_subdomains(self, domain: str) -> Set[str]:
+        """Derive subdomains for a given domain from registered capability names."""
+        subdomains = set()
+        prefix = domain + "."
+        for cap_id in self._capability_map.keys():
+            if cap_id.startswith(prefix):
+                # "workday.hcm.read_employee" -> "hcm"
+                remaining = cap_id[len(prefix):]
+                if "." in remaining:
+                    parts = remaining.split(".", 1)
+                    subdomains.add(parts[0])
+        return subdomains
+
     def validate_capability_list(self, capabilities: List[str]) -> List[str]:
+
         """
         Validate a list of capability strings (from policy).
         Returns list of error messages (empty if valid).

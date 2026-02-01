@@ -65,10 +65,14 @@ test_cases:
     suite = loader.load_test_suite(str(scenario_file))
     
     from src.domain.services.policy_verifier import PolicyVerificationService
+    from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+    
     # Mocking PolicyEngine since we only test merging here
-    verifier = PolicyVerificationService("config/policy-workday.yaml")
+    policy_loader = FilePolicyLoaderAdapter("config/policy-workday.yaml")
+    verifier = PolicyVerificationService(policy_loader, loader)
     
     test_case = suite.test_cases[0]
+
     # In my implementation, run_test_case handles merging
     # I'll verify the request environment is None before merging and 'prod' after
     assert test_case.request.environment is None
@@ -80,9 +84,14 @@ test_cases:
 
 def test_report_export_formats():
     from src.domain.services.policy_verifier import PolicyVerificationService, VerificationReport, TestResult
+    from src.adapters.filesystem.policy_loader import FilePolicyLoaderAdapter
+    from src.adapters.filesystem.scenario_loader import FileScenarioLoaderAdapter
     
-    verifier = PolicyVerificationService("config/policy-workday.yaml")
+    policy_loader = FilePolicyLoaderAdapter("config/policy-workday.yaml")
+    scenario_loader = FileScenarioLoaderAdapter()
+    verifier = PolicyVerificationService(policy_loader, scenario_loader)
     report = VerificationReport(
+
         total_tests=1,
         passed=1,
         results=[TestResult(test_id="T1", test_name="T1", passed=True, expected_allowed=True, actual_allowed=True)]
