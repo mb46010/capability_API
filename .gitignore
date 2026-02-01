@@ -12,3 +12,4 @@ logs/
 .coverage
 htmlcov/
 .gemini/settings.json
+.claude/**/*

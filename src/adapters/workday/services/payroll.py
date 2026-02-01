@@ -20,12 +20,8 @@ class WorkdayPayrollService:
              raise WorkdayError(f"Principal {principal_id} cannot access compensation for {employee_id}", "UNAUTHORIZED")
 
         # 2. MFA Check (High Sensitivity)
-        # Allow MACHINE to bypass MFA for automated processes (if authorized by policy)
         if not mfa_verified and principal_type != "MACHINE":
-             # For direct simulator tests without principal context, we might want to be lenient
-             # but to keep it secure we expect mfa_verified=True in params if not machine.
-             if principal_id or principal_type:
-                 raise WorkdayError("MFA required for compensation access", "MFA_REQUIRED")
+            raise WorkdayError("MFA required for compensation access", "MFA_REQUIRED")
 
         # 3. Retrieve Data
         comp = self.simulator.compensation.get(employee_id)
@@ -55,9 +51,21 @@ class WorkdayPayrollService:
         employee_id = params.get("employee_id")
         year = params.get("year")
         
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        mfa_verified = params.get("mfa_verified", False)
+
         if not employee_id:
             raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
             
+        # Auth Check
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+             raise WorkdayError(f"Principal {principal_id} cannot access statements for {employee_id}", "UNAUTHORIZED")
+
+        # MFA Check
+        if not mfa_verified and principal_type != "MACHINE":
+            raise WorkdayError("MFA required for pay statement access", "MFA_REQUIRED")
+
         statements = [
             s.model_dump() for s in self.simulator.statements.values()
             if s.employee_id == employee_id and (not year or s.pay_date.year == int(year))
@@ -71,6 +79,11 @@ class WorkdayPayrollService:
 
     async def get_pay_statement(self, params: Dict[str, Any]) -> Dict[str, Any]:
         statement_id = params.get("statement_id")
+        
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        mfa_verified = params.get("mfa_verified", False)
+
         if not statement_id:
              raise WorkdayError("Missing statement_id", "INVALID_PARAMS")
              
@@ -78,4 +91,12 @@ class WorkdayPayrollService:
         if not statement:
              raise StatementNotFoundError(statement_id)
              
+        # Auth Check
+        if principal_type == "HUMAN" and principal_id and principal_id != statement.employee_id:
+             raise WorkdayError(f"Principal {principal_id} cannot access statement {statement_id}", "UNAUTHORIZED")
+
+        # MFA Check
+        if not mfa_verified and principal_type != "MACHINE":
+            raise WorkdayError("MFA required for pay statement access", "MFA_REQUIRED")
+
         return statement.model_dump()

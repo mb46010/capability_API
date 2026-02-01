@@ -4,7 +4,7 @@ from src.adapters.workday.client import WorkdaySimulator
 @pytest.mark.asyncio
 async def test_payroll_get_compensation():
     simulator = WorkdaySimulator()
-    result = await simulator.execute("workday.payroll.get_compensation", {"employee_id": "EMP001"})
+    result = await simulator.execute("workday.payroll.get_compensation", {"employee_id": "EMP001", "mfa_verified": True})
     
     assert result["employee_id"] == "EMP001"
     assert result["compensation"]["base_salary"]["amount"] == 185000
@@ -12,7 +12,7 @@ async def test_payroll_get_compensation():
 @pytest.mark.asyncio
 async def test_payroll_list_pay_statements():
     simulator = WorkdaySimulator()
-    result = await simulator.execute("workday.payroll.list_pay_statements", {"employee_id": "EMP001", "year": 2026})
+    result = await simulator.execute("workday.payroll.list_pay_statements", {"employee_id": "EMP001", "year": 2026, "mfa_verified": True})
     
     assert result["employee_id"] == "EMP001"
     assert len(result["statements"]) >= 1
@@ -21,7 +21,8 @@ async def test_payroll_list_pay_statements():
 @pytest.mark.asyncio
 async def test_payroll_get_pay_statement():
     simulator = WorkdaySimulator()
-    result = await simulator.execute("workday.payroll.get_pay_statement", {"statement_id": "PAY-2026-01"})
+    result = await simulator.execute("workday.payroll.get_pay_statement", {"statement_id": "PAY-2026-01", "mfa_verified": True})
     
     assert result["statement_id"] == "PAY-2026-01"
     assert result["net_pay"] == 3546.06
+

@@ -76,7 +76,9 @@ async def test_approve_time_off_success(service):
     params = {
         "request_id": req_id,
         "principal_id": "EMP042", # Manager
-        "principal_type": "HUMAN"
+        "principal_type": "HUMAN",
+        "mfa_verified": True
     }
     result = await service.approve(params)
     assert result["status"] == "APPROVED"
+

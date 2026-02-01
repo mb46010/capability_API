@@ -299,10 +299,11 @@ class MockOktaProvider:
     def exchange_token(
         self,
         subject_token: str,
-        scope: str = "mcp:use",
+        scope: str | list[str] = "mcp:use",
         audience: str | None = None,
         requested_token_type: str = "urn:ietf:params:oauth:token-type:access_token",
     ) -> str:
+
         """
         Exchange a subject token for a new scoped token (RFC 8693).
         

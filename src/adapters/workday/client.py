@@ -92,8 +92,10 @@ class WorkdaySimulator(ConnectorPort):
         handler = (
             getattr(self.hcm_service, method_name, None) or
             getattr(self.time_service, method_name, None) or
+            getattr(self.payroll_service, method_name, None) or
             getattr(self, f"_{method_name}", None)
         )
+
             
         if not handler:
             # Provide a helpful error message with available methods

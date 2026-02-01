@@ -54,17 +54,18 @@ def service(mock_state):
 
 @pytest.mark.asyncio
 async def test_get_compensation_success(service):
-    result = await service.get_compensation({"employee_id": "EMP001"})
+    result = await service.get_compensation({"employee_id": "EMP001", "mfa_verified": True})
     assert result["employee_id"] == "EMP001"
     assert result["compensation"]["base_salary"]["amount"] == 100000
 
 @pytest.mark.asyncio
 async def test_get_compensation_not_found(service):
     with pytest.raises(EmployeeNotFoundError):
-        await service.get_compensation({"employee_id": "NON_EXISTENT"})
+        await service.get_compensation({"employee_id": "NON_EXISTENT", "mfa_verified": True})
 
 @pytest.mark.asyncio
 async def test_list_pay_statements(service):
-    result = await service.list_pay_statements({"employee_id": "EMP001", "year": 2023})
+    result = await service.list_pay_statements({"employee_id": "EMP001", "year": 2023, "mfa_verified": True})
     assert result["count"] == 1
     assert result["statements"][0]["statement_id"] == "PAY-001"
+

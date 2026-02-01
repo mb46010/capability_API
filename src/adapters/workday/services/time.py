@@ -203,11 +203,17 @@ class WorkdayTimeService:
         request_id = params.get("request_id")
         principal_id = params.get("principal_id") or params.get("approver_id")
         principal_type = params.get("principal_type")
+        mfa_verified = params.get("mfa_verified", False)
 
         if not request_id:
              raise WorkdayError("Missing request_id", "INVALID_PARAMS")
              
+        # 1. MFA Check (High Sensitivity Manager Action)
+        if not mfa_verified and principal_type != "MACHINE":
+            raise WorkdayError("MFA required for time-off approval", "MFA_REQUIRED")
+
         request = self.simulator.requests.get(request_id)
+
         if not request:
             raise RequestNotFoundError(request_id)
 

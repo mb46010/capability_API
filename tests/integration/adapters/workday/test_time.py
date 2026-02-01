@@ -31,9 +31,11 @@ async def test_time_request_lifecycle():
     # 2. Approve
     app_result = await simulator.execute("workday.time.approve", {
         "request_id": request_id,
-        "approver_id": "EMP042"
+        "approver_id": "EMP042",
+        "mfa_verified": True
     })
     assert app_result["status"] == "APPROVED"
+
     
     # 3. Verify balance reduction
     bal_result = await simulator.execute("workday.time.get_balance", {"employee_id": "EMP001"})
