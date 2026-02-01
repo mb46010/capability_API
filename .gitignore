@@ -14,3 +14,4 @@ htmlcov/
 .gemini/settings.json
 .claude/**/*
 tests/policy/reports/demo_report.html
+.codex/**/*
