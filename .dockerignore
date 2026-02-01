@@ -20,6 +20,7 @@ coverage.xml
 .gitignore
 .dockerignore
 Dockerfile
+Dockerfile.agent
 README.md
 node_modules/
 .git/
