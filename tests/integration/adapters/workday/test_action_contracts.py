@@ -113,7 +113,12 @@ async def test_contract_approve_time_off(async_client):
     request_id = req_resp.json()["data"]["request_id"]
     
     # 2. Approve as Manager (EMP042 is manager of EMP001 in fixtures)
-    token_mgr = provider.issue_token(subject="EMP042", groups=["people-managers"])
+    token_mgr = provider.issue_token(
+        subject="EMP042", 
+        groups=["people-managers"],
+        additional_claims={"amr": ["mfa", "pwd"]}
+    )
+
     
     response = await async_client.post(
         "/actions/workday.time/approve",

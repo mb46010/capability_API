@@ -5,9 +5,14 @@ from src.mcp.tools.payroll import get_compensation
 
 @pytest.mark.asyncio
 @patch("src.mcp.tools.payroll.backend_client.call_action")
-async def test_get_compensation_mfa_missing(mock_call):
+@patch("src.mcp.tools.payroll.get_mcp_token")
+async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call):
     """Verify tool returns error if token lacks MFA claim (even for ADMIN)."""
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     # Principal WITH ADMIN group but WITHOUT MFA
+
     token_payload = {
         "sub": "EMP001", 
         "principal_type": "HUMAN", 
@@ -26,9 +31,14 @@ async def test_get_compensation_mfa_missing(mock_call):
 
 @pytest.mark.asyncio
 @patch("src.mcp.tools.payroll.backend_client.call_action")
-async def test_get_compensation_mfa_present(mock_call):
+@patch("src.mcp.tools.payroll.get_mcp_token")
+async def test_get_compensation_mfa_present(mock_mcp_token, mock_call):
     """Verify tool calls backend if token HAS MFA claim and ADMIN role."""
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     # Principal WITH ADMIN group and WITH MFA
+
     token_payload = {
         "sub": "EMP001", 
         "principal_type": "HUMAN", 

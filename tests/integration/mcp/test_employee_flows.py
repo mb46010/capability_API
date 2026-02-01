@@ -4,9 +4,14 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
-async def test_employee_request_time_off_success():
+@patch("src.mcp.tools.time.get_mcp_token")
+async def test_employee_request_time_off_success(mock_mcp_token):
     """Verify an employee can request time off and see balance."""
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     token_payload = {
+
         "sub": "EMP001", 
         "principal_type": "HUMAN",
         "groups": ["employees"]
@@ -34,8 +39,13 @@ async def test_employee_request_time_off_success():
         mock_call.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_employee_get_balance():
+@patch("src.mcp.tools.time.get_mcp_token")
+async def test_employee_get_balance(mock_mcp_token):
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     token_payload = {
+
         "sub": "EMP001", 
         "principal_type": "HUMAN",
         "groups": ["employees"]

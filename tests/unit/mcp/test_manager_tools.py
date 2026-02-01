@@ -5,8 +5,13 @@ from src.mcp.tools.hcm import list_direct_reports
 
 @pytest.mark.asyncio
 @patch("src.mcp.tools.hcm.backend_client.call_action")
-async def test_list_direct_reports_success(mock_call):
+@patch("src.mcp.tools.hcm.get_mcp_token")
+async def test_list_direct_reports_success(mock_mcp_token, mock_call):
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     # 1. Create a valid mock token for an ADMIN
+
     token_payload = {
         "sub": "MGR001",
         "principal_type": "HUMAN",

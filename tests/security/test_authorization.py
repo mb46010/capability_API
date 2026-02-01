@@ -16,10 +16,9 @@ class TestSecurityBoundaries:
     """Demonstrate that authorization is enforced at multiple layers"""
 
     def test_ai_agent_cannot_see_salary(self):
-        """AI agents are denied access to compensation data"""
         # Get AI agent token
         token_resp = client.post(
-            "/test/tokens", json={"subject": "agent-assistant@local.test"}
+            "/auth/test/tokens", json={"subject": "agent-assistant@local.test"}
         )
         token = token_resp.json()["access_token"]
 
@@ -38,7 +37,7 @@ class TestSecurityBoundaries:
         """AI agents see limited employee fields"""
         # Get AI agent token
         token_resp = client.post(
-            "/test/tokens", json={"subject": "agent-assistant@local.test"}
+            "/auth/test/tokens", json={"subject": "agent-assistant@local.test"}
         )
         token = token_resp.json()["access_token"]
 
@@ -61,7 +60,7 @@ class TestSecurityBoundaries:
     def test_user_cannot_access_others_data(self):
         """Users can only access their own data"""
         # Get token for EMP001
-        token_resp = client.post("/test/tokens", json={"subject": "EMP001"})
+        token_resp = client.post("/auth/test/tokens", json={"subject": "EMP001"})
         token = token_resp.json()["access_token"]
 
         # Try to access EMP042's data
@@ -78,7 +77,7 @@ class TestSecurityBoundaries:
         """Compensation access requires MFA"""
         # Get token WITHOUT MFA
         token_resp = client.post(
-            "/test/tokens",
+            "/auth/test/tokens",
             json={
                 "subject": "EMP001"
                 # No MFA claim

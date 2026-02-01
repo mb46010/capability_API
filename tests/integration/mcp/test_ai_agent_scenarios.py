@@ -5,12 +5,17 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
-async def test_ai_agent_get_employee_filtered():
+@patch("src.mcp.tools.hcm.get_mcp_token")
+async def test_ai_agent_get_employee_filtered(mock_mcp_token):
     """
     Integration-style test for AI Agent lookup.
     Mocks the backend response and verifies the MCP tool passes it through.
     """
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     # 1. Create a mock token for AI Agent
+
     token_payload = {
         "sub": "agent-001",
         "principal_type": "AI_AGENT",
@@ -50,9 +55,14 @@ async def test_ai_agent_get_employee_filtered():
         mock_call.assert_called_once()
 
 @pytest.mark.asyncio
-async def test_ai_agent_update_contact_info():
+@patch("src.mcp.tools.hcm.get_mcp_token")
+async def test_ai_agent_update_contact_info(mock_mcp_token):
     """Verify AI Agent can call update_contact_info (No MFA required in MCP)."""
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     token_payload = {"sub": "agent-001", "principal_type": "AI_AGENT"}
+
     token = jwt.encode(token_payload, "secret", algorithm="HS256")
     
     mock_backend_response = {"data": {"status": "APPLIED", "transaction_id": "TXN-123"}}

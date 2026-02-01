@@ -3,9 +3,14 @@ import jwt
 from unittest.mock import AsyncMock, patch, MagicMock
 
 @pytest.mark.asyncio
-async def test_payroll_mfa_enforcement():
+@patch("src.mcp.tools.payroll.get_mcp_token")
+async def test_payroll_mfa_enforcement(mock_mcp_token):
     """Verify Payroll tools enforce MFA at MCP layer for ADMINs."""
+    # Mock token exchange
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
+    
     # 1. No MFA token (but is an ADMIN)
+
     token_payload = {
         "sub": "ADM001", 
         "principal_type": "HUMAN", 
