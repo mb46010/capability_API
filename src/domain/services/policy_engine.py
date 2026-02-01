@@ -16,7 +16,12 @@ class PolicyEngine:
     def __init__(self, policy: AccessPolicy):
         self.policy = policy
 
+    def reload(self, policy: AccessPolicy):
+        """Re-initialize with a new policy object."""
+        self.policy = policy
+
     def evaluate(
+
         self,
         principal_id: str,
         principal_groups: List[str],

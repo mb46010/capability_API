@@ -116,7 +116,13 @@ app.include_router(actions.router)
 app.include_router(flows.router)
 app.include_router(audit.router)
 
+# Mount demo reset endpoint if enabled
+if os.getenv("ENABLE_DEMO_RESET", "false").lower() == "true":
+    from src.api.routes import demo
+    app.include_router(demo.router)
+
 # Mount mock Okta provider routes in local environment for testing
+
 if settings.ENVIRONMENT == "local":
     from src.adapters.auth import create_mock_okta_app
     from src.api.dependencies import provider
