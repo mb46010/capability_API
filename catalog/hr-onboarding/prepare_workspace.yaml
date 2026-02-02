@@ -1,0 +1,37 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.onboarding.prepare_workspace
+  title: Prepare Employee Workspace
+  description: Orchestrates workspace setup by fetching employee details and manager info.
+  tags:
+    - onboarding
+    - automation
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: flow
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    # Prepare Employee Workspace
+    
+    Orchestrates workspace setup by fetching employee details and manager info.
+    
+    ### Implementation Flow
+    
+    ```mermaid
+    graph TD
+  A[Start] -->|workday.hcm.get_employee| B[Get Profile]
+  B -->|workday.hcm.get_manager_chain| C[Get Manager]
+  C --> D[Finalize Workspace]
+
+    ```

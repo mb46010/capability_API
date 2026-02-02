@@ -41,7 +41,55 @@ In Backstage, navigate to the **Capability API** component and select the **Docs
 
 ---
 
-## 3. Continuous Sync (CI/CD)
+## 3. Getting Started
+
+### Prerequisites
+- **Node.js**: Version 18 or 20.
+- **Yarn**: Classic (`1.x`).
+- **Docker**: Required for running TechDocs locally and some plugins.
+
+### Installation
+If you don't have a Backstage instance, you can create a new one:
+```bash
+npx @backstage/create-app@latest
+```
+Follow the prompts to name your app and select the database (SQLite is easiest for local testing).
+
+### Configuring this Repository
+To see the Capability API governance data in your Backstage instance, you need to register the root `catalog-info.yaml` file.
+
+1.  **Generate the Catalog**:
+    ```bash
+    python3 scripts/generate_catalog.py
+    ./scripts/verify-policy run
+    ```
+
+2.  **Register in Backstage (Local Development)**:
+    Since the Backstage UI often blocks `file://` paths for security, the recommended way to register local files is by adding them to your `app-config.yaml`:
+
+    ```yaml
+    # In your Backstage project's app-config.yaml
+    catalog:
+      locations:
+        - type: file
+          target: /absolute/path/to/capability_API/catalog-info.yaml
+    ```
+
+3.  **Register in Backstage (Production)**:
+    Once your code is pushed to a Git provider (GitHub, GitLab, etc.), you can use the URL to the file in the UI:
+    - Open Backstage (e.g., `http://localhost:3000`).
+    - Click **Register Existing Component**.
+    - Enter the URL: `https://github.com/your-org/capability_API/blob/main/catalog-info.yaml`
+
+### TechDocs Setup
+To view the verification reports locally, ensure you have the `mkdocs` and `mkdocs-techdocs-core` plugin installed, or use the Backstage CLI to preview:
+```bash
+npx @backstage/cli techdocs-cli preview --storage-name local
+```
+
+---
+
+## 4. Continuous Sync (CI/CD)
 Governance visibility is enforced through our GitHub Actions workflows:
 - **Sync Check**: PRs are blocked if the catalog entities in `catalog/` are out of sync with `config/capabilities/index.yaml`.
 - **Automatic Publishing**: The verification report is regenerated and published to TechDocs on every merge to `main`.
@@ -49,7 +97,10 @@ Governance visibility is enforced through our GitHub Actions workflows:
 ---
 
 ## Developer Reference
+- **Root Configuration**: `catalog-info.yaml` (Defines the Component, Systems, and Locations)
 - **Generator Script**: `scripts/generate_catalog.py`
+- **Verifier Script**: `scripts/verify-policy`
 - **Templates**: `scripts/templates/`
+- **TechDocs Home**: `docs/index.md`
 - **TechDocs Output**: `docs/policy-verification/latest.md`
 - **Configuration**: `mkdocs.yml`

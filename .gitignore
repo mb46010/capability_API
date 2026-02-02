@@ -15,3 +15,5 @@ htmlcov/
 .claude/**/*
 tests/policy/reports/demo_report.html
 .codex/**/*
+#hr-nexus/**/*
+

@@ -1,0 +1,32 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: capability-api
+  title: HR AI Capability API
+  description: Central governance platform for AI-to-Workday actions.
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-platform
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: hr-platform
+  title: HR AI Platform
+  description: The core platform for HR AI automation.
+spec:
+  owner: platform-engineering
+---
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: platform-engineering
+  title: Platform Engineering
+  description: The team responsible for the internal platform
+spec:
+  type: team
+  children: []

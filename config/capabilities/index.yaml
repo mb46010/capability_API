@@ -146,7 +146,7 @@ capabilities:
   - id: "hr.onboarding.prepare_workspace"
     name: "Prepare Employee Workspace"
     domain: "hr"
-    type: "composite"
+    type: "flow"
     sensitivity: "medium"
     tags: ["onboarding", "automation"]
     description: "Orchestrates workspace setup by fetching employee details and manager info."
