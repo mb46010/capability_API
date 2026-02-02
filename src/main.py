@@ -14,6 +14,7 @@ from src.api.routes import actions, flows, audit
 from src.domain.entities.error import ErrorResponse
 from src.adapters.workday.exceptions import WorkdayError
 from src.lib.config_validator import settings
+from src import __version__
 
 # Initialize structured logging
 log_level = logging.DEBUG if settings.ENVIRONMENT in ["local", "dev"] else logging.INFO
@@ -217,43 +218,56 @@ async def health_check(
     connector: ConnectorPort = Depends(get_connector)
 ):
     """
-    Health check endpoint verifying core dependencies.
+    Enhanced health check endpoint with detailed dependency probes.
     """
+    start = time.time()
     health_status = {
         "status": "ok",
+        "version": __version__,
         "environment": settings.ENVIRONMENT,
-        "dependencies": {
-            "policy_engine": "unknown",
-            "connector": "unknown"
-        }
+        "checks": {},
+        "response_time_ms": 0
     }
-    
-    # 1. Verify Policy Engine
+
+    # 1. Policy Engine Check
+    pe_start = time.time()
     try:
-        # Simple check: verify policy object exists
-        if policy_engine.policy:
-            health_status["dependencies"]["policy_engine"] = "ok"
-        else:
-            health_status["dependencies"]["policy_engine"] = "failed"
-            health_status["status"] = "degraded"
+        policy_count = len(policy_engine.policy.policies)
+        health_status["checks"]["policy_engine"] = {
+            "status": "ok",
+            "policy_count": policy_count,
+            "response_time_ms": round((time.time() - pe_start) * 1000, 2)
+        }
     except Exception as e:
-        health_status["dependencies"]["policy_engine"] = f"error: {str(e)}"
+        health_status["checks"]["policy_engine"] = {
+            "status": "error",
+            "error": str(e)
+        }
         health_status["status"] = "degraded"
 
-    # 2. Verify Connector (Workday Simulator)
+    # 2. Connector Check (Workday Simulator)
+    conn_start = time.time()
     try:
-        # Simple check: verify it's initialized (we could add a ping method to interface later)
-        if connector:
-            health_status["dependencies"]["connector"] = "ok"
-        else:
-            health_status["dependencies"]["connector"] = "failed"
-            health_status["status"] = "degraded"
+        # Check employee count as lightweight probe
+        # Note: We use hasattr because the interface doesn't guarantee .employees
+        employee_count = len(connector.employees) if hasattr(connector, 'employees') else 0
+        health_status["checks"]["connector"] = {
+            "status": "ok",
+            "type": type(connector).__name__,
+            "employee_count": employee_count,
+            "response_time_ms": round((time.time() - conn_start) * 1000, 2)
+        }
     except Exception as e:
-        health_status["dependencies"]["connector"] = f"error: {str(e)}"
+        health_status["checks"]["connector"] = {
+            "status": "error",
+            "error": str(e)
+        }
         health_status["status"] = "degraded"
+
+    health_status["response_time_ms"] = round((time.time() - start) * 1000, 2)
 
     if health_status["status"] != "ok":
-        # Return 503 if critical dependencies are missing
+        # Return 503 if any dependency is in error state
         raise HTTPException(status_code=503, detail=health_status)
 
     return health_status

@@ -15,25 +15,27 @@ These deliver high impact with minimal effort (2-4 hours each):
    - Effort: Low (2 hours) | Impact: High
    - Add timeout wrapper to prevent worker exhaustion from slow operations
 
-2. **[003-add-structured-request-logging.md](003-add-structured-request-logging.md)** - Enable request observability
+2. **[002-add-shared-test-fixtures.md](002-add-shared-test-fixtures.md)** - Reduce test boilerplate
+   - Effort: Low (2-3 hours) | Impact: Medium
+   - Centralize common fixtures (tokens, simulator) in conftest.py
+
+3. **[003-add-structured-request-logging.md](003-add-structured-request-logging.md)** - Enable request observability
    - Effort: Low (2 hours) | Impact: High
    - JSON-structured request logs with timing, status, and correlation IDs
+
+4. **[004-extract-mcp-tool-decorator.md](004-extract-mcp-tool-decorator.md)** - DRY up MCP tools
+   - Effort: Low (2-3 hours) | Impact: Medium
+   - Reduce ~300 lines of repetitive code to ~100 lines
+
+5. **[005-add-health-check-dependencies.md](005-add-health-check-dependencies.md)** - Better health probes
+   - Effort: Low (1-2 hours) | Impact: Medium
+   - Add response times, version info, and actual dependency tests
 
 **Total Quick Wins**: 2 improvements, ~4 hours total effort
 
 ## High-Value Improvements (Priority 2) - Schedule Soon
 
-1. **[002-add-shared-test-fixtures.md](002-add-shared-test-fixtures.md)** - Reduce test boilerplate
-   - Effort: Low (2-3 hours) | Impact: Medium
-   - Centralize common fixtures (tokens, simulator) in conftest.py
 
-2. **[004-extract-mcp-tool-decorator.md](004-extract-mcp-tool-decorator.md)** - DRY up MCP tools
-   - Effort: Low (2-3 hours) | Impact: Medium
-   - Reduce ~300 lines of repetitive code to ~100 lines
-
-3. **[005-add-health-check-dependencies.md](005-add-health-check-dependencies.md)** - Better health probes
-   - Effort: Low (1-2 hours) | Impact: Medium
-   - Add response times, version info, and actual dependency tests
 
 ## Strategic Improvements (Priority 3) - Plan Ahead
 
