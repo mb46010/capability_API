@@ -11,8 +11,8 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 ## Statistics
 
 - **Total Issues Found**: 12
-- **Fixed**: 9
-- **Remaining**: 3
+- **Fixed**: 10
+- **Remaining**: 2
 
 # Fixed (Done)
 
@@ -27,6 +27,7 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 | [007](done/007-idempotency-cache-unbounded.md) | Unbounded Idempotency Cache | `src/adapters/workday/client.py` | Fixed: Added cache eviction |
 | [008](done/008-mcp-token-cache-memory-leak.md) | MCP Token Cache Memory Leak | `src/mcp/adapters/auth.py` | Fixed: Added cache eviction |
 | [009](done/009-flow-status-idor.md) | Flow Status Information Disclosure | `src/domain/services/flow_service.py` | Fixed: Unified error responses |
+| [010](done/010-uvicorn-reload-production.md) | Uvicorn Reload in Production | `src/main.py` | Fixed: Environment-aware configuration |
 
 # Remaining (To Do)
 
@@ -34,7 +35,6 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 
 | # | Issue | File | Impact |
 |---|-------|------|--------|
-| [010](010-uvicorn-reload-production.md) | Uvicorn Reload in Production | `src/main.py` | Reload mode always enabled, performance overhead |
 | [011](011-circular-reference-dos.md) | Circular Reference Stack Overflow | `src/adapters/workday/services/hcm.py` | Org chart missing cycle detection |
 
 ## Medium Priority

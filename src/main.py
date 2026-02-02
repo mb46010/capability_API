@@ -195,9 +195,13 @@ async def health_check(
     return health_status
 
 if __name__ == "__main__":
+    is_development = settings.ENVIRONMENT in ["local", "dev"]
+
     uvicorn.run(
         "src.main:app",
         host="0.0.0.0",
         port=8000,
-        reload=True
+        reload=is_development,
+        workers=1 if is_development else 4,
+        log_level="debug" if is_development else "info"
     )
