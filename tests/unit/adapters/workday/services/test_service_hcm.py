@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 from src.adapters.workday.services.hcm import WorkdayHCMService
 from src.adapters.workday.domain.hcm_models import Employee, EmployeeName, EmployeeJob
 from src.adapters.workday.domain.types import EmployeeStatus
-from src.adapters.workday.exceptions import EmployeeNotFoundError
+from src.adapters.workday.exceptions import WorkdayError
 
 @pytest.fixture
 def mock_state():
@@ -33,8 +33,9 @@ async def test_get_employee_success(service):
 
 @pytest.mark.asyncio
 async def test_get_employee_not_found(service):
-    with pytest.raises(EmployeeNotFoundError):
+    with pytest.raises(WorkdayError) as excinfo:
         await service.get_employee({"employee_id": "NON_EXISTENT"})
+    assert str(excinfo.value) == "Access denied"
 
 @pytest.mark.asyncio
 async def test_list_direct_reports_empty(service):

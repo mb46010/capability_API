@@ -1,7 +1,7 @@
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 import uuid
-from src.adapters.workday.exceptions import WorkdayError, EmployeeNotFoundError
+from src.adapters.workday.exceptions import WorkdayError
 from src.adapters.workday.domain.hcm_models import EmployeePhone
 
 class WorkdayHCMService:
@@ -19,7 +19,7 @@ class WorkdayHCMService:
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise EmployeeNotFoundError(employee_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # Convert to dict
         data = employee.model_dump()
@@ -47,7 +47,7 @@ class WorkdayHCMService:
              raise WorkdayError("Missing root_id", "INVALID_PARAMS")
              
         if root_id not in self.simulator.employees:
-            raise EmployeeNotFoundError(root_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
             
         async def build_node(emp_id, current_depth):
             if current_depth > depth:
@@ -85,7 +85,7 @@ class WorkdayHCMService:
             if not n: return 0
             count = 1
             for child in n.get("reports", []):
-                count += count_nodes(child)
+                count += count_nodes(child);
             return count
 
         return {
@@ -99,7 +99,7 @@ class WorkdayHCMService:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
 
         if employee_id not in self.simulator.employees:
-            raise EmployeeNotFoundError(employee_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         chain = []
         visited = {employee_id}
@@ -111,8 +111,7 @@ class WorkdayHCMService:
             mgr_id = current_emp.manager.employee_id
             
             if mgr_id in visited:
-                path = " -> ".join(list(visited) + [mgr_id])
-                raise WorkdayError(f"Circular manager reference detected: {path}", "DATA_INTEGRITY_ERROR")
+                raise WorkdayError("Circular manager reference detected", "DATA_INTEGRITY_ERROR")
             
             if mgr_id not in self.simulator.employees:
                 break # Broken chain or external manager
@@ -155,10 +154,10 @@ class WorkdayHCMService:
 
         if principal_type == "HUMAN" and principal_id and principal_id != manager_id:
              # Only allow viewing own reports (unless admin/override)
-             raise WorkdayError(f"Principal {principal_id} cannot view reports for {manager_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
         
         if manager_id not in self.simulator.employees:
-             raise EmployeeNotFoundError(manager_id)
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         reports = []
         for emp in self.simulator.employees.values():
@@ -189,12 +188,19 @@ class WorkdayHCMService:
         employee_id = params.get("employee_id")
         updates = params.get("updates", {})
         
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
              
+        # Auth Check: Own Data Only
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
+
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise EmployeeNotFoundError(employee_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
             
         changes = []
         # Apply updates to the model
@@ -228,11 +234,11 @@ class WorkdayHCMService:
 
         # Auth Check: Own Data Only (unless admin)
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
-             raise WorkdayError(f"Principal {principal_id} cannot update data for {employee_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise EmployeeNotFoundError(employee_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # Apply Updates
         changes = []
@@ -298,7 +304,7 @@ class WorkdayHCMService:
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
-            raise EmployeeNotFoundError(employee_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # Update employee status
         employee.status = "PENDING_TERMINATION"

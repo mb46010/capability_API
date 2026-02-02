@@ -5,7 +5,7 @@ from src.adapters.workday.services.payroll import WorkdayPayrollService
 from src.adapters.workday.domain.payroll_models import Compensation, CompensationDetails, BaseSalary, PayStatement, PayPeriod, Earnings, Deductions, YearToDate
 from src.adapters.workday.domain.hcm_models import Employee, EmployeeName, EmployeeJob
 from src.adapters.workday.domain.types import EmployeeStatus
-from src.adapters.workday.exceptions import EmployeeNotFoundError
+from src.adapters.workday.exceptions import WorkdayError
 
 @pytest.fixture
 def mock_state():
@@ -60,8 +60,9 @@ async def test_get_compensation_success(service):
 
 @pytest.mark.asyncio
 async def test_get_compensation_not_found(service):
-    with pytest.raises(EmployeeNotFoundError):
+    with pytest.raises(WorkdayError) as excinfo:
         await service.get_compensation({"employee_id": "NON_EXISTENT", "mfa_verified": True})
+    assert str(excinfo.value) == "Access denied"
 
 @pytest.mark.asyncio
 async def test_list_pay_statements(service):

@@ -2,8 +2,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone, date
 import uuid
 from src.adapters.workday.exceptions import (
-    WorkdayError, InsufficientBalanceError, InvalidDateRangeError, 
-    RequestNotFoundError, EmployeeNotFoundError
+    WorkdayError, InsufficientBalanceError, InvalidDateRangeError
 )
 from src.adapters.workday.domain.time_models import TimeOffRequest, ManagerRef
 
@@ -36,12 +35,12 @@ class WorkdayTimeService:
 
         # Own Data Enforcement
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
-             raise WorkdayError(f"Principal {principal_id} cannot access data for {employee_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         balances = self.simulator.balances.get(employee_id)
         if balances is None:
             if employee_id not in self.simulator.employees:
-                 raise EmployeeNotFoundError(employee_id)
+                 raise WorkdayError("Access denied", "UNAUTHORIZED")
             balances = []
 
         return {
@@ -80,7 +79,7 @@ class WorkdayTimeService:
         balance_entry = next((b for b in balances if b.type == req_type), None)
         
         if not balance_entry:
-            raise WorkdayError(f"No balance found for type {req_type}", "INVALID_TYPE")
+            raise WorkdayError("Invalid time off type", "INVALID_TYPE")
             
         if (balance_entry.available_hours - balance_entry.pending_hours) < hours:
             raise InsufficientBalanceError(balance_entry.available_hours - balance_entry.pending_hours, hours)
@@ -125,9 +124,19 @@ class WorkdayTimeService:
 
     async def list_requests(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
+        
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
         if not employee_id:
             raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
             
+        # Auth Check: Self or Manager
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+            employee = self.simulator.employees.get(employee_id)
+            if not employee or not employee.manager or employee.manager.employee_id != principal_id:
+                raise WorkdayError("Access denied", "UNAUTHORIZED")
+
         requests = [
             r.model_dump() for r in self.simulator.requests.values()
             if r.employee_id == employee_id
@@ -140,13 +149,28 @@ class WorkdayTimeService:
 
     async def get_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
         request_id = params.get("request_id")
+        
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+
         if not request_id:
              raise WorkdayError("Missing request_id", "INVALID_PARAMS")
              
         request = self.simulator.requests.get(request_id)
         if not request:
-            raise RequestNotFoundError(request_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
             
+        # Auth Check: Request owner or manager can view
+        if principal_type == "HUMAN" and principal_id:
+            # Check owner
+            if principal_id == request.employee_id:
+                pass # OK
+            else:
+                # Check if manager
+                employee = self.simulator.employees.get(request.employee_id)
+                if not employee or not employee.manager or employee.manager.employee_id != principal_id:
+                    raise WorkdayError("Access denied", "UNAUTHORIZED")
+
         return request.model_dump()
 
     async def cancel(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -161,11 +185,11 @@ class WorkdayTimeService:
 
         request = self.simulator.requests.get(request_id)
         if not request:
-            raise RequestNotFoundError(request_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # Auth Check
         if principal_type == "HUMAN" and principal_id and principal_id != request.employee_id:
-             raise WorkdayError("Cannot cancel another employee's request", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         if request.status == "CANCELLED":
             return {
@@ -215,18 +239,18 @@ class WorkdayTimeService:
         request = self.simulator.requests.get(request_id)
 
         if not request:
-            raise RequestNotFoundError(request_id)
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(request.employee_id)
         if not employee:
-             raise WorkdayError("Employee for request not found", "DATA_INTEGRITY_ERROR")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
              
         if principal_type == "HUMAN" and principal_id:
             if not employee.manager or employee.manager.employee_id != principal_id:
-                raise WorkdayError(f"Principal {principal_id} is not the manager of {request.employee_id}", "UNAUTHORIZED")
+                raise WorkdayError("Access denied", "UNAUTHORIZED")
         
         if request.status != "PENDING":
-             raise WorkdayError(f"Request {request_id} is not PENDING (Status: {request.status})", "INVALID_STATE")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         balances = self.simulator.balances.get(request.employee_id, [])
         balance_entry = next((b for b in balances if b.type == request.type), None)

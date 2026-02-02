@@ -1,5 +1,5 @@
 from typing import Dict, Any, List
-from src.adapters.workday.exceptions import WorkdayError, EmployeeNotFoundError, StatementNotFoundError
+from src.adapters.workday.exceptions import WorkdayError
 
 class WorkdayPayrollService:
     def __init__(self, simulator):
@@ -17,7 +17,7 @@ class WorkdayPayrollService:
 
         # 1. Auth Check
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
-             raise WorkdayError(f"Principal {principal_id} cannot access compensation for {employee_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # 2. MFA Check (High Sensitivity)
         if not mfa_verified and principal_type != "MACHINE":
@@ -26,7 +26,7 @@ class WorkdayPayrollService:
         # 3. Retrieve Data
         comp = self.simulator.compensation.get(employee_id)
         if not comp:
-             raise EmployeeNotFoundError(employee_id)
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # Return Data
         return {
@@ -60,7 +60,7 @@ class WorkdayPayrollService:
             
         # Auth Check
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
-             raise WorkdayError(f"Principal {principal_id} cannot access statements for {employee_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # MFA Check
         if not mfa_verified and principal_type != "MACHINE":
@@ -88,12 +88,13 @@ class WorkdayPayrollService:
              raise WorkdayError("Missing statement_id", "INVALID_PARAMS")
              
         statement = self.simulator.statements.get(statement_id)
+        
+        # Auth Check first (or same error as not found)
         if not statement:
-             raise StatementNotFoundError(statement_id)
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
              
-        # Auth Check
         if principal_type == "HUMAN" and principal_id and principal_id != statement.employee_id:
-             raise WorkdayError(f"Principal {principal_id} cannot access statement {statement_id}", "UNAUTHORIZED")
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # MFA Check
         if not mfa_verified and principal_type != "MACHINE":
