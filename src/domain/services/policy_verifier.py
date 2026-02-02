@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 from typing import List, Dict, Optional, Any
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -7,6 +8,7 @@ from src.domain.entities.policy_test import PolicyTestSuite, PolicyTestCase, Tes
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.ports.policy_loader import PolicyLoaderPort
 from src.domain.ports.scenario_loader import ScenarioLoaderPort
+from src.lib.templating import get_jinja_env
 
 
 @dataclass
@@ -263,4 +265,31 @@ class PolicyVerificationService:
                 failure.text = f"Expected: {r.expected_allowed}, Got: {r.actual_allowed}"
                 
         return ET.tostring(testsuites, encoding="unicode")
+
+    def generate_markdown_report(self, report: VerificationReport, policy_version: str = "unknown") -> str:
+        """Export report to Markdown string using Jinja2 template."""
+        env = get_jinja_env()
+        template = env.get_template("verification-report.md.j2")
+        
+        # Prepare data for template
+        results_data = []
+        for r in report.results:
+            results_data.append({
+                "scenario_id": r.test_id,
+                "description": r.test_name,
+                "outcome": "pass" if r.passed else "fail",
+                "matched_policy": r.actual_policy,
+                "duration_ms": r.execution_time_ms,
+                "expected": "ALLOW" if r.expected_allowed else "DENY",
+                "actual": "ALLOW" if r.actual_allowed else "DENY"
+            })
+            
+        return template.render(
+            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            policy_version=policy_version,
+            total_tests=report.total_tests,
+            passed_tests=report.passed,
+            failed_tests=report.failed,
+            results=results_data
+        )
 

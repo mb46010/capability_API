@@ -41,6 +41,10 @@ If you want to demonstrate a specific feature, you can run the modules independe
 - **What it shows**: Generation of a stakeholder-friendly HTML compliance report.
 - **Why it matters**: Provides audit-ready evidence that 100% of defined capabilities are protected by verified security rules.
 
+### 5. Backstage Governance (`demo-5-backstage.sh`)
+- **What it shows**: The "Governance Lens" in Backstage.io, including the browsable Capability Catalog, visualized orchestration flows (Mermaid), and the TechDocs policy dashboard.
+- **Why it matters**: Makes technical security rules human-browsable and verifiable by anyone in the organization without reading YAML.
+
 ## Supporting Tools
 
 - `show-audit.sh`: Tails the live audit log to show real-time provenance and PII masking.

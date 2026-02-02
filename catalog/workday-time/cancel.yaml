@@ -1,0 +1,28 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.cancel
+  title: Cancel Time Off Request
+  description: 
+  tags:
+    - write
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-assistant-time-request, employee-time-self-service, hr-staff-time-management, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    # Cancel Time Off Request
+    
+    
+    

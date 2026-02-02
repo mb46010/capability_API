@@ -6,7 +6,7 @@ To transform `index.yaml` into Backstage catalog files:
 
 ```bash
 # From repository root
-python3 scripts/generate-catalog.py
+python3 scripts/generate_catalog.py
 ```
 
 This will output YAML files to `catalog/`.
@@ -18,7 +18,7 @@ ls -R catalog/
 
 **Run in CI Mode (Check for diffs):**
 ```bash
-python3 scripts/generate-catalog.py --check
+python3 scripts/generate_catalog.py --check
 ```
 
 ## 2. Generating Policy Verification Report

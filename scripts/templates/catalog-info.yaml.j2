@@ -1,0 +1,40 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: {{ capability.id }}
+  title: {{ capability.name }}
+  description: {{ capability.description or "" }}
+{% if capability.tags %}
+  tags:
+{% for tag in capability.tags %}
+    - {{ tag }}
+{% endfor %}
+{% endif %}
+  annotations:
+    capability-api/domain: {{ capability.domain }}
+    capability-api/sensitivity: {{ capability.sensitivity }}
+    capability-api/requires-mfa: "{{ capability.requires_mfa | lower }}"
+{% if governing_policies %}
+    capability-api/governed-by: {{ governing_policies | join(', ') }}
+{% endif %}
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: {{ capability.type }}
+  lifecycle: production
+  owner: platform-engineering
+  system: {{ capability.domain.split('.')[0] }}-{{ capability.domain.split('.')[1] if '.' in capability.domain else 'misc' }}
+  definition: |
+    # {{ capability.name }}
+    
+    {{ capability.description or "" }}
+    
+    {% if capability.implementation_flow %}
+    ### Implementation Flow
+    
+    ```mermaid
+    {{ capability.implementation_flow }}
+    ```
+    {% endif %}

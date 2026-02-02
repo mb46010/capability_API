@@ -80,6 +80,21 @@ def cmd_run(args):
         html = generator.generate_html(report)
         print(html)
         
+    elif args.format == "markdown":
+        md = verifier.generate_markdown_report(report)
+        print(md)
+
+    # Always generate latest.md for TechDocs if not in JSON/JUnit/HTML mode
+    if args.format in ["table", "markdown"]:
+        md = verifier.generate_markdown_report(report)
+        output_path = Path("docs/policy-verification/latest.md")
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, "w") as f:
+            f.write(md)
+        # Only print info if in table mode
+        if args.format == "table":
+            print(f"\nMarkdown report generated: {output_path}")
+        
     sys.exit(0 if report.success else 1)
 
 def cmd_list_scenarios(args):
@@ -124,7 +139,7 @@ def main():
     )
     run_parser.add_argument(
         "--format",
-        choices=["table", "json", "junit", "html"],
+        choices=["table", "json", "junit", "html", "markdown"],
         default="table"
     )
     

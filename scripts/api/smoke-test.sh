@@ -107,6 +107,24 @@ run_smoke_test() {
     fi
     echo "OK: Policy verification passed"
 
+    # 6. Backstage Catalog Sync
+    echo "[6] Checking Backstage catalog synchronization..."
+    export PYTHONPATH="$ROOT_DIR:$PYTHONPATH"
+    if ! python3 scripts/generate_catalog.py --check > /dev/null 2>&1; then
+        echo "Error: Backstage catalog is out of sync or generator failed"
+        echo "Try running: python3 scripts/generate_catalog.py"
+        return 1
+    fi
+    echo "OK: Catalog synchronized"
+
+    # 7. Governance Report
+    echo "[7] Verifying governance dashboard report..."
+    if [ ! -f "docs/policy-verification/latest.md" ]; then
+        echo "Error: Policy verification Markdown report was not generated"
+        return 1
+    fi
+    echo "OK: Governance report exists"
+
     echo ""
     echo "#######################################"
     echo "# ALL SMOKE TESTS PASSED              #"

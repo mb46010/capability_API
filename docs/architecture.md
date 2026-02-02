@@ -14,15 +14,18 @@ C4Context
   Person(admin, "HR Admin", "Human user managing policies and workflows")
   
   System(capapi, "Capability API", "Governed surface exposing deterministic actions and flows")
+  System(backstage, "Backstage", "Governance lens and catalog")
   
   System_Ext(workday, "Workday", "Core HRIS containing employee and payroll records")
   System_Ext(okta, "Okta", "Identity Provider for OIDC authentication")
 
   Rel(agent, capapi, "Invokes Actions/Flows", "HTTPS/JSON + JWT")
   Rel(admin, capapi, "Manages Policies", "YAML/CLI")
+  Rel(admin, backstage, "Inspects Governance", "HTTPS/Web")
   
   Rel(capapi, workday, "Integrates with", "REST API")
   Rel(capapi, okta, "Validates Tokens against", "JWKS")
+  Rel(backstage, capapi, "Reads Metadata", "Git/YAML")
 ```
 
 ## Containers (C4 Level 2)
@@ -50,6 +53,8 @@ C4Container
     Container(mcp_server, "HR MCP Server", "FastMCP 3.0", "AI-agent gateway with RBAC")
   }
 
+  Container(backstage, "Backstage", "Backstage.io", "Visualizes catalog and verification reports")
+
   Rel(mcp_server, routes, "Invokes", "HTTPS/JSON")
 
   Rel(routes, action_service, "Calls", "Internal")
@@ -60,6 +65,8 @@ C4Container
   Rel(action_service, workday_adapter, "Uses", "Connector Port")
   Rel(flow_service, fs_adapter, "Uses", "Flow Runner Port")
   Rel(routes, auth_adapter, "Uses", "Token Verifier Port")
+
+  Rel(backstage, fs_adapter, "Reads catalog-info.yaml", "Static Files")
 ```
 
 ## Port & Adapter Mappings
@@ -81,6 +88,7 @@ For detailed information on specific system components, refer to the following m
 - **[Workday Simulator](modules/workday_adapter.md)**: Simulated HRIS implementation (HCM, Time, Payroll).
 - **[Filesystem Adapter](modules/filesystem_adapter.md)**: Policy loading and flow execution.
 - **[Policy Verification](modules/policy_verification.md)**: Declarative security testing and compliance reporting.
+- **[Backstage Integration](backstage.md)**: Governance lens and capability catalog.
 
 ## Core Principles
 1. **The Sanctuary**: The `domain/` directory MUST NOT import from `adapters/` or `api/`.

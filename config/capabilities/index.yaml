@@ -143,3 +143,18 @@ capabilities:
     type: "flow"
     sensitivity: "high"
     tags: ["workflow", "compensation"]
+  - id: "hr.onboarding.prepare_workspace"
+    name: "Prepare Employee Workspace"
+    domain: "hr"
+    type: "composite"
+    sensitivity: "medium"
+    tags: ["onboarding", "automation"]
+    description: "Orchestrates workspace setup by fetching employee details and manager info."
+    requires_capabilities:
+      - workday.hcm.get_employee
+      - workday.hcm.get_manager_chain
+    implementation_flow: |
+      graph TD
+        A[Start] -->|workday.hcm.get_employee| B[Get Profile]
+        B -->|workday.hcm.get_manager_chain| C[Get Manager]
+        C --> D[Finalize Workspace]

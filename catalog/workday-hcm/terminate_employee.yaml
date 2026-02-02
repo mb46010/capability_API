@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.terminate_employee
+  title: Terminate Employee
+  description: 
+  tags:
+    - write
+    - hcm
+    - hr-only
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-update, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    # Terminate Employee
+    
+    
+    

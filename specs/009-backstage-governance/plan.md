@@ -6,7 +6,7 @@
 ## Summary
 
 This feature implements a "read-only governance lens" for the HR AI Platform by integrating with Backstage.io. It delivers two key components:
-1.  **Capability Catalog**: A build-time Python script (`scripts/generate-catalog.py`) that transforms the existing `index.yaml` into Backstage-compatible `catalog-info.yaml` files. It groups entities by domain, embeds Mermaid diagrams for flows, computes policy cross-references ("Governed By"), and links to the verification dashboard.
+1.  **Capability Catalog**: A build-time Python script (`scripts/generate_catalog.py`) that transforms the existing `index.yaml` into Backstage-compatible `catalog-info.yaml` files. It groups entities by domain, embeds Mermaid diagrams for flows, computes policy cross-references ("Governed By"), and links to the verification dashboard.
 2.  **Policy Verification Dashboard**: An enhancement to the CI pipeline to generate a native Markdown verification report using `PolicyVerificationService` and publish it to Backstage TechDocs.
 
 *Note: The Audit Log Viewer (Initiative 3) has been deferred. The existing `/audit/recent` endpoint is sufficient for current needs using standard visualization tools.*
@@ -58,7 +58,7 @@ config/
 └── policy-workday.yaml
 
 scripts/
-└── generate-catalog.py  # [NEW] Initiative 1
+└── generate_catalog.py  # [NEW] Initiative 1
 
 docs/
 └── policy-verification/ # Target for Initiative 2

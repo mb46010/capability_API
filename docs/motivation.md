@@ -28,6 +28,9 @@ AI models need a way to "see" and "use" HR tools. Our **MCP (Model Context Proto
 ### 5. Policy Verification (The Safety Net)
 Security rules are written in a master file (Policy YAML). However, humans can make mistakes when writing these rules. Our **Policy Verification Framework** mathematically proves our security rules work as intended before they go live. It prevents "silent security holes" by automatically testing 100+ scenarios every time a rule is changed.
 
+### 6. Backstage Governance (The Transparent Lens)
+Governance is useless if it's invisible. Our **Backstage Integration** provides a browsable, human-friendly view of the entire platform. it allows non-technical stakeholders to see every capability, its sensitivity, and the exact policy that governs it, ensuring the "Trust Layer" is verifiable by everyone in the company.
+
 ---
 
 ## Why This Matters to the Business

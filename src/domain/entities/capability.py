@@ -22,6 +22,8 @@ class CapabilityEntry(BaseModel):
     tags: List[str] = Field(default=[], description="Classification tags")
     description: Optional[str] = Field(None, description="Detailed description")
     deprecated: bool = Field(default=False, description="Whether capability is deprecated")
+    implementation_flow: Optional[str] = Field(None, description="Mermaid diagram for composite capabilities")
+    requires_capabilities: List[str] = Field(default=[], description="Required capabilities for composite ones")
 
 class CapabilityRegistryMetadata(BaseModel):
     last_updated: str

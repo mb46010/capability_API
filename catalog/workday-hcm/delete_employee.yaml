@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.delete_employee
+  title: Delete Employee
+  description: 
+  tags:
+    - write
+    - hcm
+    - admin-only
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    # Delete Employee
+    
+    
+    

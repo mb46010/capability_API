@@ -44,6 +44,17 @@ Ensure the policy correctly references existing capabilities:
 - **Subdomain Expansion**: If a domain is provided without a subdomain (e.g., `workday.get_employee`), the system dynamically derives available subdomains from the registry to find the canonical match (e.g., `workday.hcm.get_employee`).
 - **Deprecation**: If a capability is marked as `deprecated: true`, it will still execute, but a warning will be logged.
 
+## Visual Governance (Backstage)
+The Capability Registry is automatically synchronized with [Backstage.io](backstage.md). This provides a web-based interface for:
+- Browsing capabilities by domain.
+- Viewing sensitivity and MFA requirements.
+- Identifying governing policies for each action.
+- Visualizing orchestration flows for composite capabilities.
+
+To synchronize changes manually:
+```bash
+python3 scripts/generate_catalog.py
+```
 
 ## CLI Reference
 - `list`: List all capabilities with optional filtering by `--domain`, `--type`, or `--tag`.

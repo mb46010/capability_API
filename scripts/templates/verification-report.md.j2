@@ -1,0 +1,32 @@
+# Policy Verification Report
+
+**Timestamp**: {{ timestamp }}
+**Policy Version**: `{{ policy_version }}`
+**Status**: {% if failed_tests > 0 %}🔴 FAIL{% else %}🟢 PASS{% endif %}
+
+## Summary
+
+| Metric | Value |
+|--------|-------|
+| Total Tests | {{ total_tests }} |
+| Passed | {{ passed_tests }} |
+| Failed | {{ failed_tests }} |
+| Pass Rate | {{ "%.1f"|format(passed_tests / total_tests * 100) }}% |
+
+{% if failed_tests > 0 -%}
+## 🔴 Failed Tests
+
+| ID | Scenario | Expected | Actual | Policy |
+|----|----------|----------|--------|--------|
+{%- for test in results if test.outcome == 'fail' %}
+| {{ test.scenario_id }} | {{ test.description }} | {{ test.expected }} | {{ test.actual }} | {{ test.matched_policy }} |
+{%- endfor %}
+{%- endif %}
+
+## Full Results
+
+| ID | Scenario | Outcome | Policy | Duration |
+|----|----------|---------|--------|----------|
+{% for test in results %}
+| {{ test.scenario_id }} | {{ test.description }} | {{ '✅' if test.outcome == 'pass' else '❌' }} | {{ test.matched_policy or 'None' }} | {{ "%.2f"|format(test.duration_ms) }}ms |
+{% endfor %}

@@ -1,0 +1,30 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.get_pay_statement
+  title: Get Pay Statement
+  description: 
+  tags:
+    - read-only
+    - payroll
+    - pii
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    # Get Pay Statement
+    
+    
+    

@@ -1,0 +1,28 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_manager_chain
+  title: Get Manager Chain
+  description: 
+  tags:
+    - read-only
+    - hcm
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: low
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-org-read, ai-assistant-directory, employee-self-service-read, hr-staff-employee-read, local-dev-extended-access, manager-team-read, onboarding-workflow-read, reporting-service-read
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    # Get Manager Chain
+    
+    
+    

@@ -1,0 +1,10 @@
+site_name: Capability API Governance
+nav:
+  - Overview: index.md
+  - Onboarding: onboarding.md
+  - Architecture: architecture.md
+  - Governance:
+      - Policy Verification: policy-verification/latest.md
+plugins:
+  - techdocs-core
+  - mermaid2

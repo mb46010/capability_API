@@ -53,16 +53,21 @@ pytest tests/unit/
 
 # Run all tests
 pytest
+```
 
-# Run unit tests only
-pytest tests/unit/
+## Governance & Documentation
+If you modify the Capability Registry (`config/capabilities/index.yaml`), you must regenerate the Backstage catalog:
+```bash
+python3 scripts/generate_catalog.py
+```
 
-# Run integration tests only
-pytest tests/integration/
+To view the local governance docs (requires MkDocs):
+```bash
+mkdocs serve
 ```
 
 ## Key Documentation to Read
 1. **Architecture**: `docs/architecture.md`
-2. **API Usage**: `docs/api_usage.md`
-3. **Constitution**: `.specify/memory/constitution.md`
-4. **Workflow**: `specs/` directory for feature-specific plans.
+2. **Backstage Integration**: `docs/backstage.md`
+3. **API Usage**: `docs/api_usage.md`
+4. **Constitution**: `.specify/memory/constitution.md`

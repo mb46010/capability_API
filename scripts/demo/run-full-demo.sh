@@ -24,6 +24,7 @@ echo "1. AI Guardrails (Field filtering & MFA)"
 echo "2. AI Token Exchange (Scoped task passes)"
 echo "3. Policy Verification (The automated safety net)"
 echo "4. Compliance Reporting (Audit evidence)"
+echo "5. Backstage Governance (The transparent lens)"
 echo ""
 read -p "Press [Enter] to start Demo 1..."
 
@@ -43,6 +44,11 @@ echo ""
 read -p "Press [Enter] to start Demo 4..."
 
 ./demo-4-compliance-report.sh
+
+echo ""
+read -p "Press [Enter] to start Demo 5..."
+
+./demo-5-backstage.sh
 
 echo ""
 echo "############################################################"

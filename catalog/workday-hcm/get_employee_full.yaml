@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_employee_full
+  title: Get Full Employee Profile
+  description: 
+  tags:
+    - read-only
+    - hcm
+    - pii
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-read, local-dev-extended-access, onboarding-workflow-read
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    # Get Full Employee Profile
+    
+    
+    

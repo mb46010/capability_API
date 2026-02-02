@@ -29,6 +29,6 @@ Use **Python + Jinja2 Templates**.
 
 ### Decision
 **CI Check Script**.
-- The CI pipeline will run `scripts/generate-catalog.py --check`.
+- The CI pipeline will run `scripts/generate_catalog.py --check`.
 - The script will generate the catalog in memory and compare it to disk. If diffs exist, it exits with non-zero code.
 - This prevents "forgot to run generator" errors.

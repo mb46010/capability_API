@@ -1,0 +1,29 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.approve
+  title: Approve Time Off
+  description: 
+  tags:
+    - write
+    - time-off
+    - manager-only
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-time-management, local-dev-extended-access, manager-time-approval
+  links:
+    - title: Policy Verification
+      url: /docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: action
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    # Approve Time Off
+    
+    
+    

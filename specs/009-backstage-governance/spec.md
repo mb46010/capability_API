@@ -9,7 +9,7 @@
 
 - **Type**: FLOW
 - **Rationale**: This feature integrates multiple distinct systems (Capability API, CI/CD, Backstage) and involves multi-step processes like catalog generation, report publishing, and runtime data proxying. It creates a "governance lens" flow rather than a single atomic action.
-- **Idempotency Strategy**: The catalog generator script (`scripts/generate-catalog.py`) will be strictly idempotent (running it multiple times produces identical output). The policy verification report is a snapshot that is safely replaced on each run.
+- **Idempotency Strategy**: The catalog generator script (`scripts/generate_catalog.py`) will be strictly idempotent (running it multiple times produces identical output). The policy verification report is a snapshot that is safely replaced on each run.
 
 ## Clarifications
 
@@ -29,7 +29,7 @@ As a Risk Officer or Engineer, I want to browse a central inventory of all platf
 
 **Acceptance Scenarios**:
 
-1. **Given** a valid `config/capabilities/index.yaml` with 13 capabilities, **When** I run `scripts/generate-catalog.py`, **Then** it produces valid `catalog-info.yaml` files for each capability with correct metadata (domain, sensitivity, MFA).
+1. **Given** a valid `config/capabilities/index.yaml` with 13 capabilities, **When** I run `scripts/generate_catalog.py`, **Then** it produces valid `catalog-info.yaml` files for each capability with correct metadata (domain, sensitivity, MFA).
 2. **Given** a composite capability with a Mermaid diagram, **When** I view it in Backstage, **Then** I see the visualized flow diagram rendered correctly.
 3. **Given** a change to a capability in `index.yaml` without regenerating the catalog, **When** CI runs, **Then** the pipeline fails with a clear diff.
 
@@ -59,7 +59,7 @@ As a Compliance Officer, I want to view a human-readable report of policy test r
 ### Functional Requirements
 
 **Initiative 1: Capability Catalog**
-- **FR-001**: System MUST provide a build-time script (`scripts/generate-catalog.py`) to transform `config/capabilities/index.yaml` into Backstage `catalog-info.yaml` files, organized into subdirectories grouped by domain (e.g., `catalog/workday-hcm/`).
+- **FR-001**: System MUST provide a build-time script (`scripts/generate_catalog.py`) to transform `config/capabilities/index.yaml` into Backstage `catalog-info.yaml` files, organized into subdirectories grouped by domain (e.g., `catalog/workday-hcm/`).
 - **FR-002**: System MUST group capabilities by domain (workday-hcm, workday-time, workday-payroll) in the Backstage catalog.
 - **FR-003**: System MUST display visual badges for sensitivity (low/medium/high/critical) and MFA requirements on capability entities.
 - **FR-004**: System MUST compute and display a "Governed By" section on each capability entity, listing the policies that reference it (including wildcard matches).
