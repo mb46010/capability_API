@@ -49,7 +49,7 @@ class WorkdayHCMService:
 
     async def get_org_chart(self, params: Dict[str, Any]) -> Dict[str, Any]:
         root_id = params.get("root_id")
-        depth = params.get("depth", 2)
+        depth = min(params.get("depth", 2), 10)  # Cap maximum depth
         
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
@@ -66,10 +66,17 @@ class WorkdayHCMService:
 
         if root_id not in self.simulator.employees:
             raise WorkdayError("Access denied", "UNAUTHORIZED")
-            
+
+        visited = set()  # Track visited nodes
+
         async def build_node(emp_id, current_depth):
             if current_depth > depth:
                 return None
+            
+            if emp_id in visited:
+                return None
+                
+            visited.add(emp_id)
             
             emp = self.simulator.employees.get(emp_id)
             if not emp: return None
@@ -77,8 +84,12 @@ class WorkdayHCMService:
             # Helper for name
             def get_display_name(obj):
                 if hasattr(obj, "name"):
-                    return obj.name.display if hasattr(obj.name, "display") else obj.name.get("display")
-                return obj.get("name", {}).get("display", "Unknown")
+                    # Check if it's a pydantic model or dict
+                    if hasattr(obj.name, "display"):
+                        return obj.name.display
+                    if isinstance(obj.name, dict):
+                        return obj.name.get("display")
+                return obj.get("name", {}).get("display", "Unknown") if isinstance(obj, dict) else "Unknown"
 
             node = {
                 "employee_id": emp.employee_id,
