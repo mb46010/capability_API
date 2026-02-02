@@ -54,3 +54,19 @@ e2e-test-report/
 
 # Cache
 .cache/
+
+# SQLite database files
+*.sqlite
+*.sqlite3
+*.db
+
+# TechDocs generated output
+packages/backend/static/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Backstage
+.backstage/

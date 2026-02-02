@@ -1,0 +1,968 @@
+# Auto-generated monolithic catalog
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_employee
+  title: Get Employee Profile
+  description: ""
+  tags:
+    - read-only
+    - hcm
+    - pii
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-org-read, ai-assistant-directory, employee-self-service-read, hr-staff-employee-read, local-dev-extended-access, manager-team-read, onboarding-workflow-read, payroll-sync-employee-read, reporting-service-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Employee Profile
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Employee Profile
+          operationId: workday_hcm_get_employee
+          tags:
+            - read-only
+            - hcm
+            - pii
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_employee_full
+  title: Get Full Employee Profile
+  description: ""
+  tags:
+    - read-only
+    - hcm
+    - pii
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-read, local-dev-extended-access, onboarding-workflow-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Full Employee Profile
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Full Employee Profile
+          operationId: workday_hcm_get_employee_full
+          tags:
+            - read-only
+            - hcm
+            - pii
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_manager_chain
+  title: Get Manager Chain
+  description: ""
+  tags:
+    - read-only
+    - hcm
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: low
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-org-read, ai-assistant-directory, employee-self-service-read, hr-staff-employee-read, local-dev-extended-access, manager-team-read, onboarding-workflow-read, reporting-service-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Manager Chain
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Manager Chain
+          operationId: workday_hcm_get_manager_chain
+          tags:
+            - read-only
+            - hcm
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.list_direct_reports
+  title: List Direct Reports
+  description: ""
+  tags:
+    - read-only
+    - hcm
+    - manager-only
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-org-read, ai-assistant-directory, employee-self-service-read, hr-staff-employee-read, local-dev-extended-access, manager-team-read, reporting-service-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: List Direct Reports
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: List Direct Reports
+          operationId: workday_hcm_list_direct_reports
+          tags:
+            - read-only
+            - hcm
+            - manager-only
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.update_contact_info
+  title: Update Contact Information
+  description: ""
+  tags:
+    - write
+    - hcm
+    - self-service
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, employee-contact-update, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Update Contact Information
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Update Contact Information
+          operationId: workday_hcm_update_contact_info
+          tags:
+            - write
+            - hcm
+            - self-service
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.update_employee
+  title: Update Employee Profile
+  description: ""
+  tags:
+    - write
+    - hcm
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-update, local-dev-extended-access, onboarding-workflow-update
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Update Employee Profile
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Update Employee Profile
+          operationId: workday_hcm_update_employee
+          tags:
+            - write
+            - hcm
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.terminate_employee
+  title: Terminate Employee
+  description: ""
+  tags:
+    - write
+    - hcm
+    - hr-only
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-update, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Terminate Employee
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Terminate Employee
+          operationId: workday_hcm_terminate_employee
+          tags:
+            - write
+            - hcm
+            - hr-only
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.delete_employee
+  title: Delete Employee
+  description: ""
+  tags:
+    - write
+    - hcm
+    - admin-only
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Delete Employee
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Delete Employee
+          operationId: workday_hcm_delete_employee
+          tags:
+            - write
+            - hcm
+            - admin-only
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.get_org_chart
+  title: Get Organization Chart
+  description: ""
+  tags:
+    - read-only
+    - hcm
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: low
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-org-read, ai-assistant-directory, employee-self-service-read, hr-staff-employee-read, local-dev-extended-access, manager-team-read, reporting-service-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Organization Chart
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Organization Chart
+          operationId: workday_hcm_get_org_chart
+          tags:
+            - read-only
+            - hcm
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.get_balance
+  title: Get PTO Balance
+  description: ""
+  tags:
+    - read-only
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: low
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-time-read, ai-assistant-time-read, employee-time-self-service, hr-staff-time-management, local-dev-extended-access, manager-time-approval, reporting-service-time-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get PTO Balance
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get PTO Balance
+          operationId: workday_time_get_balance
+          tags:
+            - read-only
+            - time-off
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.request
+  title: Request Time Off
+  description: ""
+  tags:
+    - write
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-assistant-time-request, employee-time-self-service, hr-staff-time-management, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Request Time Off
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Request Time Off
+          operationId: workday_time_request
+          tags:
+            - write
+            - time-off
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.cancel
+  title: Cancel Time Off Request
+  description: ""
+  tags:
+    - write
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-assistant-time-request, employee-time-self-service, hr-staff-time-management, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Cancel Time Off Request
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Cancel Time Off Request
+          operationId: workday_time_cancel
+          tags:
+            - write
+            - time-off
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.approve
+  title: Approve Time Off
+  description: ""
+  tags:
+    - write
+    - time-off
+    - manager-only
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-time-management, local-dev-extended-access, manager-time-approval
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Approve Time Off
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Approve Time Off
+          operationId: workday_time_approve
+          tags:
+            - write
+            - time-off
+            - manager-only
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.list_requests
+  title: List Time Off Requests
+  description: ""
+  tags:
+    - read-only
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-time-read, ai-assistant-time-read, employee-time-self-service, hr-staff-time-management, local-dev-extended-access, manager-time-approval, reporting-service-time-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: List Time Off Requests
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: List Time Off Requests
+          operationId: workday_time_list_requests
+          tags:
+            - read-only
+            - time-off
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.get_request
+  title: Get Time Off Request
+  description: ""
+  tags:
+    - read-only
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-time-read, ai-assistant-time-read, employee-time-self-service, hr-staff-time-management, local-dev-extended-access, manager-time-approval, reporting-service-time-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Time Off Request
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Time Off Request
+          operationId: workday_time_get_request
+          tags:
+            - read-only
+            - time-off
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.get_compensation
+  title: Get Compensation Details
+  description: ""
+  tags:
+    - read-only
+    - payroll
+    - pii
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, employee-payroll-read, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Compensation Details
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Compensation Details
+          operationId: workday_payroll_get_compensation
+          tags:
+            - read-only
+            - payroll
+            - pii
+            - mfa-required
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.get_pay_statement
+  title: Get Pay Statement
+  description: ""
+  tags:
+    - read-only
+    - payroll
+    - pii
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Pay Statement
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Pay Statement
+          operationId: workday_payroll_get_pay_statement
+          tags:
+            - read-only
+            - payroll
+            - pii
+            - mfa-required
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.list_pay_statements
+  title: List Pay Statements
+  description: ""
+  tags:
+    - read-only
+    - payroll
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: List Pay Statements
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: List Pay Statements
+          operationId: workday_payroll_list_pay_statements
+          tags:
+            - read-only
+            - payroll
+            - mfa-required
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.onboarding
+  title: Employee Onboarding Flow
+  description: ""
+  tags:
+    - workflow
+    - onboarding
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, onboarding-workflow-flow
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Employee Onboarding Flow
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Employee Onboarding Flow
+          operationId: hr_onboarding
+          tags:
+            - workflow
+            - onboarding
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.offboarding
+  title: Employee Offboarding Flow
+  description: ""
+  tags:
+    - workflow
+    - offboarding
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Employee Offboarding Flow
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Employee Offboarding Flow
+          operationId: hr_offboarding
+          tags:
+            - workflow
+            - offboarding
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.role_change
+  title: Employee Role Change Flow
+  description: ""
+  tags:
+    - workflow
+    - role-change
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Employee Role Change Flow
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Employee Role Change Flow
+          operationId: hr_role_change
+          tags:
+            - workflow
+            - role-change
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.compensation_review
+  title: Compensation Review Flow
+  description: ""
+  tags:
+    - workflow
+    - compensation
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Compensation Review Flow
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Compensation Review Flow
+          operationId: hr_compensation_review
+          tags:
+            - workflow
+            - compensation
+          responses:
+            '200':
+              description: Successful operation
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.onboarding.prepare_workspace
+  title: Prepare Employee Workspace
+  description: "Orchestrates workspace setup by fetching employee details and manager info."
+  tags:
+    - onboarding
+    - automation
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Prepare Employee Workspace
+      description: Orchestrates workspace setup by fetching employee details and manager info.
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Prepare Employee Workspace
+          operationId: hr_onboarding_prepare_workspace
+          tags:
+            - onboarding
+            - automation
+          responses:
+            '200':
+              description: Successful operation
