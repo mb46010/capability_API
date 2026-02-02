@@ -62,14 +62,16 @@ As a Compliance Officer, I want to view a human-readable report of policy test r
 - **FR-001**: System MUST provide a build-time script (`scripts/generate-catalog.py`) to transform `config/capabilities/index.yaml` into Backstage `catalog-info.yaml` files, organized into subdirectories grouped by domain (e.g., `catalog/workday-hcm/`).
 - **FR-002**: System MUST group capabilities by domain (workday-hcm, workday-time, workday-payroll) in the Backstage catalog.
 - **FR-003**: System MUST display visual badges for sensitivity (low/medium/high/critical) and MFA requirements on capability entities.
-- **FR-004**: System MUST render Mermaid diagrams for composite capabilities that include an `implementation_flow`.
-- **FR-005**: System MUST validate that all capabilities referenced in a Mermaid flow diagram exist in `requires_capabilities`.
-- **FR-006**: System MUST fail CI if the generated catalog files are out of sync with `index.yaml`.
+- **FR-004**: System MUST compute and display a "Governed By" section on each capability entity, listing the policies that reference it (including wildcard matches).
+- **FR-005**: System MUST render Mermaid diagrams for composite capabilities that include an `implementation_flow`.
+- **FR-006**: System MUST validate that all capabilities referenced in a Mermaid flow diagram exist in `requires_capabilities`.
+- **FR-007**: System MUST fail CI if the generated catalog files are out of sync with `index.yaml`.
+- **FR-008**: System MUST include a link to the Policy Verification Dashboard on each capability entity page.
 
 **Initiative 2: Policy Verification Dashboard**
-- **FR-007**: System MUST generate a Markdown (.md) verification report on every policy or scenario change via CI, compatible with MkDocs.
-- **FR-008**: System MUST publish the Markdown verification report to Backstage TechDocs under a "Governance" section.
-- **FR-009**: System MUST block PRs that cause policy verification tests to fail.
+- **FR-009**: System MUST generate a Markdown (.md) verification report on every policy or scenario change via CI, compatible with MkDocs.
+- **FR-010**: System MUST publish the Markdown verification report to Backstage TechDocs under a "Governance" section.
+- **FR-011**: System MUST block PRs that cause policy verification tests to fail.
 
 ### Key Entities
 
