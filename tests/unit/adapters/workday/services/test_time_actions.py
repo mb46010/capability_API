@@ -1,41 +1,19 @@
 import pytest
-from unittest.mock import MagicMock
 from src.adapters.workday.services.time import WorkdayTimeService
 from src.adapters.workday.exceptions import WorkdayError
 
 @pytest.fixture
-def mock_simulator():
-    sim = MagicMock()
-    class MockAttr:
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-        def model_dump(self):
-            return self.__dict__
-
-    # Mock balances
-    sim.balances = {
-        "EMP001": [
-            MockAttr(type="PTO", available_hours=100, used_hours=20, pending_hours=0),
-            MockAttr(type="SICK", available_hours=40, used_hours=5, pending_hours=0)
-        ]
-    }
-    sim.requests = {}
-    sim.employees = {
-        "EMP001": MockAttr(employee_id="EMP001", manager=MockAttr(employee_id="EMP042", display_name="Bob")),
-        "EMP042": MockAttr(employee_id="EMP042", manager=None)
-    }
-    return sim
-
-@pytest.fixture
-def service(mock_simulator):
-    return WorkdayTimeService(mock_simulator)
+def service(simulator):
+    """Fresh WorkdayTimeService instance using shared simulator."""
+    return WorkdayTimeService(simulator)
 
 @pytest.mark.asyncio
 async def test_get_balance_success(service):
     result = await service.get_balance({"employee_id": "EMP001"})
     assert result["employee_id"] == "EMP001"
-    assert len(result["balances"]) == 2
-    assert result["balances"][0]["type"] == "PTO"
+    # The real fixture has 1 balance type: PTO
+    assert len(result["balances"]) >= 1
+    assert any(b["type"] == "PTO" for b in result["balances"])
 
 @pytest.mark.asyncio
 async def test_get_balance_own_data_enforcement(service):

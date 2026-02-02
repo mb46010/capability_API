@@ -1,40 +1,11 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 from src.adapters.workday.services.hcm import WorkdayHCMService
 from src.adapters.workday.exceptions import WorkdayError
 
 @pytest.fixture
-def mock_simulator():
-    sim = MagicMock()
-    # Use real objects or better mocks for data
-    class MockAttr:
-        def __init__(self, **kwargs):
-            self.__dict__.update(kwargs)
-        def model_dump(self):
-            return self.__dict__
-
-    sim.employees = {
-        "EMP001": MockAttr(
-            employee_id="EMP001",
-            name={"first": "Alice", "last": "Johnson", "display": "Alice Johnson"},
-            email="alice@example.com",
-            job={"title": "Engineer", "department": "Engineering", "location": "San Francisco"},
-            manager=MockAttr(employee_id="EMP042", display_name="Bob Manager"),
-            status="ACTIVE",
-            personal_email="alice.old@gmail.com"
-        ),
-        "EMP042": MockAttr(
-            employee_id="EMP042",
-            name={"display": "Bob Manager"},
-            job={"title": "Manager"},
-            manager=None
-        )
-    }
-    return sim
-
-@pytest.fixture
-def service(mock_simulator):
-    return WorkdayHCMService(mock_simulator)
+def service(simulator):
+    """Fresh WorkdayHCMService instance using shared simulator."""
+    return WorkdayHCMService(simulator)
 
 @pytest.mark.asyncio
 async def test_get_employee_success(service):

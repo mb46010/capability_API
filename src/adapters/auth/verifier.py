@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Protocol, Optional
+from fastapi import Request
 
 import httpx
 import jwt
@@ -346,6 +347,7 @@ def create_auth_dependency(verifier: TokenVerifier):
     from fastapi import Depends, HTTPException, Header
 
     async def get_verified_principal(
+        request: Request,
         authorization: Optional[str] = Header(None, description="Bearer token")
     ) -> VerifiedPrincipal:
         if not authorization:
@@ -365,7 +367,10 @@ def create_auth_dependency(verifier: TokenVerifier):
         token = authorization[7:]  # Strip "Bearer "
 
         try:
-            return verifier.verify(token)
+            principal = verifier.verify(token)
+            # Store in request.state for logging middleware
+            request.state.principal = principal
+            return principal
         except TokenVerificationError as e:
             raise HTTPException(
                 status_code=401,

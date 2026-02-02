@@ -1,29 +1,11 @@
 import pytest
-from unittest.mock import MagicMock
 from src.adapters.workday.services.payroll import WorkdayPayrollService
 from src.adapters.workday.exceptions import WorkdayError
 
 @pytest.fixture
-def mock_simulator():
-    sim = MagicMock()
-    # Mock record with nested compensation details matching the Pydantic model
-    mock_comp_record = MagicMock()
-    mock_comp_record.compensation = MagicMock(
-        base_salary=MagicMock(amount=100000, currency="USD", frequency="ANNUAL"),
-        bonus_target=MagicMock(percentage=10, amount=10000),
-        total_compensation=110000
-    )
-    mock_comp_record.pay_grade = "L4"
-    mock_comp_record.effective_date = "2025-01-01"
-    
-    sim.compensation = {
-        "EMP001": mock_comp_record
-    }
-    return sim
-
-@pytest.fixture
-def service(mock_simulator):
-    return WorkdayPayrollService(mock_simulator)
+def service(simulator):
+    """Fresh WorkdayPayrollService instance using shared simulator."""
+    return WorkdayPayrollService(simulator)
 
 @pytest.mark.asyncio
 async def test_get_compensation_success(service):
@@ -36,7 +18,8 @@ async def test_get_compensation_success(service):
     }
     result = await service.get_compensation(params)
     assert result["employee_id"] == "EMP001"
-    assert result["compensation"]["base_salary"]["amount"] == 100000
+    # Real data has 185000
+    assert result["compensation"]["base_salary"]["amount"] == 185000
 
 @pytest.mark.asyncio
 async def test_get_compensation_no_mfa(service):

@@ -64,7 +64,7 @@ Enable any stakeholder to browse the complete inventory of platform capabilities
 
 ### 3.2 Data Source
 
-The existing `config/capabilities/index.yaml` serves as the single source of truth. Each capability entry contains: id, name, domain, type (action/flow), sensitivity (low/medium/high/critical), requires_mfa, tags, and description. This file is already validated at startup by `CapabilityRegistryService`.
+The existing `config/capabilities/index.yaml` serves as the single source of truth. Each capability entry contains: id, name, domain, type (action/flow/composite), sensitivity (low/medium/high/critical), requires_mfa, tags, description, and an optional `implementation_flow` field containing a Mermaid diagram for composite capabilities. This file is already validated at startup by `CapabilityRegistryService`.
 
 ### 3.3 Backstage Entity Mapping
 
@@ -80,6 +80,7 @@ Each capability maps to a Backstage API entity. The `index.yaml` is transformed 
 | requires_mfa | metadata.annotations[capability-api/requires-mfa] | Drives MFA indicator |
 | tags | metadata.tags | Direct mapping, enables tag-based filtering |
 | type | spec.type | action or flow |
+| implementation_flow | TechDocs embedded Mermaid block | Rendered as visual diagram on entity page; only present for composite capabilities |
 
 ### 3.4 Functional Requirements
 
@@ -93,11 +94,32 @@ Each capability maps to a Backstage API entity. The `index.yaml` is transformed 
 
 **FR-CAT-05: Staleness Detection.** CI validates that `catalog-info.yaml` is in sync with `index.yaml`. If a capability is added or modified without regenerating catalog files, the pipeline fails with a clear diff.
 
+**FR-CAT-06: Implementation Flow Diagrams.** Composite capabilities may include an optional `implementation_flow` field containing a Mermaid `graph TD` diagram describing the orchestration sequence and the atomic capabilities invoked at each step. When present, the generator script embeds the Mermaid block into the capability's TechDocs page. Backstage renders it as a visual flow diagram on the entity page. Atomic capabilities (all 13 current entries) omit this field — no diagram is rendered. Example:
+
+```yaml
+hr.onboarding.prepare_workspace:
+  type: composite
+  implementation_flow: |
+    graph TD
+      A[Get employee details] -->|workday.hcm.get_employee| B[Get manager]
+      B -->|workday.hcm.get_manager_chain| C[Create Slack channel]
+      C -->|slack.create_channel| D[Provision Google account]
+      D -->|google.provision_account| E[Return workspace info]
+  requires_capabilities:
+    - workday.hcm.get_employee
+    - workday.hcm.get_manager_chain
+    - slack.create_channel
+    - google.provision_account
+```
+
+**FR-CAT-07: Flow-to-Capability Validation.** When `implementation_flow` is present, CI validates that every capability name referenced in the Mermaid edge labels matches an entry in `requires_capabilities`, and vice versa. Mismatches fail the pipeline with a clear diff showing which references are missing or extraneous. This ensures the visual diagram stays in sync with the declared dependency list.
+
 ### 3.5 User Stories
 
 - **As a risk officer,** I want to browse all capabilities tagged "pii" so I can verify each one has appropriate sensitivity classification.
 - **As a DPI lead,** I want to see which capabilities require MFA so I can confirm alignment with our data protection standards.
 - **As an engineer,** I want to check what policies govern a capability I'm adding so I can write the correct test scenarios.
+- **As an engineer using an AI coding assistant,** I want the assistant to read the `implementation_flow` diagram for a composite capability so it can generate the correct orchestration logic for the MCP tool function.
 
 ### 3.6 Acceptance Criteria
 
@@ -106,6 +128,8 @@ Each capability maps to a Backstage API entity. The `index.yaml` is transformed 
 - **AC-03:** Each capability page shows its governing policies.
 - **AC-04:** Adding a new capability to `index.yaml` and running the generator produces a valid catalog entry.
 - **AC-05:** CI fails if `catalog-info.yaml` is stale relative to `index.yaml`.
+- **AC-06:** A composite capability with `implementation_flow` renders a Mermaid diagram on its Backstage entity page.
+- **AC-07:** CI fails if capability names in a Mermaid flow diagram don't match `requires_capabilities`.
 
 ---
 
@@ -306,6 +330,8 @@ Each capability entry in `config/capabilities/index.yaml` uses the following fie
 | tags | string[] | No | Classification labels for filtering |
 | description | string | No | Detailed description |
 | deprecated | boolean | No | Defaults to false |
+| implementation_flow | string (Mermaid) | No | Mermaid `graph TD` diagram describing orchestration for composite capabilities. Omit for atomic actions. |
+| requires_capabilities | string[] | No | List of atomic capability IDs invoked by a composite capability. Must match references in `implementation_flow`. |
 
 ### B. Audit Log Entry Schema
 

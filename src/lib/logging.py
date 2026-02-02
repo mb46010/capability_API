@@ -1,14 +1,17 @@
 import logging
+import json
+import sys
 import re
-from typing import Pattern, List, Tuple
-from src.lib.context import request_id_ctx
+from datetime import datetime, timezone
+from typing import Any, Pattern, List, Tuple
+from src.lib.context import get_request_id
 
-class PIIMaskingFormatter(logging.Formatter):
+class StructuredFormatter(logging.Formatter):
     """
-    Formatter that masks PII patterns in log messages.
+    JSON formatter for structured logging with PII masking.
     """
     
-    # Pre-compile regex patterns
+    # Pre-compile regex patterns for PII masking
     PATTERNS: List[Tuple[Pattern, str]] = [
         # Email
         (re.compile(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'), '[EMAIL]'),
@@ -18,40 +21,93 @@ class PIIMaskingFormatter(logging.Formatter):
         (re.compile(r'\b(?:\+?1[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b'), '[PHONE]'),
     ]
 
-    def format(self, record):
-        original_msg = super().format(record)
-        masked_msg = original_msg
-        
+    def _mask_pii(self, text: str) -> str:
+        if not isinstance(text, str):
+            return text
         for pattern, replacement in self.PATTERNS:
-            masked_msg = pattern.sub(replacement, masked_msg)
-            
-        # Prepend Request ID if available
-        rid = request_id_ctx.get()
-        if rid:
-            return f"[{rid}] {masked_msg}"
-            
-        return masked_msg
+            text = pattern.sub(replacement, text)
+        return text
 
-def setup_logging(level=logging.INFO):
-    handler = logging.StreamHandler()
-    handler.setFormatter(PIIMaskingFormatter('[%(asctime)s] %(levelname)s in %(module)s: %(message)s'))
+    def _mask_object(self, obj: Any) -> Any:
+        if isinstance(obj, dict):
+            return {k: self._mask_object(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [self._mask_object(i) for i in obj]
+        elif isinstance(obj, str):
+            return self._mask_pii(obj)
+        return obj
+
+    def format(self, record: logging.LogRecord) -> str:
+        # Mask the main message
+        message = self._mask_pii(record.getMessage())
+
+        # Basic log object
+        log_obj: dict[str, Any] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": message,
+        }
+
+        # Add request_id from context if available
+        request_id = get_request_id()
+        if request_id:
+            log_obj["request_id"] = request_id
+
+        # Add extra data if present, and mask it
+        if hasattr(record, "extra_data"):
+            masked_extra = self._mask_object(record.extra_data)
+            log_obj.update(masked_extra)
+        
+        # Add exception info if present
+        if record.exc_info:
+            log_obj["exception"] = self.formatException(record.exc_info)
+
+        return json.dumps(log_obj)
+
+class PIIMaskingFormatter(StructuredFormatter):
+    """
+    Compatibility class for existing tests that expect PIIMaskingFormatter.
+    This now produces JSON instead of plain text, but still masks PII.
+    If we strictly need plain text for compatibility, we might need to adjust.
+    But usually, upgrading to structured logging means changing the format.
+    """
+    pass
+
+def setup_logging(level: int = logging.INFO):
+    """
+    Configures the root logger to use structured JSON logging.
+    """
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(StructuredFormatter())
     
-    logger = logging.getLogger()
-    logger.setLevel(level)
-    # Remove existing handlers to avoid duplicates
-    if logger.hasHandlers():
-        logger.handlers.clear()
-    logger.addHandler(handler)
+    root_logger = logging.getLogger()
+    
+    # Remove existing handlers to avoid duplicate logs
+    for h in root_logger.handlers[:]:
+        root_logger.removeHandler(h)
+        
+    root_logger.addHandler(handler)
+    root_logger.setLevel(level)
+
+    # Specific configuration for API request logger if needed
+    logging.getLogger("api.requests").propagate = True
 
 def log_provenance(action: str, resource: str, effect: str, reason: str = None, **metadata):
     """
     Structured provenance log entry for security events.
     """
-    msg = f"PROVENANCE: {action} on {resource} -> {effect}"
+    extra_data = {
+        "action": action,
+        "resource": resource,
+        "effect": effect,
+    }
     if reason:
-        msg += f" (Reason: {reason})"
+        extra_data["reason"] = reason
     if metadata:
-        msg += f" | Metadata: {metadata}"
+        extra_data.update(metadata)
     
-    logging.info(msg)
-
+    logging.info(
+        f"PROVENANCE: {action} on {resource} -> {effect}",
+        extra={"extra_data": extra_data}
+    )

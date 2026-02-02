@@ -18,6 +18,7 @@ class AppSettings(BaseSettings):
     CAPABILITY_REGISTRY_PATH: str = Field(default="config/capabilities/index.yaml", description="Path to the capability registry")
     AUDIT_LOG_PATH: str = Field(default="logs/audit.jsonl", description="Path to the audit log file")
     MOCK_OKTA_TEST_SECRET: str = Field(default="mock-okta-secret", description="Secret key for Mock Okta test endpoints")
+    REQUEST_TIMEOUT_SECONDS: int = Field(default=30, description="Request timeout in seconds")
 
     @field_validator("POLICY_PATH", "CAPABILITY_REGISTRY_PATH")
     @classmethod

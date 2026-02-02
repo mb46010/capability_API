@@ -1,29 +1,16 @@
 import pytest
 from httpx import AsyncClient, ASGITransport
 from src.main import app
-from src.api.dependencies import provider, get_policy_engine
-from src.domain.services.policy_engine import PolicyEngine, PolicyEvaluationResult
-
-@pytest.fixture
-def mock_policy_engine(mocker):
-    return mocker.Mock(spec=PolicyEngine)
-
-@pytest.fixture(autouse=True)
-def override_dependencies(mock_policy_engine):
-    app.dependency_overrides[get_policy_engine] = lambda: mock_policy_engine
-    yield
-    app.dependency_overrides = {}
+from src.domain.services.policy_engine import PolicyEvaluationResult
 
 @pytest.mark.asyncio
-async def test_action_execution_success(mock_policy_engine):
+async def test_action_execution_success(mock_policy_engine, machine_token):
     # Mock Policy Allow
     mock_policy_engine.evaluate.return_value = PolicyEvaluationResult(allowed=True)
     
-    token = provider.issue_token(subject="test-worker-1", principal_type="MACHINE")
-    
     transport = ASGITransport(app=app)
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {machine_token}"
     }
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.post(
@@ -39,15 +26,13 @@ async def test_action_execution_success(mock_policy_engine):
     assert "provenance" in data["meta"]
 
 @pytest.mark.asyncio
-async def test_action_execution_forbidden(mock_policy_engine):
+async def test_action_execution_forbidden(mock_policy_engine, machine_token):
     # Mock Policy Deny
     mock_policy_engine.evaluate.return_value = PolicyEvaluationResult(allowed=False)
     
-    token = provider.issue_token(subject="test-worker-1", principal_type="MACHINE")
-    
     transport = ASGITransport(app=app)
     headers = {
-        "Authorization": f"Bearer {token}"
+        "Authorization": f"Bearer {machine_token}"
     }
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
         response = await ac.post(

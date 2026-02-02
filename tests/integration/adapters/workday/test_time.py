@@ -1,11 +1,9 @@
 import pytest
 from datetime import date
-from src.adapters.workday.client import WorkdaySimulator
 from src.adapters.workday.exceptions import InsufficientBalanceError
 
 @pytest.mark.asyncio
-async def test_time_get_balance():
-    simulator = WorkdaySimulator()
+async def test_time_get_balance(simulator):
     result = await simulator.execute("workday.time.get_balance", {"employee_id": "EMP001"})
     
     assert result["employee_id"] == "EMP001"
@@ -13,9 +11,7 @@ async def test_time_get_balance():
     assert any(b["type"] == "PTO" for b in result["balances"])
 
 @pytest.mark.asyncio
-async def test_time_request_lifecycle():
-    simulator = WorkdaySimulator()
-    
+async def test_time_request_lifecycle(simulator):
     # 1. Request
     req_params = {
         "employee_id": "EMP001",
@@ -44,8 +40,7 @@ async def test_time_request_lifecycle():
     assert pto_bal["available_hours"] == 104
 
 @pytest.mark.asyncio
-async def test_time_insufficient_balance():
-    simulator = WorkdaySimulator()
+async def test_time_insufficient_balance(simulator):
     req_params = {
         "employee_id": "EMP001",
         "type": "PTO",

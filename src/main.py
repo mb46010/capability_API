@@ -1,21 +1,84 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from typing import Union
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.responses import JSONResponse
 import uvicorn
 import os
 import uuid
-from src.lib.context import set_request_id
+import asyncio
+import logging
+import time
+from src.lib.context import set_request_id, get_request_id
+from src.lib.logging import setup_logging
 from src.api.routes import actions, flows, audit
 from src.domain.entities.error import ErrorResponse
 from src.adapters.workday.exceptions import WorkdayError
 from src.lib.config_validator import settings
+
+# Initialize structured logging
+log_level = logging.DEBUG if settings.ENVIRONMENT in ["local", "dev"] else logging.INFO
+setup_logging(level=log_level)
+request_logger = logging.getLogger("api.requests")
 
 app = FastAPI(
     title="HR AI Platform Capability API",
     description="Governed API exposing deterministic actions and long-running HR flows.",
     version="1.0.0"
 )
+
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    start = time.time()
+    
+    response = await call_next(request)
+    
+    latency_ms = (time.time() - start) * 1000
+    
+    # Extract principal if it was set in request.state
+    principal_data = {}
+    if hasattr(request.state, "principal"):
+        p = request.state.principal
+        principal_data = {
+            "subject": p.subject,
+            "principal_type": p.principal_type.value if hasattr(p.principal_type, "value") else str(p.principal_type),
+            "groups": p.groups
+        }
+
+    request_logger.info(
+        f"{request.method} {request.url.path} {response.status_code}",
+        extra={
+            "extra_data": {
+                "method": request.method,
+                "path": request.url.path,
+                "query_params": dict(request.query_params),
+                "status_code": response.status_code,
+                "latency_ms": round(latency_ms, 2),
+                "client_ip": request.client.host if request.client else None,
+                "user_agent": request.headers.get("user-agent"),
+                "content_length": response.headers.get("content-length"),
+                "principal": principal_data if principal_data else None,
+            }
+        }
+    )
+    
+    return response
+
+@app.middleware("http")
+async def add_timeout(request: Request, call_next):
+    try:
+        return await asyncio.wait_for(
+            call_next(request),
+            timeout=settings.REQUEST_TIMEOUT_SECONDS
+        )
+    except asyncio.TimeoutError:
+        return JSONResponse(
+            status_code=504,
+            content=ErrorResponse(
+                error_code="GATEWAY_TIMEOUT",
+                message="Request timed out",
+                details={"timeout_seconds": settings.REQUEST_TIMEOUT_SECONDS}
+            ).model_dump(mode='json')
+        )
 
 @app.middleware("http")
 async def add_request_id(request: Request, call_next):
@@ -140,6 +203,7 @@ if settings.ENVIRONMENT == "local":
     mock_okta = create_mock_okta_app(provider)
     app.mount("/auth", mock_okta)
 
+from fastapi import Depends
 from fastapi import Depends
 from src.domain.ports.connector import ConnectorPort
 from src.domain.services.policy_engine import PolicyEngine
