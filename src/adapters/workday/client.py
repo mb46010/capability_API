@@ -2,6 +2,7 @@ import asyncio
 import random
 import time
 import logging
+from collections import OrderedDict
 from typing import Dict, Any, Optional
 from src.domain.ports.connector import ConnectorPort
 from src.adapters.workday.config import WorkdaySimulationConfig
@@ -36,8 +37,8 @@ class WorkdaySimulator(ConnectorPort):
         self.time_service = WorkdayTimeService(self)
         self.payroll_service = WorkdayPayrollService(self)
 
-        # Idempotency cache (mapping idempotency_key to previous result)
-        self._idempotency_cache: Dict[str, Dict[str, Any]] = {}
+        # Idempotency cache (mapping idempotency_key to (result, timestamp))
+        self._idempotency_cache: OrderedDict[str, tuple[Dict[str, Any], float]] = OrderedDict()
 
         # Validate on startup so you catch fixture problems early
         self._validate_fixtures()
@@ -75,9 +76,10 @@ class WorkdaySimulator(ConnectorPort):
         is_write = any(kw in action for kw in ["update", "terminate", "request", "approve", "cancel"])
         
         if idempotency_key and is_write:
-            if idempotency_key in self._idempotency_cache:
+            cached_result = self._get_cached(idempotency_key)
+            if cached_result is not None:
                 logger.info(f"Idempotent hit for key {idempotency_key}. Returning cached result.")
-                return self._idempotency_cache[idempotency_key]
+                return cached_result
 
         # 1. Failure Injection
         self._inject_failure()
@@ -127,12 +129,47 @@ class WorkdaySimulator(ConnectorPort):
 
             # Cache result if idempotency key provided
             if idempotency_key and is_write:
-                self._idempotency_cache[idempotency_key] = result
+                self._set_cached(idempotency_key, result)
             
             return result
         except Exception as e:
             logger.error(f"{action} failed: {str(e)}")
             raise
+
+    def _get_cached(self, key: str) -> Optional[Dict[str, Any]]:
+        """Get cached result if exists and not expired."""
+        if key not in self._idempotency_cache:
+            return None
+
+        result, timestamp = self._idempotency_cache[key]
+        if time.time() - timestamp > self.config.idempotency_cache_ttl:
+            del self._idempotency_cache[key]
+            return None
+
+        # Move to end (LRU)
+        self._idempotency_cache.move_to_end(key)
+        return result
+
+    def _set_cached(self, key: str, result: Dict[str, Any]):
+        """Cache result with timestamp, evicting oldest if at capacity."""
+        # Evict expired entries periodically
+        self._cleanup_expired()
+
+        # Evict oldest if at capacity
+        while len(self._idempotency_cache) >= self.config.idempotency_cache_max_size:
+            self._idempotency_cache.popitem(last=False)
+
+        self._idempotency_cache[key] = (result, time.time())
+
+    def _cleanup_expired(self):
+        """Remove expired entries."""
+        now = time.time()
+        expired = [
+            k for k, (_, ts) in self._idempotency_cache.items()
+            if now - ts > self.config.idempotency_cache_ttl
+        ]
+        for k in expired:
+            del self._idempotency_cache[k]
 
     def _inject_failure(self):
         if self.config.failure_rate > 0 and random.random() < self.config.failure_rate:

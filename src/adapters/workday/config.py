@@ -21,3 +21,7 @@ class WorkdaySimulationConfig:
     # Concurrency
     # Mode: single-threaded asyncio (atomic dictionary updates, no locks required)
     concurrency_mode: str = "asyncio"
+
+    # Idempotency Cache
+    idempotency_cache_max_size: int = 10000
+    idempotency_cache_ttl: int = 3600  # seconds (1 hour)
