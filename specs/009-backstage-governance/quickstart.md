@@ -35,29 +35,3 @@ View the report (requires MkDocs):
 mkdocs serve
 # Open browser to http://localhost:8000/policy-verification/latest/
 ```
-
-## 3. Developing the Backstage Plugin
-
-The plugin code lives in `integrations/backstage/`.
-
-**Prerequisites:**
-- Node.js 18+
-- Yarn
-
-**Setup:**
-```bash
-cd integrations/backstage
-yarn install
-```
-
-**Run Frontend Dev Server:**
-```bash
-cd plugins/audit-log
-yarn start
-```
-
-**Run Backend Dev Server:**
-```bash
-cd plugins/audit-log-backend
-yarn start
-```

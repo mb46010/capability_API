@@ -23,25 +23,7 @@ Use **Python + Jinja2 Templates**.
 - **Rationale**: TechDocs is based on MkDocs, which consumes Markdown. Generating HTML (as originally planned) creates integration issues (iframes, styling clashes). Generating Markdown ensures the report looks native to Backstage and is searchable.
 - **Implementation**: `PolicyVerificationService` will add a `generate_markdown_report()` method, also using Jinja2.
 
-## 3. Backstage Plugin Architecture
-
-**Goal**: Securely proxy audit logs and display them.
-
-### Decision
-**Frontend + Backend Plugin Pair**.
-- **Frontend (`audit-log`)**: A React plugin using `@backstage/core-plugin-api`. It will talk *only* to the Backstage backend, not the Capability API directly.
-- **Backend (`audit-log-backend`)**: A Node.js plugin using `@backstage/backend-common`. It mounts a router that proxies requests to the Capability API.
-- **Auth**: The Backend plugin will inject the `Authorization` header (Bearer token) from an environment variable (`CAPABILITY_API_TOKEN`). This keeps the token secret from the browser.
-
-## 4. Integration Location
-
-**Goal**: Store TS code in Python repo.
-
-### Decision
-`integrations/backstage/` directory.
-- **Rationale**: Keeps the root clean (`src`, `tests`, `config` remain Python-focused). Clearly demarcates the "polyglot" zone.
-
-## 5. Idempotency & CI
+## 3. Idempotency & CI
 
 **Goal**: Ensure `catalog-info.yaml` is always in sync.
 

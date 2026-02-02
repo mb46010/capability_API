@@ -62,16 +62,3 @@ The `PolicyVerificationService` produces this internal model, which is rendered 
 | `outcome` | enum | `pass`, `fail`, `error` |
 | `matched_policy` | string | Policy that triggered |
 | `duration_ms` | float | Execution time |
-
-## 3. Audit Log Entry (Source Model)
-
-Consumed by the Backstage Plugin.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `timestamp` | iso8601 | Event time |
-| `actor` | string | Principal ID |
-| `capability` | string | Capability ID |
-| `result` | enum | `success`, `denied`, `error` |
-| `mfa_verified` | boolean | Was MFA present? |
-| `metadata` | dict | Redacted params, provenance |
