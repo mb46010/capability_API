@@ -30,3 +30,52 @@ metadata:
 spec:
   type: team
   children: []
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: workday-hcm
+  title: Workday HCM
+  description: Human Capital Management capabilities.
+spec:
+  owner: platform-engineering
+  domain: hr
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: workday-payroll
+  title: Workday Payroll
+  description: Payroll and compensation capabilities.
+spec:
+  owner: platform-engineering
+  domain: hr
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: workday-time
+  title: Workday Time & Absence
+  description: Time tracking and absence management capabilities.
+spec:
+  owner: platform-engineering
+  domain: hr
+---
+apiVersion: backstage.io/v1alpha1
+kind: System
+metadata:
+  name: hr-misc
+  title: Miscellaneous HR
+  description: Various HR capabilities not grouped into core Workday domains.
+spec:
+  owner: platform-engineering
+  domain: hr
+---
+apiVersion: backstage.io/v1alpha1
+kind: Domain
+metadata:
+  name: hr
+  title: Human Resources
+  description: HR business domain.
+spec:
+  owner: platform-engineering

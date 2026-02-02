@@ -3,7 +3,7 @@ kind: API
 metadata:
   name: {{ capability.id }}
   title: {{ capability.name }}
-  description: {{ capability.description or "" }}
+  description: "{{ capability.description or '' }}"
 {% if capability.tags %}
   tags:
 {% for tag in capability.tags %}
@@ -19,22 +19,30 @@ metadata:
 {% endif %}
   links:
     - title: Policy Verification
-      url: /docs/default/component/capability-api/governance
+      url: http://localhost:3000/docs/default/component/capability-api/governance
       icon: dashboard
 spec:
-  type: {{ capability.type }}
+  type: openapi
   lifecycle: production
   owner: platform-engineering
   system: {{ capability.domain.split('.')[0] }}-{{ capability.domain.split('.')[1] if '.' in capability.domain else 'misc' }}
   definition: |
-    # {{ capability.name }}
-    
-    {{ capability.description or "" }}
-    
-    {% if capability.implementation_flow %}
-    ### Implementation Flow
-    
-    ```mermaid
-    {{ capability.implementation_flow }}
-    ```
+    openapi: 3.0.0
+    info:
+      title: {{ capability.name }}
+      description: {{ capability.description or "" }}
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: {{ capability.name }}
+          operationId: {{ capability.id | replace('.', '_') }}
+          tags:
+    {% if capability.tags %}
+    {% for tag in capability.tags %}
+            - {{ tag }}
+    {% endfor %}
     {% endif %}
+          responses:
+            '200':
+              description: Successful operation

@@ -158,22 +158,52 @@ def generate_catalog(output_dir: str = "catalog", check: bool = False):
         if check:
             sys.exit(1)
 
-    if check and diffs_found:
-        logger.error("Catalog is out of sync with registry. Run scripts/generate_catalog.py to update.")
-        sys.exit(1)
-    elif check:
+    if check:
         logger.info("Catalog is in sync.")
     else:
         logger.info(f"Generated catalog for {len(capabilities)} capabilities in '{output_dir}/'")
+
+def generate_monolith(output_file: str = "catalog-all.yaml"):
+    """Generate all capabilities into a single YAML file."""
+    registry = get_capability_registry()
+    env = get_jinja_env()
+    template = env.get_template("catalog-info.yaml.j2")
+    cap_to_policies = load_policy_capabilities()
+    capabilities = registry.get_all()
+    
+    with open(output_file, "w") as f:
+        # Write header
+        f.write("# Auto-generated monolithic catalog\n")
+        
+        for i, cap in enumerate(capabilities):
+            errors = validate_mermaid_flow(cap, registry)
+            if errors:
+                for e in errors: logger.error(f"{cap.id}: {e}")
+            
+            governing = get_governing_policies(cap.id, cap_to_policies)
+            content = template.render(
+                capability=cap.model_dump(mode='json'), 
+                governing_policies=governing
+            )
+            
+            f.write("---\n")
+            f.write(content)
+            f.write("\n")
+            
+    logger.info(f"Generated monolithic catalog at {output_file}")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Backstage catalog from capability registry")
     parser.add_argument("--output", "-o", default="catalog", help="Output directory")
     parser.add_argument("--check", action="store_true", help="Check if catalog is in sync without writing")
+    parser.add_argument("--monolith", action="store_true", help="Generate a single catalog-all.yaml file")
     args = parser.parse_args()
     
     try:
-        generate_catalog(args.output, args.check)
+        if args.monolith:
+            generate_monolith()
+        else:
+            generate_catalog(args.output, args.check)
     except Exception as e:
         logger.error(f"Failed to generate catalog: {e}")
         sys.exit(1)

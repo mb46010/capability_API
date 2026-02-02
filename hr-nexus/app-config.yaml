@@ -78,22 +78,6 @@ catalog:
   rules:
     - allow: [Component, System, API, Resource, Location, Group, User, Domain]
   locations:
-    # Local example data, file locations are relative to the backend process, typically `packages/backend`
-    - type: file
-      target: ../../examples/entities.yaml
-
-    # Local example template
-    - type: file
-      target: ../../examples/template/template.yaml
-      rules:
-        - allow: [Template]
-
-    # Local example organizational data
-    - type: file
-      target: ../../examples/org.yaml
-      rules:
-        - allow: [User, Group]
-
     # HR AI Capability API Root
     - type: file
       target: /home/marco/Code/Experiments/capability_API/catalog-info.yaml
@@ -102,21 +86,9 @@ catalog:
     - type: file
       target: /home/marco/Code/Experiments/capability_API/catalog/platform-engineering.yaml
 
-    # HR AI Capability Entities (Generated)
+    # HR AI All Capabilities (Monolith)
     - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/hr-compensation_review/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/hr-offboarding/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/hr-onboarding/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/hr-role_change/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/workday-hcm/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/workday-payroll/
-    - type: file
-      target: /home/marco/Code/Experiments/capability_API/catalog/workday-time/
+      target: /home/marco/Code/Experiments/capability_API/catalog-all.yaml
 
     ## Uncomment these lines to add more example data
     # - type: url
