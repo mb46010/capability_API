@@ -14,6 +14,12 @@ class MockFlowRunner(FlowRunnerPort):
                 "status": "RUNNING",
                 "principal_id": "owner-user"
             }
+        if flow_id == "unowned-flow":
+            return {
+                "flow_id": "unowned-flow",
+                "status": "RUNNING",
+                "principal_id": None
+            }
         return None
 
 @pytest.fixture
@@ -41,17 +47,22 @@ async def test_flow_status_enumeration_vulnerability():
         
         # 2. Request existing flow owned by someone else
         response_unauthorized = await ac.get("/flows/existing-flow", headers=headers)
+
+        # 3. Request unowned flow
+        response_unowned = await ac.get("/flows/unowned-flow", headers=headers)
     
     # FIXED STATE:
-    # Both should return 403 Forbidden
+    # All should return 403 Forbidden with same message
     
-    print(f"Non-existent: {response_nonexistent.status_code} {response_nonexistent.json()}")
-    print(f"Unauthorized: {response_unauthorized.status_code} {response_unauthorized.json()}")
-    
-    assert response_nonexistent.status_code == 403
-    assert response_unauthorized.status_code == 403
-    assert response_nonexistent.json()["message"] == "Flow access denied"
-    assert response_unauthorized.json()["message"] == "Flow access denied"
+    for resp in [response_nonexistent, response_unauthorized, response_unowned]:
+        assert resp.status_code == 403
+        data = resp.json()
+        assert data["error_code"] == "FORBIDDEN"
+        assert data["message"] == "Flow access denied"
+        # Ensure no other details leak flow existence
+        if "details" in data and data["details"]:
+             # In local environment, we might have status_code, but nothing else
+             assert set(data["details"].keys()) <= {"status_code"}
 
 @pytest.mark.asyncio
 async def test_flow_status_legitimate_access():
