@@ -46,7 +46,8 @@ async def test_get_employee_success(service):
 async def test_get_employee_not_found(service):
     with pytest.raises(WorkdayError) as exc:
         await service.get_employee({"employee_id": "INVALID"})
-    assert exc.value.error_code == "EMPLOYEE_NOT_FOUND"
+    assert exc.value.error_code == "UNAUTHORIZED"
+    assert str(exc.value) == "Access denied"
 
 @pytest.mark.asyncio
 async def test_get_manager_chain(service):

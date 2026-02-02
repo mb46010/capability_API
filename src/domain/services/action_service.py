@@ -133,6 +133,7 @@ class ActionService:
             enriched_params = {
                 **parameters,
                 "principal_id": principal_id,
+                "principal_groups": principal_groups,
                 "principal_type": principal_type,
                 "mfa_verified": mfa_verified,
                 "idempotency_key": idempotency_key,

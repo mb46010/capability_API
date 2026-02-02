@@ -29,12 +29,14 @@ class WorkdayTimeService:
         employee_id = params.get("employee_id")
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
 
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
 
         # Own Data Enforcement
-        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
              raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         balances = self.simulator.balances.get(employee_id)
@@ -133,8 +135,10 @@ class WorkdayTimeService:
             
         # Auth Check: Self or Manager
         if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+            # We must check if manager, but we need the employee record for that
             employee = self.simulator.employees.get(employee_id)
             if not employee or not employee.manager or employee.manager.employee_id != principal_id:
+                # Return same error for non-existent employee or non-manager access
                 raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         requests = [

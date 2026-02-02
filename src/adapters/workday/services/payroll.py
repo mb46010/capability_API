@@ -10,13 +10,15 @@ class WorkdayPayrollService:
         
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
         mfa_verified = params.get("mfa_verified", False)
 
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
 
         # 1. Auth Check
-        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
              raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         # 2. MFA Check (High Sensitivity)

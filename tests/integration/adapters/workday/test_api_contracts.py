@@ -69,7 +69,7 @@ async def test_error_response_matches_openapi():
 
 @pytest.mark.asyncio
 async def test_workday_not_found_error():
-    """Verify Workday-specific 404 errors return correct standardized structure"""
+    """Verify Workday-specific 403 errors for non-existent resources (enumeration protection)"""
     token = provider.issue_token(
         subject="admin@local.test",
         principal_type="HUMAN",
@@ -84,9 +84,8 @@ async def test_workday_not_found_error():
             headers={"Authorization": f"Bearer {token}"}
         )
     
-    assert response.status_code == 404
+    # Changed from 404 to 403 for enumeration protection (BUG-006)
+    assert response.status_code == 403
     error = response.json()
-    assert error["error_code"] == "EMPLOYEE_NOT_FOUND"
-    assert "EMP999" in error["message"]
-    assert "details" in error
-    assert error["details"]["employee_id"] == "EMP999"
+    assert error["error_code"] == "UNAUTHORIZED"
+    assert "Access denied" in error["message"]

@@ -320,9 +320,9 @@ async def test_5_1_nonexistent_employee(async_client):
 
     
 
-    assert response.status_code == 404
+    assert response.status_code == 403
 
-    assert response.json()["error_code"] == "EMPLOYEE_NOT_FOUND"
+    assert response.json()["error_code"] == "UNAUTHORIZED"
 
 
 

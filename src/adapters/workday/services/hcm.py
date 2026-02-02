@@ -13,9 +13,16 @@ class WorkdayHCMService:
         employee_id = params.get("employee_id")
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type", "HUMAN") # Default to HUMAN if missing
+        principal_groups = params.get("principal_groups", [])
 
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+
+        # Auth check first (if applicable)
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
+             # According to BUG-006, we should restrict humans to self-only to prevent enumeration
+             raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
@@ -29,7 +36,8 @@ class WorkdayHCMService:
             allowed_fields = {"employee_id", "name", "job", "status", "manager"}
             data = {k: v for k, v in data.items() if k in allowed_fields}
         elif principal_type == "HUMAN" and principal_id != employee_id:
-            # Mask PII for other employees unless they are admin (skipped for MVP simplicity)
+            # This block is now unreachable for HUMANS due to the auth check above,
+            # but kept for architectural consistency if we ever allow some humans to see others.
             sensitive_fields = {"personal_email", "phone", "birth_date", "ssn", "emergency_contact"}
             data = {k: v for k, v in data.items() if k not in sensitive_fields}
 
@@ -43,9 +51,19 @@ class WorkdayHCMService:
         root_id = params.get("root_id")
         depth = params.get("depth", 2)
         
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
+        
         if not root_id:
              raise WorkdayError("Missing root_id", "INVALID_PARAMS")
              
+        # Auth Check: Can only view org chart starting from self (unless manager/admin)
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != root_id and not is_admin:
+            # Simple policy for MVP: Self-root only
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
+
         if root_id not in self.simulator.employees:
             raise WorkdayError("Access denied", "UNAUTHORIZED")
             
@@ -95,8 +113,18 @@ class WorkdayHCMService:
 
     async def get_manager_chain(self, params: Dict[str, Any]) -> Dict[str, Any]:
         employee_id = params.get("employee_id")
+        
+        principal_id = params.get("principal_id")
+        principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
+
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
+
+        # Auth Check: Self only
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         if employee_id not in self.simulator.employees:
             raise WorkdayError("Access denied", "UNAUTHORIZED")
@@ -148,11 +176,13 @@ class WorkdayHCMService:
         
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
         
         if not manager_id:
              raise WorkdayError("Missing manager_id", "INVALID_PARAMS")
 
-        if principal_type == "HUMAN" and principal_id and principal_id != manager_id:
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != manager_id and not is_admin:
              # Only allow viewing own reports (unless admin/override)
              raise WorkdayError("Access denied", "UNAUTHORIZED")
         
@@ -190,12 +220,14 @@ class WorkdayHCMService:
         
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
 
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
              
         # Auth Check: Own Data Only
-        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
              raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(employee_id)
@@ -228,12 +260,14 @@ class WorkdayHCMService:
         
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
 
         if not employee_id:
              raise WorkdayError("Missing employee_id", "INVALID_PARAMS")
 
         # Auth Check: Own Data Only (unless admin)
-        if principal_type == "HUMAN" and principal_id and principal_id != employee_id:
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
              raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(employee_id)
@@ -289,6 +323,7 @@ class WorkdayHCMService:
 
         principal_id = params.get("principal_id")
         principal_type = params.get("principal_type")
+        principal_groups = params.get("principal_groups", [])
         mfa_verified = params.get("mfa_verified", False)
 
         if not employee_id:
@@ -301,6 +336,11 @@ class WorkdayHCMService:
         # MFA required for termination (high sensitivity)
         if not mfa_verified and principal_type != "MACHINE":
             raise WorkdayError("MFA required for employee termination", "MFA_REQUIRED")
+
+        # Auth Check: Admins only for termination of others
+        is_admin = "hr-platform-admins" in principal_groups
+        if principal_type == "HUMAN" and principal_id and principal_id != employee_id and not is_admin:
+            raise WorkdayError("Access denied", "UNAUTHORIZED")
 
         employee = self.simulator.employees.get(employee_id)
         if not employee:
