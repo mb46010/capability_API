@@ -4,6 +4,10 @@ from src.domain.ports.flow_runner import FlowRunnerPort
 from src.domain.services.policy_engine import PolicyEngine
 from src.domain.entities.flow import FlowStatusResponse
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class FlowService:
     def __init__(self, policy_engine: PolicyEngine, adapter: FlowRunnerPort):
         self.policy_engine = policy_engine
@@ -40,6 +44,7 @@ class FlowService:
         )
 
         if not evaluation.allowed:
+            logger.warning(f"Access denied to flow {capability} for principal {principal_id}")
             raise HTTPException(status_code=403, detail=f"Access denied to flow: {capability}")
 
         # 2. Start Flow via Adapter
@@ -52,14 +57,21 @@ class FlowService:
         principal_groups: List[str],
     ) -> FlowStatusResponse:
         raw_status = await self.adapter.get_flow_status(flow_id)
+        
+        is_admin = "hr-platform-admins" in principal_groups
+
+        # Prevent enumeration by returning same error for NOT_FOUND and FORBIDDEN
         if not raw_status:
-             raise ValueError(f"Flow {flow_id} not found")
+             logger.info(f"Flow {flow_id} not found, requested by {principal_id}")
+             raise HTTPException(status_code=403, detail="Flow access denied")
 
         owner_id = raw_status.get("principal_id")
-        is_admin = "hr-platform-admins" in principal_groups
+        
         if owner_id is None and not is_admin:
+            logger.warning(f"Access denied to unowned flow {flow_id} for principal {principal_id}")
             raise HTTPException(status_code=403, detail="Flow access denied")
         if owner_id is not None and owner_id != principal_id and not is_admin:
+            logger.warning(f"Access denied to flow {flow_id} (owned by {owner_id}) for principal {principal_id}")
             raise HTTPException(status_code=403, detail="Flow access denied")
         
         # Convert raw dict to Pydantic model

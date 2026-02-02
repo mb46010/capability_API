@@ -105,3 +105,13 @@ async def test_get_flow_status_allows_admin(flow_service, mock_policy_engine):
         ["hr-platform-admins"],
     )
     assert status.flow_id == "test-flow-123"
+
+@pytest.mark.asyncio
+async def test_get_flow_status_not_found_returns_forbidden(flow_service):
+    # Non-existent flow should return 403 to prevent enumeration
+    with pytest.raises(HTTPException) as excinfo:
+        await flow_service.get_status("non-existent-id", "any-user", [])
+    
+    assert excinfo.value.status_code == 403
+    assert excinfo.value.detail == "Flow access denied"
+
