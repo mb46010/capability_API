@@ -1,0 +1,17 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: string
+  title: string
+  description: string
+  tags: [string]
+  annotations:
+    capability-api/domain: string
+    capability-api/sensitivity: "low" | "medium" | "high" | "critical"
+    capability-api/requires-mfa: "true" | "false"
+spec:
+  type: "action" | "flow"
+  lifecycle: "production"
+  owner: "platform-engineering"
+  system: string
+  definition: string

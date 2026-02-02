@@ -13,6 +13,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-25
 - N/A (Stateless adapter/gateway) (005-hr-mcp-server)
 - Python 3.11+ + Pydantic V2, PyYAML, Jinja2, Tabulate (008-policy-verification)
 - Local Filesystem (YAML scenarios, JSON/HTML/JUnit results) (008-policy-verification)
+- Python 3.11+ (Core/Scripts), TypeScript/Node.js 18+ (Backstage Plugins) (009-backstage-governance)
+- Filesystem (Catalog/TechDocs), API Proxy (Audit Logs) (009-backstage-governance)
 
 - Python 3.11+ + FastAPI, Pydantic V2, Authlib (tentative), MCP SDK (001-capability-api)
 
@@ -32,9 +34,9 @@ cd src [ONLY COMMANDS FOR ACTIVE TECHNOLOGIES][ONLY COMMANDS FOR ACTIVE TECHNOLO
 Python 3.11+: Follow standard conventions
 
 ## Recent Changes
+- 009-backstage-governance: Added Python 3.11+ (Core/Scripts), TypeScript/Node.js 18+ (Backstage Plugins)
 - 008-policy-verification: Added Python 3.11+ + Pydantic V2, PyYAML, Jinja2, Tabulate
 - 005-hr-mcp-server: Added Python 3.11+ + FastMCP >= 3.0.0b1, httpx, pydantic-settings, PyJWT (for token inspection)
-- 005-hr-mcp-server: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
 
 
 <!-- MANUAL ADDITIONS START -->
