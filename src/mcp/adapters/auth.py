@@ -4,6 +4,8 @@ import jwt
 import logging
 import time
 import httpx
+import threading
+from cachetools import TTLCache
 from src.mcp.lib.config import settings
 from src.adapters.auth import (
     create_token_verifier,
@@ -14,8 +16,10 @@ from src.adapters.auth import (
 
 logger = logging.getLogger(__name__)
 
-# Token Cache: Key = user_token_signature, Value = (mcp_token, expires_at_timestamp)
-_mcp_token_cache: Dict[str, Tuple[str, float]] = {}
+# Token Cache: Key = user_token_signature, Value = mcp_token
+# maxsize=5000, ttl=300 seconds (5 minutes)
+_mcp_token_cache: TTLCache = TTLCache(maxsize=5000, ttl=300)
+_cache_lock = threading.Lock()
 
 # Global verifier instance
 _verifier: Optional[TokenVerifier] = None
@@ -113,14 +117,10 @@ async def get_mcp_token(user_token: str) -> str:
     token_parts = user_token.split(".")
     cache_key = token_parts[-1] if len(token_parts) == 3 else user_token
     
-    now = time.time()
-    if cache_key in _mcp_token_cache:
-        cached_token, expires_at = _mcp_token_cache[cache_key]
-        if now < expires_at:
+    with _cache_lock:
+        if cache_key in _mcp_token_cache:
             logger.debug("Returning cached MCP token")
-            return cached_token
-        else:
-            del _mcp_token_cache[cache_key]
+            return _mcp_token_cache[cache_key]
 
     # 2. Perform Exchange
     logger.info("Exchanging user token for MCP scope")
@@ -144,9 +144,8 @@ async def get_mcp_token(user_token: str) -> str:
     mcp_token = data["access_token"]
     
     # 3. Cache Result
-    # Cache for 4 minutes (240s) to be safe within 5 min TTL
-    expires_at = now + 240
-    _mcp_token_cache[cache_key] = (mcp_token, expires_at)
+    with _cache_lock:
+        _mcp_token_cache[cache_key] = mcp_token
     
     return mcp_token
 

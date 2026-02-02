@@ -32,18 +32,17 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 |---|-------|------|--------|
 | [003](003-mock-okta-test-endpoints-exposed.md) | Mock Okta Test Endpoints Exposed | `src/adapters/auth/mock_okta.py` | Anyone can create admin tokens or arbitrary users via /test/* endpoints |
 | [004](004-mcp-token-verification-disabled.md) | MCP Token Verification Disabled | `src/mcp/adapters/auth.py` | Token signature not verified, allowing forged tokens to pass RBAC checks |
+| [005](005-sensitive-data-in-exception-messages.md) | Sensitive Data in Exception Messages | Workday services | Error messages leak principal IDs and relationships |
+| [006](006-timing-attack-authorization.md) | Timing Attack in Authorization | Workday services | Different response times reveal resource existence |
+| [007](007-idempotency-cache-unbounded.md) | Unbounded Idempotency Cache | `src/adapters/workday/client.py` | Memory grows indefinitely, potential OOM |
+| [008](008-mcp-token-cache-memory-leak.md) | MCP Token Cache Memory Leak | `src/mcp/adapters/auth.py` | Token cache never cleaned, memory growth |
 
 
 # To Do
 
 ## Medium Priority Issues
 
-| # | Issue | File | Impact |
-|---|-------|------|--------|
-| [005](005-sensitive-data-in-exception-messages.md) | Sensitive Data in Exception Messages | Workday services | Error messages leak principal IDs and relationships |
-| [006](006-timing-attack-authorization.md) | Timing Attack in Authorization | Workday services | Different response times reveal resource existence |
-| [007](007-idempotency-cache-unbounded.md) | Unbounded Idempotency Cache | `src/adapters/workday/client.py` | Memory grows indefinitely, potential OOM |
-| [008](008-mcp-token-cache-memory-leak.md) | MCP Token Cache Memory Leak | `src/mcp/adapters/auth.py` | Token cache never cleaned, memory growth |
+(None)
 
 ## Low Priority Issues
 
