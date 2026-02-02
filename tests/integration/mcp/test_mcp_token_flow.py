@@ -12,7 +12,7 @@ def mock_httpx_client():
 
 @pytest.fixture
 def mock_backend_client():
-    with patch("src.mcp.tools.hcm.backend_client") as mock:
+    with patch("src.mcp.lib.decorators.backend_client") as mock:
         yield mock
 
 @pytest.mark.asyncio
@@ -61,8 +61,8 @@ async def test_mcp_tool_uses_exchanged_token(mock_backend_client):
     ctx.session = None # Ensure it falls back to request
     
     # Mock get_mcp_token to avoid real HTTP call
-    with patch("src.mcp.tools.hcm.get_mcp_token", new_callable=AsyncMock) as mock_get_token, \
-         patch("src.mcp.tools.hcm.authenticate_and_authorize", new_callable=AsyncMock) as mock_auth:
+    with patch("src.mcp.lib.decorators.get_mcp_token", new_callable=AsyncMock) as mock_get_token, \
+         patch("src.mcp.lib.decorators.authenticate_and_authorize", new_callable=AsyncMock) as mock_auth:
         
         # Setup mock auth success
         mock_principal = MagicMock()

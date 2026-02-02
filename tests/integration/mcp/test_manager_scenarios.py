@@ -6,13 +6,11 @@ from src.mcp.tools.hcm import list_direct_reports
 from src.mcp.tools.time import approve_time_off
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.hcm.get_mcp_token")
-@patch("src.mcp.tools.time.get_mcp_token")
-async def test_manager_approve_flow(mock_time_token, mock_hcm_token, issue_token):
+@patch("src.mcp.lib.decorators.get_mcp_token")
+async def test_manager_approve_flow(mock_mcp_token, issue_token):
     """Verify manager can list reports and approve requests."""
     # Mock token exchange
-    mock_hcm_token.side_effect = lambda t: f"mcp-{t}"
-    mock_time_token.side_effect = lambda t: f"mcp-{t}"
+    mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
     
     token = issue_token(
         subject="MGR001",

@@ -9,8 +9,13 @@ async def test_mcp_latency_target():
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": "Bearer fake"}}
     
-    # Mock backend to be near-instant
-    with patch("src.mcp.tools.hcm.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    # Mock backend, auth and token exchange to be near-instant
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call, \
+         patch("src.mcp.lib.decorators.authenticate_and_authorize", new_callable=AsyncMock) as mock_auth, \
+         patch("src.mcp.lib.decorators.get_mcp_token", new_callable=AsyncMock) as mock_token:
+        
+        mock_auth.return_value = ("fake_token", MagicMock(subject="test"), None)
+        mock_token.return_value = "mcp_token"
         mock_call.return_value = {"data": {}}
         
         start_time = time.time()

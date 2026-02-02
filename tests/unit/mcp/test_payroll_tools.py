@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.tools.payroll import get_compensation
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.payroll.backend_client.call_action")
-@patch("src.mcp.tools.payroll.get_mcp_token")
+@patch("src.mcp.lib.decorators.backend_client.call_action")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call, issue_token):
     """Verify tool returns error if token lacks MFA claim (even for ADMIN)."""
     # Mock token exchange
@@ -28,8 +28,8 @@ async def test_get_compensation_mfa_missing(mock_mcp_token, mock_call, issue_tok
     mock_call.assert_not_called()
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.payroll.backend_client.call_action")
-@patch("src.mcp.tools.payroll.get_mcp_token")
+@patch("src.mcp.lib.decorators.backend_client.call_action")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_get_compensation_mfa_present(mock_mcp_token, mock_call, issue_token):
     """Verify tool calls backend if token HAS MFA claim and ADMIN role."""
     # Mock token exchange

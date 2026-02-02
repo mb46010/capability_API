@@ -3,7 +3,7 @@ import jwt
 from unittest.mock import AsyncMock, patch, MagicMock
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.payroll.get_mcp_token")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_payroll_mfa_enforcement(mock_mcp_token, issue_token):
     """Verify Payroll tools enforce MFA at MCP layer for ADMINs."""
     # Mock token exchange
@@ -33,7 +33,7 @@ async def test_payroll_mfa_enforcement(mock_mcp_token, issue_token):
     )
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
     
-    with patch("src.mcp.tools.payroll.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call:
         mock_call.return_value = {"data": {"compensation": {"total": 100000}}}
         result = await get_compensation(mock_ctx, "EMP001")
         assert "100000" in result

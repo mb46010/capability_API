@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.time.get_mcp_token")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_employee_request_time_off_success(mock_mcp_token, issue_token):
     """Verify an employee can request time off and see balance."""
     # Mock token exchange
@@ -19,7 +19,7 @@ async def test_employee_request_time_off_success(mock_mcp_token, issue_token):
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
     
-    with patch("src.mcp.tools.time.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call:
         mock_call.return_value = {"data": {"request_id": "TOR-999", "status": "PENDING"}}
         
         from src.mcp.tools.time import request_time_off
@@ -37,7 +37,7 @@ async def test_employee_request_time_off_success(mock_mcp_token, issue_token):
         mock_call.assert_called_once()
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.time.get_mcp_token")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_employee_get_balance(mock_mcp_token, issue_token):
     # Mock token exchange
     mock_mcp_token.side_effect = lambda t: f"mcp-{t}"
@@ -51,7 +51,7 @@ async def test_employee_get_balance(mock_mcp_token, issue_token):
     mock_ctx = MagicMock()
     mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}
     
-    with patch("src.mcp.tools.time.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call:
         mock_call.return_value = {
             "data": {
                 "balances": [{"type": "PTO", "available_hours": 120, "pending_hours": 0}]

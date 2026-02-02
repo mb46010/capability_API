@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.tools.time import request_time_off
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.time.backend_client.call_action")
-@patch("src.mcp.tools.time.get_mcp_token")
+@patch("src.mcp.lib.decorators.backend_client.call_action")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_request_time_off_auto_id(mock_mcp_token, mock_call, issue_token):
     """Verify tool auto-generates a transaction ID if missing."""
     # Mock token exchange

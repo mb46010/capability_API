@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.hcm.get_mcp_token")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_ai_agent_get_employee_filtered(mock_mcp_token, issue_token):
     """
     Integration-style test for AI Agent lookup.
@@ -31,7 +31,7 @@ async def test_ai_agent_get_employee_filtered(mock_mcp_token, issue_token):
     
     # 3. Execute the tool via mcp instance (mocking the context/session)
     # We'll use a patch for the backend client
-    with patch("src.mcp.tools.hcm.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call:
         mock_call.return_value = mock_backend_response
         
         # Mock Context
@@ -49,7 +49,7 @@ async def test_ai_agent_get_employee_filtered(mock_mcp_token, issue_token):
         mock_call.assert_called_once()
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.hcm.get_mcp_token")
+@patch("src.mcp.lib.decorators.get_mcp_token")
 async def test_ai_agent_update_contact_info(mock_mcp_token, issue_token):
     """Verify AI Agent can call update_contact_info (No MFA required in MCP)."""
     # Mock token exchange
@@ -59,7 +59,7 @@ async def test_ai_agent_update_contact_info(mock_mcp_token, issue_token):
     
     mock_backend_response = {"data": {"status": "APPLIED", "transaction_id": "TXN-123"}}
     
-    with patch("src.mcp.tools.hcm.backend_client.call_action", new_callable=AsyncMock) as mock_call:
+    with patch("src.mcp.lib.decorators.backend_client.call_action", new_callable=AsyncMock) as mock_call:
         mock_call.return_value = mock_backend_response
         mock_ctx = MagicMock()
         mock_ctx.session = {"metadata": {"Authorization": f"Bearer {token}"}}

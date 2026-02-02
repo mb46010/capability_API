@@ -4,7 +4,7 @@ from src.mcp.tools.hcm import get_employee
 from src.mcp.adapters.auth import PrincipalContext
 
 @pytest.mark.asyncio
-@patch("src.mcp.tools.hcm.backend_client.call_action")
+@patch("src.mcp.lib.decorators.backend_client.call_action")
 async def test_get_employee_success(mock_call):
     # Mock successful backend response
     mock_call.return_value = {
