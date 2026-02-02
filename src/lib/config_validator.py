@@ -16,6 +16,7 @@ class AppSettings(BaseSettings):
     ENVIRONMENT: str = Field(default="local", description="Deployment environment (local, dev, prod)")
     POLICY_PATH: str = Field(default="config/policy-workday.yaml", description="Path to the policy YAML file")
     CAPABILITY_REGISTRY_PATH: str = Field(default="config/capabilities/index.yaml", description="Path to the capability registry")
+    AUDIT_LOG_PATH: str = Field(default="logs/audit.jsonl", description="Path to the audit log file")
     MOCK_OKTA_TEST_SECRET: str = Field(default="mock-okta-secret", description="Secret key for Mock Okta test endpoints")
 
     @field_validator("POLICY_PATH", "CAPABILITY_REGISTRY_PATH")

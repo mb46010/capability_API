@@ -1,9 +1,11 @@
 import json
 import logging
 import re
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
+from src.lib.config_validator import settings
 
 class JSONDateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -12,8 +14,36 @@ class JSONDateTimeEncoder(json.JSONEncoder):
         return super().default(obj)
 
 class JSONLLogger:
-    def __init__(self, log_path: str = "logs/audit.jsonl"):
-        self.log_path = Path(log_path)
+    def __init__(self, log_path: Optional[str] = None):
+        if log_path is None:
+            log_path = settings.AUDIT_LOG_PATH
+            
+        target_path = Path(log_path).resolve()
+        
+        # Security: Prevent path traversal by ensuring the log path is within
+        # the project root OR the system temporary directory (for tests).
+        project_root = Path(__file__).resolve().parent.parent.parent.parent
+        temp_dir = Path(tempfile.gettempdir()).resolve()
+        
+        is_safe = False
+        try:
+            target_path.relative_to(project_root)
+            is_safe = True
+        except ValueError:
+            pass
+            
+        if not is_safe:
+            try:
+                target_path.relative_to(temp_dir)
+                is_safe = True
+            except ValueError:
+                pass
+                
+        if not is_safe:
+            raise ValueError(f"Security Error: Log path escape detected: {log_path}. "
+                             f"Logs must be within project root ({project_root}) or temp dir ({temp_dir})")
+
+        self.log_path = target_path
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
         
         # PII Patterns to redact

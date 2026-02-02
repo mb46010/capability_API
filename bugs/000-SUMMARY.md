@@ -28,6 +28,8 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 | [008](done/008-mcp-token-cache-memory-leak.md) | MCP Token Cache Memory Leak | `src/mcp/adapters/auth.py` | Fixed: Added cache eviction |
 | [009](done/009-flow-status-idor.md) | Flow Status Information Disclosure | `src/domain/services/flow_service.py` | Fixed: Unified error responses |
 | [010](done/010-uvicorn-reload-production.md) | Uvicorn Reload in Production | `src/main.py` | Fixed: Environment-aware configuration |
+| [011](done/011-circular-reference-dos.md) | Circular Reference Stack Overflow | `src/adapters/workday/services/hcm.py` | Org chart missing cycle detection |
+
 
 # Remaining (To Do)
 
@@ -35,7 +37,7 @@ This review analyzed the Capability API codebase, a FastAPI-based service that p
 
 | # | Issue | File | Impact |
 |---|-------|------|--------|
-| [011](011-circular-reference-dos.md) | Circular Reference Stack Overflow | `src/adapters/workday/services/hcm.py` | Org chart missing cycle detection |
+
 
 ## Medium Priority
 
