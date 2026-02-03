@@ -513,61 +513,10 @@
 <p>This document provides a high-level overview of the HR AI Platform's Capability API system design.</p>
 <h2 id="system-context-c4-level-1">System Context (C4 Level 1)<a class="headerlink" href="#system-context-c4-level-1" title="Permanent link">&para;</a></h2>
 <p>The Capability API serves as the central orchestration layer between AI Agents/HR Applications and external HR systems like Workday.</p>
-<pre class="mermaid"><code>C4Context
-  title System Context diagram for Capability API
-
-  Person(agent, "AI Agent", "Automated reasoning engine requesting HR actions")
-  Person(admin, "HR Admin", "Human user managing policies and workflows")
-
-  System(capapi, "Capability API", "Governed surface exposing deterministic actions and flows")
-  System(backstage, "Backstage", "Governance lens and catalog")
-
-  System_Ext(workday, "Workday", "Core HRIS containing employee and payroll records")
-  System_Ext(okta, "Okta", "Identity Provider for OIDC authentication")
-
-  Rel(agent, capapi, "Invokes Actions/Flows", "HTTPS/JSON + JWT")
-  Rel(admin, capapi, "Manages Policies", "YAML/CLI")
-  Rel(admin, backstage, "Inspects Governance", "HTTPS/Web")
-
-  Rel(capapi, workday, "Integrates with", "REST API")
-  Rel(capapi, okta, "Validates Tokens against", "JWKS")
-  Rel(backstage, capapi, "Reads Metadata", "Git/YAML")</code></pre>
+<p><img alt="Kroki" src="kroki-generated-471ba73e-02fd-3c4a-995e-f5e398814501.svg" /></p>
 <h2 id="containers-c4-level-2">Containers (C4 Level 2)<a class="headerlink" href="#containers-c4-level-2" title="Permanent link">&para;</a></h2>
 <p>The system follows a <strong>Hexagonal Architecture</strong> (Ports and Adapters) to ensure the core business logic remains isolated from infrastructure concerns.</p>
-<pre class="mermaid"><code>C4Container
-  title Container diagram for Capability API
-
-  Container_Boundary(api_boundary, "API Layer") {
-    Container(routes, "API Routes", "FastAPI", "Request handling and Auth injection")
-  }
-
-  Container_Boundary(core_boundary, "Protected Domain Core") {
-    Container(action_service, "Action Service", "Python", "Policy evaluation and action routing")
-    Container(flow_service, "Flow Service", "Python", "Workflow orchestration")
-    Container(policy_engine, "Policy Engine", "Python", "Capability-based authorization logic")
-  }
-
-  Container_Boundary(adapter_boundary, "Implementation Adapters") {
-    Container(workday_adapter, "Workday Adapter", "Python", "Simulated or Real Workday connector")
-    Container(auth_adapter, "Auth Adapter", "Python", "Token verification logic")
-    Container(fs_adapter, "Filesystem Adapter", "Python", "Local storage for policies and flows")
-    Container(mcp_server, "HR MCP Server", "FastMCP 3.0", "AI-agent gateway with RBAC")
-  }
-
-  Container(backstage, "Backstage", "Backstage.io", "Visualizes catalog and verification reports")
-
-  Rel(mcp_server, routes, "Invokes", "HTTPS/JSON")
-
-  Rel(routes, action_service, "Calls", "Internal")
-  Rel(routes, flow_service, "Calls", "Internal")
-
-  Rel(action_service, policy_engine, "Uses", "Logic")
-
-  Rel(action_service, workday_adapter, "Uses", "Connector Port")
-  Rel(flow_service, fs_adapter, "Uses", "Flow Runner Port")
-  Rel(routes, auth_adapter, "Uses", "Token Verifier Port")
-
-  Rel(backstage, fs_adapter, "Reads catalog-info.yaml", "Static Files")</code></pre>
+<p><img alt="Kroki" src="kroki-generated-89c1cb1c-f451-31fc-9a32-ffb32eebf378.svg" /></p>
 <h2 id="port-adapter-mappings">Port &amp; Adapter Mappings<a class="headerlink" href="#port-adapter-mappings" title="Permanent link">&para;</a></h2>
 <table>
 <thead>

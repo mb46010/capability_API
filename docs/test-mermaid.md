@@ -2,7 +2,7 @@
 
 ## Simple Flowchart
 
-```mermaid
+```kroki-mermaid
 graph TD
     A[Start] --> B{Is it working?}
     B -->|Yes| C[Great!]
@@ -12,7 +12,7 @@ graph TD
 
 ## Sequence Diagram
 
-```mermaid
+```kroki-mermaid
 sequenceDiagram
     Alice->>John: Hello John, how are you?
     John-->>Alice: Great!
@@ -21,7 +21,7 @@ sequenceDiagram
 
 ## C4 Context Diagram (Original)
 
-```mermaid
+```kroki-mermaid
 C4Context
   title System Context diagram for Capability API
 
@@ -42,3 +42,5 @@ C4Context
 
   UpdateRelStyle(agent, capapi, $textColor="blue", $lineColor="blue")
 ```
+
+

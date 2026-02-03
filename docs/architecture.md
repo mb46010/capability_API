@@ -6,7 +6,7 @@ This document provides a high-level overview of the HR AI Platform's Capability 
 
 The Capability API serves as the central orchestration layer between AI Agents/HR Applications and external HR systems like Workday.
 
-```mermaid
+```kroki-mermaid
 C4Context
   title System Context diagram for Capability API
   
@@ -32,7 +32,7 @@ C4Context
 
 The system follows a **Hexagonal Architecture** (Ports and Adapters) to ensure the core business logic remains isolated from infrastructure concerns.
 
-```mermaid
+```kroki-mermaid
 C4Container
   title Container diagram for Capability API
   

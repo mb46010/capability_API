@@ -8,9 +8,8 @@ nav:
   - Mermaid Test: test-mermaid.md
 plugins:
   - techdocs-core
+  - kroki:
+      server_url: https://kroki.io
+      http_method: POST
 markdown_extensions:
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format ''
+  - pymdownx.superfences

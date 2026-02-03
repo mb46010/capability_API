@@ -465,36 +465,11 @@
 
 <h1 id="mermaid-test-page">Mermaid Test Page<a class="headerlink" href="#mermaid-test-page" title="Permanent link">&para;</a></h1>
 <h2 id="simple-flowchart">Simple Flowchart<a class="headerlink" href="#simple-flowchart" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>graph TD
-    A[Start] --&gt; B{Is it working?}
-    B --&gt;|Yes| C[Great!]
-    B --&gt;|No| D[Debug]
-    D --&gt; A</code></pre>
+<p><img alt="Kroki" src="kroki-generated-6a8565bd-f129-330e-b00a-105d41ff32a1.svg" /></p>
 <h2 id="sequence-diagram">Sequence Diagram<a class="headerlink" href="#sequence-diagram" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>sequenceDiagram
-    Alice-&gt;&gt;John: Hello John, how are you?
-    John--&gt;&gt;Alice: Great!
-    Alice-)John: See you later!</code></pre>
+<p><img alt="Kroki" src="kroki-generated-7ef9841f-a87f-3b2d-ad19-6e55dc3f13a0.svg" /></p>
 <h2 id="c4-context-diagram-original">C4 Context Diagram (Original)<a class="headerlink" href="#c4-context-diagram-original" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>C4Context
-  title System Context diagram for Capability API
-
-  Person(agent, "AI Agent", "Automated reasoning engine requesting HR actions")
-  Person(admin, "HR Admin", "Human user managing policies and workflows")
-
-  System(capapi, "Capability API", "Governed surface exposing deterministic actions and flows")
-  System(backstage, "Backstage", "Governance lens and catalog")
-
-  System_Ext(workday, "Workday", "Core HRIS containing employee and payroll records")
-  System_Ext(okta, "Okta", "Identity Provider for OIDC authentication")
-
-  Rel(agent, capapi, "Invokes Actions/Flows", "HTTPS/JSON + JWT")
-  Rel(admin, capapi, "Manages Policies", "YAML/CLI")
-  Rel(admin, backstage, "Inspects Governance", "HTTPS/Web")
-  Rel(capapi, workday, "Reads/Writes Employee Data", "REST API/OAuth2")
-  Rel(capapi, okta, "Validates Tokens", "JWKS endpoint")
-
-  UpdateRelStyle(agent, capapi, $textColor="blue", $lineColor="blue")</code></pre>
+<p><img alt="Kroki" src="kroki-generated-24a5c094-3ef5-3b42-af65-37230cd59ca7.svg" /></p>
 
 
 

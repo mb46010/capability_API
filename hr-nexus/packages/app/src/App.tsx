@@ -1,6 +1,4 @@
 import { Navigate, Route } from 'react-router-dom';
-import mermaid from 'mermaid';
-import { useEffect } from 'react';
 import { apiDocsPlugin, ApiExplorerPage } from '@backstage/plugin-api-docs';
 import {
   CatalogEntityPage,
@@ -40,14 +38,6 @@ import { RequirePermission } from '@backstage/plugin-permission-react';
 import { catalogEntityCreatePermission } from '@backstage/plugin-catalog-common/alpha';
 import { NotificationsPage } from '@backstage/plugin-notifications';
 import { SignalsDisplay } from '@backstage/plugin-signals';
-
-const MermaidDebugger = () => {
-  useEffect(() => {
-    (window as any).mermaid = mermaid;
-    console.log('Mermaid exposed to window', mermaid);
-  }, []);
-  return null;
-};
 
 const app = createApp({
   apis,
@@ -91,7 +81,6 @@ const routes = (
           <TechDocsAddons>
             <ReportIssue />
             <Mermaid />
-            <MermaidDebugger />
           </TechDocsAddons>
         </TechDocsReaderPage>
       }
