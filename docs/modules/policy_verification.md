@@ -10,9 +10,9 @@ The Policy Verification module ensures that the Capability API's security postur
 - **Backstage TechDocs**: Automated publishing of the verification dashboard to Backstage.
 
 ## Important Links
-- **[Technical README](../../src/domain/services/README.ai.md)**: Implementation details and CLI usage.
-- **[Test Scenarios](../../tests/policy/scenarios/)**: Baseline and regression test definitions.
-- **[Governance Dashboard](../backstage.md)**: Backstage integration details.
+- **Technical README**: See `src/domain/services/README.ai.md` for implementation details and CLI usage.
+- **Test Scenarios**: See `tests/policy/scenarios/` directory for baseline and regression test definitions.
+- **[Governance Dashboard](../governance.md)**: Governance framework overview.
 
 ## Usage
 To verify the current policy configuration and generate a Markdown report for TechDocs:

@@ -1,0 +1,654 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Backstage.io Governance Integration - Capability API Governance</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#backstageio-governance-integration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Capability API Governance" class="md-header__button md-logo" aria-label="Capability API Governance" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Capability API Governance
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Backstage.io Governance Integration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Capability API Governance" class="md-nav__button md-logo" aria-label="Capability API Governance" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Capability API Governance
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../onboarding/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Onboarding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../governance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Governance
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../policy-verification/latest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Policy Verification
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-capability-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Capability Catalog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Capability Catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#catalog-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Catalog Generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-policy-verification-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Policy Verification Dashboard
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Policy Verification Dashboard">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#accessing-the-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Accessing the Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuring-this-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuring this Repository
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#techdocs-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TechDocs Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-continuous-sync-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Continuous Sync (CI/CD)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#developer-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Developer Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="backstageio-governance-integration">Backstage.io Governance Integration<a class="headerlink" href="#backstageio-governance-integration" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The HR AI Platform integrates with <a href="https://backstage.io">Backstage.io</a> to provide a "read-only governance lens" over the Capability API. This integration ensures that the platform's security posture, capability inventory, and compliance status are visible to non-technical stakeholders without changing the underlying enforcement model.</p>
+<p>The integration consists of two main initiatives:
+1. <strong>Capability Catalog</strong>: A browsable inventory of all Actions and Flows.
+2. <strong>Policy Verification Dashboard</strong>: An interactive report of security test results.</p>
+<hr />
+<h2 id="1-capability-catalog">1. Capability Catalog<a class="headerlink" href="#1-capability-catalog" title="Permanent link">&para;</a></h2>
+<p>The Capability Catalog transforms our internal <code>index.yaml</code> definitions into Backstage API entities. This allows stakeholders to browse capabilities by domain, check sensitivity levels, and see which policies govern each action.</p>
+<h3 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Domain Grouping</strong>: Capabilities are organized into Backstage Systems (e.g., <code>workday-hcm</code>, <code>workday-payroll</code>).</li>
+<li><strong>Sensitivity Badges</strong>: Visual indicators for <code>low</code>, <code>medium</code>, <code>high</code>, and <code>critical</code> data sensitivity.</li>
+<li><strong>MFA Indicators</strong>: Clearly marks capabilities that require Multi-Factor Authentication.</li>
+<li><strong>Policy Cross-Reference</strong>: Each entity page includes a "Governed By" section listing the exact policies that grant access to it.</li>
+<li><strong>Implementation Flows</strong>: Composite capabilities include visualized Mermaid diagrams showing their orchestration logic.</li>
+</ul>
+<h3 id="catalog-generation">Catalog Generation<a class="headerlink" href="#catalog-generation" title="Permanent link">&para;</a></h3>
+<p>The catalog is generated via a build-time script:
+<div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>python3<span class="w"> </span>scripts/generate_catalog.py
+</code></pre></div></td></tr></table></div>
+This script is executed in CI to ensure the Backstage view never diverges from the Git-committed configuration.</p>
+<hr />
+<h2 id="2-policy-verification-dashboard">2. Policy Verification Dashboard<a class="headerlink" href="#2-policy-verification-dashboard" title="Permanent link">&para;</a></h2>
+<p>The Verification Dashboard provides a web-accessible view of the platform's access policy behavior. It is published as a Backstage TechDocs page.</p>
+<h3 id="features">Features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Pass/Fail Metrics</strong>: High-level summary of policy test scenarios.</li>
+<li><strong>Detailed Results</strong>: A sortable table of all 107+ test cases, showing matched policies and execution times.</li>
+<li><strong>Staleness Detection</strong>: The report includes a timestamp and is updated automatically on every policy change.</li>
+</ul>
+<h3 id="accessing-the-dashboard">Accessing the Dashboard<a class="headerlink" href="#accessing-the-dashboard" title="Permanent link">&para;</a></h3>
+<p>In Backstage, navigate to the <strong>Capability API</strong> component and select the <strong>Docs</strong> tab. The dashboard is located under the <strong>Governance</strong> section in the sidebar.</p>
+<hr />
+<h2 id="3-getting-started">3. Getting Started<a class="headerlink" href="#3-getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Node.js</strong>: Version 18 or 20.</li>
+<li><strong>Yarn</strong>: Classic (<code>1.x</code>).</li>
+<li><strong>Docker</strong>: Required for running TechDocs locally and some plugins.</li>
+</ul>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
+<p>If you don't have a Backstage instance, you can create a new one:
+<div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>npx<span class="w"> </span>@backstage/create-app@latest
+</code></pre></div></td></tr></table></div>
+Follow the prompts to name your app and select the database (SQLite is easiest for local testing).</p>
+<h3 id="configuring-this-repository">Configuring this Repository<a class="headerlink" href="#configuring-this-repository" title="Permanent link">&para;</a></h3>
+<p>To see the Capability API governance data in your Backstage instance, you need to register the root <code>catalog-info.yaml</code> file.</p>
+<ol>
+<li>
+<p><strong>Generate the Catalog</strong>:
+    <div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code>python3<span class="w"> </span>scripts/generate_catalog.py
+./scripts/verify-policy<span class="w"> </span>run
+</code></pre></div></td></tr></table></div></p>
+</li>
+<li>
+<p><strong>Register in Backstage (Local Development)</strong>:
+    Since the Backstage UI often blocks <code>file://</code> paths for security, the recommended way to register local files is by adding them to your <code>app-config.yaml</code>:</p>
+<div class="language-yaml highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span>
+<span class="normal">4</span>
+<span class="normal">5</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="c1"># In your Backstage project&#39;s app-config.yaml</span>
+<span class="nt">catalog</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">locations</span><span class="p">:</span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">file</span>
+<span class="w">      </span><span class="nt">target</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/absolute/path/to/capability_API/catalog-info.yaml</span>
+</code></pre></div></td></tr></table></div>
+</li>
+<li>
+<p><strong>Register in Backstage (Production)</strong>:
+    Once your code is pushed to a Git provider (GitHub, GitLab, etc.), you can use the URL to the file in the UI:
+    - Open Backstage (e.g., <code>http://localhost:3000</code>).
+    - Click <strong>Register Existing Component</strong>.
+    - Enter the URL: <code>https://github.com/your-org/capability_API/blob/main/catalog-info.yaml</code></p>
+</li>
+</ol>
+<h3 id="techdocs-setup">TechDocs Setup<a class="headerlink" href="#techdocs-setup" title="Permanent link">&para;</a></h3>
+<p>To view the verification reports locally, ensure you have the <code>mkdocs</code> and <code>mkdocs-techdocs-core</code> plugin installed, or use the Backstage CLI to preview:
+<div class="language-bash highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span></pre></div></td><td class="code"><div><pre><span></span><code>npx<span class="w"> </span>@backstage/cli<span class="w"> </span>techdocs-cli<span class="w"> </span>preview<span class="w"> </span>--storage-name<span class="w"> </span><span class="nb">local</span>
+</code></pre></div></td></tr></table></div></p>
+<hr />
+<h2 id="4-continuous-sync-cicd">4. Continuous Sync (CI/CD)<a class="headerlink" href="#4-continuous-sync-cicd" title="Permanent link">&para;</a></h2>
+<p>Governance visibility is enforced through our GitHub Actions workflows:
+- <strong>Sync Check</strong>: PRs are blocked if the catalog entities in <code>catalog/</code> are out of sync with <code>config/capabilities/index.yaml</code>.
+- <strong>Automatic Publishing</strong>: The verification report is regenerated and published to TechDocs on every merge to <code>main</code>.</p>
+<hr />
+<h2 id="developer-reference">Developer Reference<a class="headerlink" href="#developer-reference" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Root Configuration</strong>: <code>catalog-info.yaml</code> (Defines the Component, Systems, and Locations)</li>
+<li><strong>Generator Script</strong>: <code>scripts/generate_catalog.py</code></li>
+<li><strong>Verifier Script</strong>: <code>scripts/verify-policy</code></li>
+<li><strong>Templates</strong>: <code>scripts/templates/</code></li>
+<li><strong>TechDocs Home</strong>: <code>docs/index.md</code></li>
+<li><strong>TechDocs Output</strong>: <code>docs/policy-verification/latest.md</code></li>
+<li><strong>Configuration</strong>: <code>mkdocs.yml</code></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.footer", "content.action.edit"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../search/main.js"></script>
+      
+    
+  </body>
+</html>

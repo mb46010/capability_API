@@ -15219,6 +15219,8 @@ __metadata:
     "@types/react-dom": "npm:*"
     backstage-plugin-techdocs-addon-mermaid: "npm:^0.24.0"
     cross-env: "npm:^7.0.0"
+    marked: "npm:^17.0.1"
+    mermaid: "npm:^11.12.2"
     react: "npm:^18.0.2"
     react-dom: "npm:^18.0.2"
     react-router: "npm:^6.3.0"
@@ -25100,6 +25102,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "marked@npm:17.0.1"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/0197337aad33882308cea52d2c86d7b830a89be729a4010a26a488ae1c224cdc7520b8cce056832a81a127fc39a3827f45e3865c1ff257324cb553cb06ce0e57
+  languageName: node
+  linkType: hard
+
 "marked@npm:^4.0.14":
   version: 4.3.0
   resolution: "marked@npm:4.3.0"
@@ -25449,7 +25460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mermaid@npm:^11.6.0":
+"mermaid@npm:^11.12.2, mermaid@npm:^11.6.0":
   version: 11.12.2
   resolution: "mermaid@npm:11.12.2"
   dependencies:

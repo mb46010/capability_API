@@ -3,13 +3,13 @@ nav:
   - Overview: index.md
   - Onboarding: onboarding.md
   - Architecture: architecture.md
-  - Governance:
-      - Policy Verification: policy-verification/latest.md
+  - Governance: governance.md
+  - Policy Verification: policy-verification/latest.md
+  - Mermaid Test: test-mermaid.md
 plugins:
   - techdocs-core
 markdown_extensions:
   - pymdownx.superfences:
-      preserve_tabs: true
       custom_fences:
         - name: mermaid
           class: mermaid
