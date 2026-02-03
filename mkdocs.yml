@@ -6,6 +6,7 @@ nav:
   - Governance: governance.md
   - Policy Verification: policy-verification/latest.md
   - Mermaid Test: test-mermaid.md
+  - Mermaid & Kroki: mermaid-kroki.md
 plugins:
   - techdocs-core
   - kroki:

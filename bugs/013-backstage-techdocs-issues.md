@@ -1061,9 +1061,29 @@ This will determine which Phase 2 solution path to take.
 
 1.  **Dependency Fix**:
     - Identified that `marked` dependency was missing after adding `mermaid` to `packages/app`.
-    - Installed `marked` to resolve build errors.
 
-2.  **Manual Fix Implementation**:
+### Resolution - 2026-02-03
+
+**Status**: Resolved
+
+**Root Cause**:
+1.  **Client-Side Rendering**: The `backstage-plugin-techdocs-addon-mermaid` failed to render C4 diagrams properly (silent failure).
+2.  **Local Docker Issues**: The `yuzutech/kroki` and `yuzutech/kroki-mermaid` containers suffered from internal networking issues ("Connection refused: 127.0.0.1:8002" inside container), preventing local rendering.
+
+**Solution Implemented**:
+1.  **Server-Side Rendering**: Switched to **Kroki** (via `mkdocs-kroki-plugin`) for robust server-side processing.
+2.  **Public Instance**: Configured `mkdocs.yml` to use the public `https://kroki.io` instance, bypassing local Docker instability.
+3.  **Syntax Update**: Updated `docs/architecture.md` and `docs/test-mermaid.md` to use `kroki-mermaid` fence code blocks, which bypasses the default TechDocs mermaid processing and directs diagrams to Kroki.
+4.  **Configuration**:
+    -   `server_url`: `https://kroki.io`
+    -   `http_method`: `POST` (to prevent encoding errors)
+
+**Verification**:
+-   `mkdocs build` completes successfully.
+-   Diagrams are verified to render using the external Kroki service.
+
+**Note**: To use local Docker in the future, debug the internal container networking (port 8002 issue) or use a different image tag.
+
     - Modified `packages/app/src/App.tsx` to:
         - Import `mermaid` directly.
         - Expose `mermaid` to `window.mermaid` for manual debugging.
