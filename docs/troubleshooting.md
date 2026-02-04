@@ -24,12 +24,19 @@ Common issues encountered when working with the Capability API.
 ### 4. Invalid or missing X-Test-Secret
 - **Symptom**: `403 Forbidden` when calling `/auth/test/tokens` or `/auth/test/users`.
 - **Cause**: The `X-Test-Secret` header is missing or does not match the `MOCK_OKTA_TEST_SECRET` configuration.
-- **Solution**: Add `-H "X-Test-Secret: mock-okta-secret"` to your curl command, or check your `.env` file for the correct secret.
+- **Solution**: Add `-H "X-Test-Secret: <YOUR_MOCK_OKTA_TEST_SECRET>"` to your curl command, or check your `.env` file for the correct secret.
 
 ### 5. MCP Unauthorized: Invalid or malformed token
 - **Symptom**: MCP tools return `ERROR: UNAUTHORIZED: Invalid or malformed token`.
 - **Cause**: The MCP server now enforces full signature verification. Forged tokens (e.g., those signed with `HS256` and a static secret) are now rejected.
 - **Solution**: Ensure your client is sending a valid token issued by the `MockOktaProvider` (local) or real Okta (prod).
+
+### 6. MCP Unauthorized: Client ID mismatch
+- **Symptom**: `403 Forbidden` with detail `MCP-scoped tokens must originate from the authorized MCP client`.
+- **Cause**: The token has the `mcp:use` scope but its `cid` (Client ID) claim does not match the configured `MCP_CLIENT_ID`.
+- **Solution**: 
+    - Verify that `MCP_CLIENT_ID` in `.env` matches the client ID used by your Identity Provider (Okta) to issue the token.
+    - If running locally, ensure `MockOktaProvider` is initialized with the correct client ID (handled automatically in `src/api/dependencies.py`).
 
 ## Connector Issues
 

@@ -9,7 +9,7 @@ The MCP Server acts as an intermediary between the User (via Chainlit/UI) and th
 ## Security Benefits
 
 1.  **Blast Radius Reduction**: MCP-held tokens expire in 5 minutes.
-2.  **Scope Isolation**: Tokens with `mcp:use` scope cannot be used to call the Capability API directly (unless `acting_as` claim is present and validated, effectively binding it to the MCP server context).
+2.  **Scope Isolation**: Tokens with `mcp:use` scope cannot be used to call the Capability API directly unless they originate from the authorized MCP client (verified via `cid`/`azp` claim) and include the `X-Acting-Through: mcp-server` header.
 3.  **Provenance**: Audit logs show `acting_through: mcp-server` and link back to the original user token via `original_token_id`.
 4.  **Freshness**: Sensitive actions (e.g., payroll) enforce `max_auth_age_seconds` (Step-Up Auth).
 
@@ -26,9 +26,18 @@ sequenceDiagram
     MCP->>Okta: Exchange(User Token, scope=mcp:use)
     Okta->>MCP: MCP Token (5m)
     MCP->>API: Execute Action (MCP Token)
-    API->>Policy: Evaluate(scope=mcp:use)
+    API->>Policy: Evaluate(scope=mcp:use, cid=mcp-client)
     Policy->>API: Allow
     API->>MCP: Result
+```
+
+### Configuration
+
+The Capability API requires the following configuration to validate MCP tokens:
+
+```env
+# .env
+MCP_CLIENT_ID="mcp-server-client"  # Must match the 'cid' claim in exchanged tokens
 ```
 
 ### Policy Configuration
