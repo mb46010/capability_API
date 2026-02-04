@@ -82,6 +82,11 @@ To see the Capability API governance data in your Backstage instance, you need t
     - Enter the URL: `https://github.com/your-org/capability_API/blob/main/catalog-info.yaml`
 
 ### TechDocs Setup
+To build the documentation (including patches for C4 diagrams), use the provided script:
+```bash
+./scripts/make_docs.sh
+```
+
 To view the verification reports locally, ensure you have the `mkdocs` and `mkdocs-techdocs-core` plugin installed, or use the Backstage CLI to preview:
 ```bash
 npx @backstage/cli techdocs-cli preview --storage-name local

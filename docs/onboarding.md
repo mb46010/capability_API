@@ -61,7 +61,12 @@ If you modify the Capability Registry (`config/capabilities/index.yaml`), you mu
 python3 scripts/generate_catalog.py
 ```
 
-To view the local governance docs (requires MkDocs):
+To build and patch the documentation (fixes diagrams):
+```bash
+./scripts/make_docs.sh
+```
+
+To view the local governance docs:
 ```bash
 mkdocs serve
 ```
