@@ -19,7 +19,7 @@ from src.lib.config_validator import settings
 
 # Auth Dependencies
 if settings.ENVIRONMENT == "local":
-    provider = MockOktaProvider()
+    provider = MockOktaProvider(client_id=settings.MCP_CLIENT_ID)
     auth_config = AuthConfig.for_local_development()
     verifier = create_token_verifier(auth_config, mock_provider=provider)
 else:

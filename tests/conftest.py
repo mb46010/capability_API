@@ -1,6 +1,11 @@
 import pytest
 import os
 import shutil
+
+# Set dummy secret for tests before importing modules that trigger settings initialization
+if "MOCK_OKTA_TEST_SECRET" not in os.environ:
+    os.environ["MOCK_OKTA_TEST_SECRET"] = "test-secret-only-for-pytest"
+
 from src.adapters.filesystem.logger import JSONLLogger
 from src.adapters.workday.client import WorkdaySimulator
 from src.api.dependencies import provider

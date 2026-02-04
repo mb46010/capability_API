@@ -17,7 +17,8 @@ class AppSettings(BaseSettings):
     POLICY_PATH: str = Field(default="config/policy-workday.yaml", description="Path to the policy YAML file")
     CAPABILITY_REGISTRY_PATH: str = Field(default="config/capabilities/index.yaml", description="Path to the capability registry")
     AUDIT_LOG_PATH: str = Field(default="logs/audit.jsonl", description="Path to the audit log file")
-    MOCK_OKTA_TEST_SECRET: str = Field(default="mock-okta-secret", description="Secret key for Mock Okta test endpoints")
+    MOCK_OKTA_TEST_SECRET: str = Field(description="Secret key for Mock Okta test endpoints")
+    MCP_CLIENT_ID: str = Field(default="mcp-server-client", description="Authorized Client ID for MCP server")
     REQUEST_TIMEOUT_SECONDS: int = Field(default=30, description="Request timeout in seconds")
 
     @field_validator("POLICY_PATH", "CAPABILITY_REGISTRY_PATH")

@@ -98,11 +98,26 @@ class ActionService:
             if isinstance(scopes, str):
                 scopes = scopes.split(" ")
             
-            if "mcp:use" in scopes and not acting_through:
-                raise HTTPException(
-                    status_code=403,
-                    detail="MCP-scoped tokens cannot be used for direct API access"
-                )
+            if "mcp:use" in scopes:
+                # 1. Verify token origin via client ID claim (cid, azp, or client_id)
+                # We trust these claims because they are part of the verified JWT
+                token_client_id = token_claims.get("cid") or token_claims.get("azp") or token_claims.get("client_id")
+                
+                from src.lib.config_validator import settings
+                if token_client_id != settings.MCP_CLIENT_ID:
+                    logger.warning(f"Blocking unauthorized direct access: Token has 'mcp:use' but client ID '{token_client_id}' does not match authorized MCP client ID.")
+                    raise HTTPException(
+                        status_code=403,
+                        detail="MCP-scoped tokens must originate from the authorized MCP client"
+                    )
+
+                # 2. Also require the header for consistency and audit visibility,
+                # though it's no longer the primary security mechanism.
+                if not acting_through:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="MCP-scoped tokens cannot be used for direct API access"
+                    )
         else:
             scopes = []
 
