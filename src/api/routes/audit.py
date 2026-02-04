@@ -1,6 +1,7 @@
 import json
 import os
 from pathlib import Path
+from collections import deque
 from fastapi import APIRouter, Depends, HTTPException
 from src.api.dependencies import get_current_principal
 from src.adapters.auth import VerifiedPrincipal
@@ -9,6 +10,7 @@ router = APIRouter(prefix="/audit", tags=["audit"])
 
 # Define default log path
 DEFAULT_LOG_PATH = Path("logs/audit.jsonl")
+MAX_AUDIT_LOG_LIMIT = 500
 
 @router.get("/recent")
 async def get_recent_audit_logs(
@@ -25,16 +27,23 @@ async def get_recent_audit_logs(
             "note": "Log file not found",
         }
 
-    # Read last N lines from audit.jsonl
+    # Enforce maximum limit
+    safe_limit = max(1, min(limit, MAX_AUDIT_LOG_LIMIT))
+
+    # Read last N lines from audit.jsonl efficiently
     logs = []
     try:
         with open(DEFAULT_LOG_PATH, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-            for line in lines[-limit:]:
+            # deque with maxlen efficiently keeps only the last N items
+            tail = deque(f, maxlen=safe_limit)
+            for line in tail:
                 if line.strip():
                     logs.append(json.loads(line))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error reading logs: {str(e)}")
+
+    # Reverse to show most recent first (last lines are most recent in jsonl)
+    logs.reverse()
 
     return {
         "count": len(logs),
