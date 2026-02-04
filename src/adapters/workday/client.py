@@ -73,12 +73,16 @@ class WorkdaySimulator(ConnectorPort):
 
         # Idempotency Check
         idempotency_key = parameters.get("idempotency_key")
+        principal_id = parameters.get("principal_id", "unknown")
         is_write = any(kw in action for kw in ["update", "terminate", "request", "approve", "cancel"])
         
-        if idempotency_key and is_write:
-            cached_result = self._get_cached(idempotency_key)
+        # Scope cache key to avoid collisions across actions or principals
+        scoped_key = f"{principal_id}:{action}:{idempotency_key}" if idempotency_key else None
+        
+        if scoped_key and is_write:
+            cached_result = self._get_cached(scoped_key)
             if cached_result is not None:
-                logger.info(f"Idempotent hit for key {idempotency_key}. Returning cached result.")
+                logger.info(f"Idempotent hit for key {scoped_key}. Returning cached result.")
                 return cached_result
 
         # 1. Failure Injection
@@ -123,13 +127,13 @@ class WorkdaySimulator(ConnectorPort):
             self.audit_logger.log_event(
                 event_type=action,
                 payload=parameters, # We log the inputs
-                actor=parameters.get("principal_id", "unknown"), # Assuming passed in params or context
+                actor=principal_id,
                 token_claims=token_claims
             )
 
             # Cache result if idempotency key provided
-            if idempotency_key and is_write:
-                self._set_cached(idempotency_key, result)
+            if scoped_key and is_write:
+                self._set_cached(scoped_key, result)
             
             return result
         except Exception as e:

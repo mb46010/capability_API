@@ -34,9 +34,17 @@ All actions follow a standard POST pattern to `/actions/{domain}/{action}`.
 ```bash
 curl -X POST http://localhost:8000/actions/workday.hcm/get_employee \
   -H "Authorization: Bearer <YOUR_TOKEN_HERE>" \
+  -H "X-Idempotency-Key: <UNIQUE_KEY>" \
   -H "Content-Type: application/json" \
   -d '{"parameters": {"employee_id": "EMP001"}}'
 ```
+
+### 3. Idempotency
+
+For write operations (like `update`, `request`, `approve`), you should provide an `X-Idempotency-Key` header. 
+- If the request succeeds, the result is cached for a configurable duration.
+- Subsequent requests with the same key, action, and principal will return the cached result instead of re-executing the operation.
+- The cache key is scoped to the `principal_id` and the `action` to prevent cross-user or cross-action collisions.
 
 ## Advanced Authentication (MFA)
 

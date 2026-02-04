@@ -25,7 +25,15 @@ Unlike a stateless proxy, this simulator maintains a **mutable in-memory state**
 
 ## Simulation Features
 
-### 1. Latency Injection
+### 1. Idempotency Cache
+The simulator maintains an internal cache to deduplicate write operations.
+- **Key Scoping**: Cache keys are formed as `{principal_id}:{action}:{idempotency_key}`. This ensures that:
+    - Reusing a key for a different action (e.g., `update` vs `terminate`) results in a new execution.
+    - Different principals using the same key do not collide.
+- **Eviction Strategy**: Uses an `OrderedDict`-based LRU (Least Recently Used) cache.
+- **Expiration**: Entries have a configurable TTL (Time-To-Live) and are cleaned up periodically or when the cache reaches its maximum size.
+
+### 2. Latency Injection
 The simulator calculates a delay for every operation based on the `WorkdaySimulationConfig`:
 - **Base Latency**: 50ms (default).
 - **Variance**: +/- 50ms.

@@ -10,8 +10,9 @@ Our platform implements security at **three layers**:
 - **Example**: AI agents cannot access `workday.payroll.*` capabilities even at the MCP level.
 
 ### Layer 2: Service-Level Validation
-- **What**: Each business service validates its specific constraints
-- **Why**: Context-aware checks (e.g., "managers can only approve their direct reports")
+- **What**: Each business service validates its specific constraints.
+- **Why**: Context-aware checks (e.g., "managers can only approve their direct reports").
+- **Idempotency Scoping**: Write operations are deduplicated using a key scoped to the specific `(Principal, Action, Key)` tuple. This prevents "cross-talk" where a user could receive cached data from another user's request by providing the same idempotency key.
 - **Defense in Depth**: Sensitive operations (Compensation, Time-Off Approval) perform explicit MFA verification in the service layer, providing a secondary safety net if policies are misconfigured.
 
 ### Layer 3: Data Filtering

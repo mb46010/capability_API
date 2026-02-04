@@ -28,7 +28,8 @@ The MCP Server acts as a secure, role-governed gateway between AI models (client
 
 ### 4. Idempotency
 - **Write Actions**: Automatically generate a `TXN-` prefixed UUID if the client does not provide a transaction ID.
-- **Consistency**: Relies on backend optimistic concurrency.
+- **Scoping**: The backend scopes idempotency keys to the principal and action, ensuring that unique transactions are handled correctly even if keys are reused across different contexts.
+- **Consistency**: Relies on backend optimistic concurrency and the simulator's internal cache.
 
 ## 📂 File Structure
 - `server.py`: FastMCP entry point and tool registration.

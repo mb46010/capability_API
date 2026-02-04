@@ -52,14 +52,14 @@ async def test_idempotency_cache_eviction_lru(simulator):
     await simulator.execute("workday.hcm.update_employee", {"idempotency_key": "key-3"})
     
     assert len(simulator._idempotency_cache) == 3
-    assert "key-1" in simulator._idempotency_cache
+    assert "unknown:workday.hcm.update_employee:key-1" in simulator._idempotency_cache
     
     # Add one more, should evict key-1 (the oldest)
     await simulator.execute("workday.hcm.update_employee", {"idempotency_key": "key-4"})
     
     assert len(simulator._idempotency_cache) == 3
-    assert "key-1" not in simulator._idempotency_cache
-    assert "key-4" in simulator._idempotency_cache
+    assert "unknown:workday.hcm.update_employee:key-1" not in simulator._idempotency_cache
+    assert "unknown:workday.hcm.update_employee:key-4" in simulator._idempotency_cache
 
 @pytest.mark.asyncio
 async def test_idempotency_cache_ttl(simulator):
@@ -68,15 +68,15 @@ async def test_idempotency_cache_ttl(simulator):
     
     # Set entry with TTL=1
     await simulator.execute("workday.hcm.update_employee", {"idempotency_key": "key-1"})
-    assert "key-1" in simulator._idempotency_cache
+    assert "unknown:workday.hcm.update_employee:key-1" in simulator._idempotency_cache
     
     # Wait for expiration
     await asyncio.sleep(1.1)
     
     # Should not be in cache anymore when trying to get it
-    cached = simulator._get_cached("key-1")
+    cached = simulator._get_cached("unknown:workday.hcm.update_employee:key-1")
     assert cached is None
-    assert "key-1" not in simulator._idempotency_cache
+    assert "unknown:workday.hcm.update_employee:key-1" not in simulator._idempotency_cache
 
 @pytest.mark.asyncio
 async def test_idempotency_only_on_write_ops(simulator):

@@ -20,6 +20,11 @@ Centralized logic for:
 - Authorization (Policy Engine injection)
 - Infrastructure Ports (Connectors, Flow Runners)
 
+### 3. Idempotency (`X-Idempotency-Key`)
+The API supports request deduplication via the `X-Idempotency-Key` header.
+- **Scope**: Deduplication is scoped to the tuple of `(Principal, Action, IdempotencyKey)`. This prevents "key theft" where one user's key could accidentally trigger a cached response for another user's different action.
+- **Handling**: The `ActionService` passes the key down to the adapters. In the Workday Simulator, this is managed by an LRU cache with TTL eviction.
+
 ## Execution Flow
 
 1.  **Request**: Client sends POST to `/actions/{domain}/{action}`.
