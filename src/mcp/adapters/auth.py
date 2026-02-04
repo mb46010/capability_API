@@ -17,8 +17,8 @@ from src.adapters.auth import (
 logger = logging.getLogger(__name__)
 
 # Token Cache: Key = user_token_signature, Value = mcp_token
-# maxsize=5000, ttl=300 seconds (5 minutes)
-_mcp_token_cache: TTLCache = TTLCache(maxsize=5000, ttl=300)
+# maxsize=5000, ttl=240 seconds (4 minutes)
+_mcp_token_cache: TTLCache = TTLCache(maxsize=5000, ttl=240)
 _cache_lock = threading.Lock()
 
 # Global verifier instance

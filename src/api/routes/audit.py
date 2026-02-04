@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from src.api.dependencies import get_current_principal
 from src.adapters.auth import VerifiedPrincipal
 
+from src.lib.config_validator import settings
+
 router = APIRouter(prefix="/audit", tags=["audit"])
 
-# Define default log path
-DEFAULT_LOG_PATH = Path("logs/audit.jsonl")
 MAX_AUDIT_LOG_LIMIT = 500
 
 @router.get("/recent")
@@ -20,11 +20,12 @@ async def get_recent_audit_logs(
     if not principal.has_group("hr-platform-admins"):
         raise HTTPException(status_code=403, detail="Admin access required")
 
-    if not DEFAULT_LOG_PATH.exists():
+    log_path = Path(settings.AUDIT_LOG_PATH)
+    if not log_path.exists():
         return {
             "count": 0,
             "events": [],
-            "note": "Log file not found",
+            "note": f"Log file not found at {log_path}",
         }
 
     # Enforce maximum limit
@@ -33,7 +34,7 @@ async def get_recent_audit_logs(
     # Read last N lines from audit.jsonl efficiently
     logs = []
     try:
-        with open(DEFAULT_LOG_PATH, "r", encoding="utf-8") as f:
+        with open(log_path, "r", encoding="utf-8") as f:
             # deque with maxlen efficiently keeps only the last N items
             tail = deque(f, maxlen=safe_limit)
             for line in tail:

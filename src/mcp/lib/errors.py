@@ -37,4 +37,4 @@ def map_backend_error(e: Exception) -> str:
         return "SERVICE_UNAVAILABLE: Could not connect to the HR backend. Please check if the Capability API is running."
 
     logger.error(f"Unhandled error: {str(e)}")
-    return f"INTERNAL_ERROR: {str(e)}"
+    return "INTERNAL_ERROR: An unexpected error occurred."

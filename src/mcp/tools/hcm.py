@@ -1,4 +1,5 @@
 import logging
+import uuid
 from typing import Dict, Any, Optional
 from src.mcp.lib.decorators import mcp_tool
 
@@ -20,9 +21,11 @@ def get_org_chart(root_id: str, depth: int = 2) -> dict:
     return {"root_id": root_id, "depth": depth}
 
 @mcp_tool(domain="workday.hcm", action="update_contact_info")
-def update_contact_info(employee_id: str, updates: dict) -> dict:
+def update_contact_info(employee_id: str, updates: dict, transaction_id: Optional[str] = None) -> dict:
     """Update employee contact information (Personal Email, Phone). Enabled for AGENTS (No MFA)."""
-    return {"employee_id": employee_id, "updates": updates}
+    if not transaction_id:
+        transaction_id = f"TXN-{uuid.uuid4().hex[:8].upper()}"
+    return {"employee_id": employee_id, "updates": updates, "transaction_id": transaction_id}
 
 @mcp_tool(domain="workday.hcm", action="list_direct_reports")
 def list_direct_reports(manager_id: str) -> dict:

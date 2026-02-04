@@ -5,7 +5,9 @@ from src.mcp.lib.config import settings
 from src.mcp.tools import hcm, time, payroll, discovery
 from src.mcp.adapters.auth import get_token_from_context, extract_principal, is_tool_allowed
 
-# ... (init code)
+# Initialize FastMCP server
+mcp = FastMCP("hr-mcp-server")
+setup_logging()
 
 @mcp.resource("mcp://tools/list")
 @mcp.tool()
@@ -39,9 +41,9 @@ async def list_direct_reports(ctx: Context, manager_id: str) -> str:
     return await hcm.list_direct_reports(ctx, manager_id)
 
 @mcp.tool()
-async def update_contact_info(ctx: Context, employee_id: str, updates: dict) -> str:
+async def update_contact_info(ctx: Context, employee_id: str, updates: dict, transaction_id: str = None) -> str:
     """Update employee contact information (Personal Email, Phone). Enabled for AGENTS (No MFA)."""
-    return await hcm.update_contact_info(ctx, employee_id, updates)
+    return await hcm.update_contact_info(ctx, employee_id, updates, transaction_id)
 
 # --- Time Tools ---
 

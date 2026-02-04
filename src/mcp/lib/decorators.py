@@ -34,7 +34,7 @@ def mcp_tool(domain: str, action: str, tool_name: Optional[str] = None, require_
             principal_id = principal.subject
             
             # 2. MFA Enforcement (FR-005)
-            if require_mfa and not principal.mfa_verified and principal.principal_type != "MACHINE":
+            if require_mfa and not principal.mfa_verified and principal.principal_type != "AI_AGENT":
                 return "ERROR: MFA_REQUIRED: This action requires multi-factor authentication."
 
             # 3. Parameter Preparation
@@ -62,8 +62,22 @@ def mcp_tool(domain: str, action: str, tool_name: Optional[str] = None, require_
                 )
 
                 # 6. Audit Success
-                audit_logger.log(effective_tool_name, parameters, principal_id)
-                return str(response.get("data", {}))
+                response_data = response.get("data", {})
+                
+                # Determine log payload based on sensitivity
+                # Log full payload (req+resp) for Payroll or Write actions
+                is_sensitive = (
+                    domain == "workday.payroll" or 
+                    action.startswith(("request", "update", "cancel", "approve"))
+                )
+                
+                if is_sensitive:
+                    log_payload = {"request": parameters, "response": response_data}
+                else:
+                    log_payload = parameters
+
+                audit_logger.log(effective_tool_name, log_payload, principal_id)
+                return str(response_data)
 
             except Exception as e:
                 # 7. Audit Failure & Error Mapping

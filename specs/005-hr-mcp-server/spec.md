@@ -44,7 +44,7 @@
 
 - **FR-001 (HCM Tools)**: System MUST provide 5 tools: `get_employee`, `get_manager_chain`, `list_direct_reports` (manager-only), `get_org_chart`, and `update_contact_info`.
 - **FR-002 (Time Tools)**: System MUST provide 4 tools: `get_pto_balance`, `request_time_off`, `cancel_time_off`, and `approve_time_off` (manager-only).
-- **FR-003 (Payroll Tools)**: System MUST provide 2 tools: `get_compensation` (MFA required) and `get_pay_statement` (MFA required).
+- **FR-003 (Payroll Tools)**: System MUST provide 3 tools: `get_compensation` (MFA required), `get_pay_statement` (MFA required), and `list_pay_statements` (MFA required).
 - **FR-004 (RBAC)**: System MUST enforce dynamic tool visibility during tool discovery: Admin (11 tools), Employee (8 tools), AI Agent (5 tools: `get_employee`, `get_manager_chain`, `get_org_chart`, `update_contact_info`, `get_pto_balance`).
 - **FR-005 (MFA)**: System MUST enforce `require_mfa: true` for all payroll domain tools.
 - **FR-006 (Filtering)**: System MUST rely on the backend (Capability API) to dynamically filter tool output based on the principal's type (e.g., redact PII for AI Agents).
