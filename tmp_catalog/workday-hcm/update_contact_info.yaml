@@ -1,0 +1,42 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.update_contact_info
+  title: Update Contact Information
+  description: ""
+  tags:
+    - write
+    - hcm
+    - self-service
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, employee-contact-update, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Update Contact Information
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Update Contact Information
+          operationId: workday_hcm_update_contact_info
+          tags:
+            - write
+            - hcm
+            - self-service
+          responses:
+            '200':
+              description: Successful operation

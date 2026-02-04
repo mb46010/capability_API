@@ -1,0 +1,42 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.list_pay_statements
+  title: List Pay Statements
+  description: ""
+  tags:
+    - read-only
+    - payroll
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: List Pay Statements
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: List Pay Statements
+          operationId: workday_payroll_list_pay_statements
+          tags:
+            - read-only
+            - payroll
+            - mfa-required
+          responses:
+            '200':
+              description: Successful operation

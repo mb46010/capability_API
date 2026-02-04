@@ -28,6 +28,8 @@ jobs:
       
       - name: Run policy verification
         id: verify
+        env:
+          MOCK_OKTA_TEST_SECRET: ci-test-secret
         run: |
           ./scripts/verify-policy run --format junit > test-results.xml
         continue-on-error: true

@@ -18,7 +18,7 @@ Identity verification and token management for the Capability API. This module p
 - MUST NOT store real credentials.
 - Issued tokens SHOULD match the structure of real Okta OIDC tokens.
 - Verifier MUST extract `principal_type` and `groups` for policy evaluation.
-- Test endpoints (`/test/tokens`, `/test/users`) MUST require the `X-Test-Secret` header, configured via `MOCK_OKTA_TEST_SECRET`.
+- Test endpoints (`/test/tokens`, `/test/users`) MUST require the `X-Test-Secret` header, configured via `MOCK_OKTA_TEST_SECRET` (REQUIRED, no default).
 
 ## Policy Schema
 

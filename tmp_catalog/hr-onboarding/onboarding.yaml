@@ -1,0 +1,40 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: hr.onboarding
+  title: Employee Onboarding Flow
+  description: ""
+  tags:
+    - workflow
+    - onboarding
+  annotations:
+    capability-api/domain: hr
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, onboarding-workflow-flow
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: hr-misc
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Employee Onboarding Flow
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Employee Onboarding Flow
+          operationId: hr_onboarding
+          tags:
+            - workflow
+            - onboarding
+          responses:
+            '200':
+              description: Successful operation

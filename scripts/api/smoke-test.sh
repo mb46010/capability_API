@@ -51,7 +51,7 @@ run_smoke_test() {
     local TOKEN_JSON
     TOKEN_JSON=$(curl -s -X POST "$AUTH_URL/test/tokens" \
       -H "Content-Type: application/json" \
-      -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+      -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET}" \
       -d '{"subject": "EMP001", "principal_type": "HUMAN", "groups": ["employees"], "additional_claims": {"amr": ["mfa"]}}' 2>/dev/null)
 
     if [ -z "$TOKEN_JSON" ]; then

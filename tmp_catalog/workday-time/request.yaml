@@ -1,0 +1,40 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.request
+  title: Request Time Off
+  description: ""
+  tags:
+    - write
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-assistant-time-request, employee-time-self-service, hr-staff-time-management, local-dev-extended-access
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Request Time Off
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Request Time Off
+          operationId: workday_time_request
+          tags:
+            - write
+            - time-off
+          responses:
+            '200':
+              description: Successful operation

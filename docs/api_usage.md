@@ -45,6 +45,6 @@ For actions requiring MFA (like `get_compensation` or `approve` time-off), your 
 ```bash
 curl -X POST http://localhost:8000/auth/test/tokens \
   -H "Content-Type: application/json" \
-  -H "X-Test-Secret: mock-okta-secret" \
+  -H "X-Test-Secret: <YOUR_MOCK_OKTA_TEST_SECRET>" \
   -d '{ "subject": "admin@local.test", "additional_claims": { "amr": ["mfa", "pwd"] } }'
 ```

@@ -1,0 +1,40 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.hcm.update_employee
+  title: Update Employee Profile
+  description: ""
+  tags:
+    - write
+    - hcm
+  annotations:
+    capability-api/domain: workday.hcm
+    capability-api/sensitivity: high
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, hr-staff-employee-update, local-dev-extended-access, onboarding-workflow-update
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-hcm
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Update Employee Profile
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Update Employee Profile
+          operationId: workday_hcm_update_employee
+          tags:
+            - write
+            - hcm
+          responses:
+            '200':
+              description: Successful operation

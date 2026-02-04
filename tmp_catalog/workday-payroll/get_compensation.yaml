@@ -1,0 +1,44 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.payroll.get_compensation
+  title: Get Compensation Details
+  description: ""
+  tags:
+    - read-only
+    - payroll
+    - pii
+    - mfa-required
+  annotations:
+    capability-api/domain: workday.payroll
+    capability-api/sensitivity: critical
+    capability-api/requires-mfa: "true"
+    capability-api/governed-by: admin-full-access, employee-payroll-read, hr-staff-payroll-read, local-dev-extended-access, payroll-sync-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-payroll
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: Get Compensation Details
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: Get Compensation Details
+          operationId: workday_payroll_get_compensation
+          tags:
+            - read-only
+            - payroll
+            - pii
+            - mfa-required
+          responses:
+            '200':
+              description: Successful operation

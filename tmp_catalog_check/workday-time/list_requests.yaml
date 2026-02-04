@@ -1,0 +1,40 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: workday.time.list_requests
+  title: List Time Off Requests
+  description: ""
+  tags:
+    - read-only
+    - time-off
+  annotations:
+    capability-api/domain: workday.time
+    capability-api/sensitivity: medium
+    capability-api/requires-mfa: "false"
+    capability-api/governed-by: admin-full-access, ai-analyst-time-read, ai-assistant-time-read, employee-time-self-service, hr-staff-time-management, local-dev-extended-access, manager-time-approval, reporting-service-time-read
+  links:
+    - title: Policy Verification
+      url: http://localhost:3000/docs/default/component/capability-api/governance
+      icon: dashboard
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: workday-time
+  definition: |
+    openapi: 3.0.0
+    info:
+      title: List Time Off Requests
+      description: 
+      version: 1.0.0
+    paths:
+      /{action}:
+        post:
+          summary: List Time Off Requests
+          operationId: workday_time_list_requests
+          tags:
+            - read-only
+            - time-off
+          responses:
+            '200':
+              description: Successful operation

@@ -24,7 +24,7 @@ echo "------------------------------------------------------------"
 
 AGENT_TOKEN=$(curl -s -X POST "$AUTH_URL/test/tokens" \
   -H "Content-Type: application/json" \
-  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET}" \
   -d '{"subject": "agent-assistant@local.test", "principal_type": "AI_AGENT"}' | jq -r .access_token)
 
 echo "Response for AI Agent:"
@@ -44,7 +44,7 @@ echo "------------------------------------------------------------"
 
 USER_TOKEN=$(curl -s -X POST "$AUTH_URL/test/tokens" \
   -H "Content-Type: application/json" \
-  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET}" \
   -d '{"subject": "EMP001", "principal_type": "HUMAN", "groups": ["employees"]}' | jq -r .access_token)
 
 echo "Attempt WITHOUT MFA:"
@@ -57,7 +57,7 @@ echo ""
 echo "Attempt WITH MFA:"
 MFA_TOKEN=$(curl -s -X POST "$AUTH_URL/test/tokens" \
   -H "Content-Type: application/json" \
-  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET}" \
   -d '{"subject": "EMP001", "principal_type": "HUMAN", "groups": ["employees"], "additional_claims": {"amr": ["mfa", "pwd"]}}' | jq -r .access_token)
 
 curl -s -X POST "$API_URL/actions/workday.payroll/get_compensation" \

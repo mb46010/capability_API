@@ -37,7 +37,7 @@ esac
 # Use the test token endpoint for ease of claim injection
 TOKEN=$(curl -s -X POST "$BASE_URL/test/tokens" \
   -H "Content-Type: application/json" \
-  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET:-mock-okta-secret}" \
+  -H "X-Test-Secret: ${MOCK_OKTA_TEST_SECRET}" \
   -d "{
     \"subject\": \"$SUB\",
     \"groups\": $TEST_GROUPS,
