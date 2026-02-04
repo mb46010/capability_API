@@ -13,6 +13,7 @@ The API layer is the public surface of the HR AI Platform. It is designed to be 
 ### 1. Routes (`/routes`)
 - **Actions**: Atomic, synchronous HR operations (e.g., `get_employee`, `request_time_off`).
 - **Flows**: Triggers for multi-step HR processes (e.g., `onboarding`).
+- **Audit**: Administrative endpoints for inspecting platform events (e.g., `/audit/recent`).
 
 ### 2. Dependencies (`dependencies.py`)
 Centralized logic for:

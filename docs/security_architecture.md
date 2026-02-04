@@ -30,7 +30,26 @@ Every action generates a log entry with:
 - What policy granted access
 - PII automatically redacted
 
-## MFA Enforcement
+### Accessing Audit Logs
+
+#### API Access
+Administrators (members of the `hr-platform-admins` group) can view recent audit events via the API:
+
+```http
+GET /audit/recent?limit=100
+Authorization: Bearer <ADMIN_TOKEN>
+```
+
+- **Query Parameter**: `limit` (default: 20, max: 500).
+- **Performance**: This endpoint uses memory-efficient tailing to read only the requested number of lines, ensuring stability even as log files grow large.
+- **Ordering**: Results are returned in reverse-chronological order (most recent first).
+
+#### Direct Access
+For system-level auditing, logs are stored in JSONL format:
+
+```bash
+tail -f logs/audit.jsonl | jq .
+```
 
 High-sensitivity operations require Multi-Factor Authentication:
 - ✓ Viewing compensation data
