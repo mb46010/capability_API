@@ -10,7 +10,7 @@ This server exposes 11 core HR tools categorized by domain.
 | `get_manager_chain`| `employee_id` | ALL | Get reporting line hierarchy. |
 | `get_org_chart` | `root_id`, `depth` | ALL | View organizational structure. |
 | `list_direct_reports`| `manager_id` | ADMIN | List all subordinates for a manager. |
-| `update_contact_info`| `employee_id`, `updates`| ALL | Update personal email/phone. |
+| `update_contact_info`| `employee_id`, `updates`, `transaction_id`?| ALL | Update personal email/phone. |
 
 ## Time Domain (Time & Attendance)
 
