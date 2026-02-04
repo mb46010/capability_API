@@ -1,0 +1,19 @@
+C4Context
+  title System Context diagram for Capability API
+
+  Person(agent, "AI Agent", "Automated reasoning engine requesting HR actions")
+  Person(admin, "HR Admin", "Human user managing policies and workflows")
+
+  System(capapi, "Capability API", "Governed surface exposing deterministic actions and flows")
+  System(backstage, "Backstage", "Governance lens and catalog")
+
+  System_Ext(workday, "Workday", "Core HRIS containing employee and payroll records")
+  System_Ext(okta, "Okta", "Identity Provider for OIDC authentication")
+
+  Rel(agent, capapi, "Invokes Actions/Flows", "HTTPS/JSON + JWT")
+  Rel(admin, capapi, "Manages Policies", "YAML/CLI")
+  Rel(admin, backstage, "Inspects Governance", "HTTPS/Web")
+  Rel(capapi, workday, "Reads/Writes Employee Data", "REST API/OAuth2")
+  Rel(capapi, okta, "Validates Tokens", "JWKS endpoint")
+
+  UpdateRelStyle(agent, capapi, $textColor="blue", $lineColor="blue")

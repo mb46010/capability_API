@@ -1,0 +1,34 @@
+C4Container
+  title Container diagram for Capability API
+  
+  Container_Boundary(api_boundary, "API Layer") {
+    Container(routes, "API Routes", "FastAPI", "Request handling and Auth injection")
+  }
+
+  Container_Boundary(core_boundary, "Protected Domain Core") {
+    Container(action_service, "Action Service", "Python", "Policy evaluation and action routing")
+    Container(flow_service, "Flow Service", "Python", "Workflow orchestration")
+    Container(policy_engine, "Policy Engine", "Python", "Capability-based authorization logic")
+  }
+
+  Container_Boundary(adapter_boundary, "Implementation Adapters") {
+    Container(workday_adapter, "Workday Adapter", "Python", "Simulated or Real Workday connector")
+    Container(auth_adapter, "Auth Adapter", "Python", "Token verification logic")
+    Container(fs_adapter, "Filesystem Adapter", "Python", "Local storage for policies and flows")
+    Container(mcp_server, "HR MCP Server", "FastMCP 3.0", "AI-agent gateway with RBAC")
+  }
+
+  Container(backstage, "Backstage", "Backstage.io", "Visualizes catalog and verification reports")
+
+  Rel(mcp_server, routes, "Invokes", "HTTPS/JSON")
+
+  Rel(routes, action_service, "Calls", "Internal")
+  Rel(routes, flow_service, "Calls", "Internal")
+  
+  Rel(action_service, policy_engine, "Uses", "Logic")
+  
+  Rel(action_service, workday_adapter, "Uses", "Connector Port")
+  Rel(flow_service, fs_adapter, "Uses", "Flow Runner Port")
+  Rel(routes, auth_adapter, "Uses", "Token Verifier Port")
+
+  Rel(backstage, fs_adapter, "Reads catalog-info.yaml", "Static Files")
